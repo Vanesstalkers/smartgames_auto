@@ -1,0 +1,18 @@
+[submodule "store"]
+	path = application/lib/store
+	url = https://github.com/Vanesstalkers/smartgames_lib_store.git
+[submodule "chat"]
+	path = application/lib/chat
+	url = https://github.com/Vanesstalkers/smartgames_lib_chat.git
+[submodule "game"]
+	path = application/lib/game
+	url = https://github.com/Vanesstalkers/smartgames_lib_game.git
+[submodule "helper"]
+	path = application/lib/helper
+	url = https://github.com/Vanesstalkers/smartgames_lib_helper.git
+[submodule "user"]
+	path = application/lib/user
+	url = https://github.com/Vanesstalkers/smartgames_lib_user.git
+[submodule "application/lib/lobby"]
+	path = application/lib/lobby
+	url = https://github.com/Vanesstalkers/smartgames_lib_lobby.git

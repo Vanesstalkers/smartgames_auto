@@ -1,0 +1,1 @@
+async (key) => await db.redis.client.flushDb();
