@@ -22,7 +22,7 @@
       });
 
     user.subscribe(`user-${userId}`); // user в лобби
-    
+
     const sessionId = session.id();
     session.set({ lobbyId });
 
