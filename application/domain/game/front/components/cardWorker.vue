@@ -12,12 +12,16 @@
     :style="customStyle"
     @click="controlAction"
   >
+    <div class="money">{{ new Intl.NumberFormat().format(player.money || 0) }}₽</div>
     <div v-if="showEndRoundBtn" class="action-btn end-round-btn">Закончить раунд</div>
-    <div v-if="player.active && player.timerEndTime && game.status != 'WAIT_FOR_PLAYERS'" class="end-round-timer">
+    <div v-if="showTimer" class="end-round-timer">
       {{ this.localTimer }}
     </div>
-    <div v-if="!iam" class="card-event">
-      {{ cardDeckCount }}
+    <div v-if="!iam" class="car-deck card-event">
+      {{ carDeckCount }}
+    </div>
+    <div v-if="!iam" class="service-deck card-event">
+      {{ serviceDeckCount }}
     </div>
     <div v-if="showLeaveBtn" class="action-btn leave-game-btn">Выйти из игры</div>
   </div>
@@ -78,28 +82,38 @@ export default {
     customStyle() {
       const style = {};
       const gender = this.userData.gender;
-      
+
       const defaultImage = `_default/${gender}_empty`;
       const avatarCode = this.userData.avatarCode || this.player.avatarsMap?.[gender] || defaultImage;
-      
+
       style.backgroundImage = `url(${this.state.lobbyOrigin}/img/workers/${avatarCode}.png)`;
-      
+
       return style;
     },
     choiceEnabled() {
       return this.sessionPlayerIsActive() && this.player.activeEvent?.choiceEnabled;
     },
-    cardDeckCount() {
-      return (
-        Object.keys(
-          Object.keys(this.player.deckMap || {})
-            .map((id) => this.store.deck?.[id] || {})
-            .filter((deck) => deck.type === 'card' && !deck.subtype)[0]?.itemMap || {}
-        ).length || 0
-      );
+    playerDecks() {
+      return Object.keys(this.player.deckMap || {}).map((id) => this.store.deck?.[id] || {});
+    },
+    carDeckCount() {
+      const deck = this.playerDecks.find(({ subtype }) => subtype === 'car');
+      return Object.keys(deck?.itemMap || {}).length || 0;
+    },
+    serviceDeckCount() {
+      const deck = this.playerDecks.find(({ subtype }) => subtype === 'service');
+      return Object.keys(deck?.itemMap || {}).length || 0;
     },
     showEndRoundBtn() {
-      return this.showControls && this.iam && this.sessionPlayerIsActive();
+      return this.showControls && this.iam && this.sessionPlayerIsActive() && !this.player.activeReady;
+    },
+    showTimer() {
+      return (
+        this.player.active &&
+        !this.player.activeReady &&
+        this.player.timerEndTime &&
+        this.game.status != 'WAIT_FOR_PLAYERS'
+      );
     },
     showLeaveBtn() {
       return (this.game.status === 'FINISHED' && this.iam) || this.viewerId;
@@ -130,7 +144,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .card-worker {
   position: relative;
   border: 1px solid;
@@ -143,6 +157,15 @@ export default {
   border-radius: 10px;
   margin: 0px 0px 0px 5px;
   box-shadow: inset 0px 20px 20px 0px black;
+  .money {
+    position: absolute;
+    top: 0px;
+    width: 100%;
+    font-size: 20px;
+    font-weight: bold;
+    color: #f4e205;
+    padding-top: 4px;
+  }
 }
 .card-worker.has-action {
   cursor: pointer;
@@ -154,23 +177,28 @@ export default {
   outline: 4px solid green;
 }
 
-.card-worker .card-event {
-  position: absolute;
-  bottom: 0px;
-  left: 0px;
-  width: 60px;
-  height: 90px;
-  color: white;
-  border: none;
-  font-size: 36px;
-  display: flex;
-  justify-content: center;
-  align-content: center;
-  background-image: url(../assets/back-side.jpg);
-}
-#game.mobile-view.portrait-view .card-worker .card-event {
-  left: auto;
-  right: 0px;
+.card-worker {
+  .card-event {
+    position: absolute;
+    bottom: 0px;
+    width: 48px;
+    height: 72px;
+    color: white;
+    border: none;
+    font-size: 36px;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+
+    &.car-deck {
+      left: 0px;
+      background-image: url(../assets/car-back-side.png);
+    }
+    &.service-deck {
+      right: 0px;
+      background-image: url(../assets/service-back-side.png);
+    }
+  }
 }
 .card-worker.active-event .end-round-btn,
 .card-worker.active-event .end-round-timer {
@@ -180,15 +208,19 @@ export default {
 .end-round-btn {
   position: absolute;
   bottom: 0px;
-  width: 100px;
+  width: 100%;
   font-size: 0.5em;
-  border: 1px solid black;
   text-align: center;
   cursor: pointer;
-  margin: 6px 10px;
-  background: #3f51b5;
+  background: #008000de;
   color: white;
   font-size: 16px;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+
+  &:hover {
+    background: #008000;
+  }
 }
 .end-round-timer {
   position: absolute;

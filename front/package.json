@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve --port TO_CHANGE",
+    "serve": "vue-cli-service serve --port 8083",
     "serve-prod": "set NODE_ENV=development && vue-cli-service serve",
     "build": "vue-cli-service build",
     "build-dev": "vue-cli-service build --mode development"

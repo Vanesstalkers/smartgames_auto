@@ -4,17 +4,12 @@
     Object.assign(this, {
       ...lib.chat['@class'].decorate(),
       ...lib.game.decorators['@hasDeck'].decorate(),
-      ...lib.game.decorators['@hasCardEvents'].decorate({
-        additionalCardEvents: {}, // TO_CHANGE (добавить необходимые cardEvents, если требуется)
-      }),
     });
     this.preventSaveFields([]); // TO_CHANGE
 
-    // !!! подумать, как лучше это организовать
-    this.events({
-      handlers: {
-        // тут все что вызывается через GameObject.emit(...)
-      },
+    this.defaultClasses({
+      Player: domain.game.objects.Player,
+      Card: domain.game.objects.Card,
     });
   }
 
@@ -30,13 +25,10 @@
     this.status = data.status || 'WAIT_FOR_PLAYERS';
     this.round = data.round || 0;
     if (data.activeEvent) this.activeEvent = data.activeEvent;
-    if (data.cardEvents) this.cardEvents = data.cardEvents;
     this.availablePorts = data.availablePorts || [];
 
     const { configs } = domain.game;
-    const {
-      objects: { Card },
-    } = lib.game;
+    const { Card: deckItemClass } = this.defaultClasses();
 
     if (data.playerMap) {
       data.playerList = [];
@@ -53,18 +45,12 @@
       data.deckList = data.settings.deckList;
     }
     for (const item of data.deckList || []) {
-      const deckItemClass = Card;
-
       if (item.access === 'all') item.access = this.playerMap;
-      this.addDeck(item, { deckItemClass });
-    }
-    if (newGame) {
-      const cardsToRemove = this.settings.cardsToRemove || [];
-      for (const [deckCode, json] of [
-        ['Deck[card]', configs.cards().filter((card) => !cardsToRemove.includes(card.name))],
-      ]) {
-        const deck = this.getObjectByCode(deckCode);
-        const items = lib.utils.structuredClone(json);
+      const deck = this.addDeck(item, { deckItemClass });
+
+      if (newGame) {
+        // const cardsToRemove = this.settings.cardsToRemove || [];
+        const items = lib.utils.structuredClone(configs.cards().filter(({ group }) => group === deck.subtype));
         for (const item of items) deck.addItem(item);
       }
     }
@@ -74,7 +60,17 @@
   }
 
   endGame({ winningPlayer, canceledByUser } = {}) {
-    super.endGame({ winningPlayer, canceledByUser, customFinalize: false });
+    super.endGame({ winningPlayer, canceledByUser, customFinalize: true });
+
+    this.broadcastAction('gameFinished', {
+      gameId: this.id(),
+      gameType: this.deckType,
+      playerEndGameStatus: this.playerEndGameStatus,
+      fullPrice: winningPlayer?.money,
+      roundCount: this.round,
+    });
+
+    throw new lib.game.endGameException();
 
     // TO_CHANGE (если требуется, то ставим customFinalize = true и делаем свой broadcast-формат для 'gameFinished')
   }
@@ -123,15 +119,22 @@
             break;
 
           case 'START_GAME':
-            this.set({ status: 'IN_PROCESS' });
-
-            const deck = this.getObjectByCode('Deck[card]');
+            const { playerHand } = this.settings;
+            const startDecks = Object.entries(playerHand || {});
             for (const player of playerList) {
-              const playerHand = player.getObjectByCode('Deck[card]');
-              deck.moveRandomItems({ count: this.settings.playerHandStart || 0, target: playerHand });
+              player.set({ activeReady: true }); // чтобы в endRound пройти проверку checkPlayersReady
+
+              if (startDecks.length) {
+                for (const [deckType, { start: count }] of startDecks) {
+                  const playerHand = player.getObjectByCode(`Deck[card_${deckType}]`);
+                  const deck = this.getObjectByCode(`Deck[card_${deckType}]`);
+                  deck.moveRandomItems({ count, target: playerHand });
+                }
+              }
             }
 
-            this.run('endRound', { forceActivePlayer: playerList[0] });
+            this.set({ status: 'IN_PROCESS', roundStep: 'ROUND_START' });
+            this.run('endRound');
             break;
 
           case 'PLAYER_TIMER_END':
@@ -158,6 +161,193 @@
             break;
         }
         break;
+    }
+  }
+
+  allowedToPerformAction(player, eventName) {
+    const result = {
+      success: true,
+    };
+
+    if (!this.getActivePlayers().includes(player) && eventName !== 'leaveGame') {
+      result.success = false;
+      result.errorMessage = 'Игрок не может выполнить это действие, так как сейчас не его ход.';
+    } else if (player.eventData.actionsDisabled && eventName !== 'endRound' && eventName !== 'leaveGame') {
+      result.success = false;
+      result.errorMessage = 'Игрок не может выполнять действия в этот ход.';
+    }
+
+    return result;
+  }
+  async handleAction({ name: actionName, data = {}, sessionUserId: userId }) {
+    try {
+      const player = this.getPlayerList().find((player) => player.userId === userId);
+      if (!player) throw new Error('Player not found');
+
+      const authResult = this.allowedToPerformAction(player, actionName);
+      if (!authResult.success) throw new Error(authResult.errorMessage);
+
+      await this.run(actionName, data, player);
+
+      await this.saveChanges(`handleAction['${actionName}']`);
+    } catch (exception) {
+      if (exception instanceof lib.game.endGameException) {
+        await this.removeGame();
+      } else {
+        lib.store.broadcaster.publishAction(`gameuser-${userId}`, 'broadcastToSessions', {
+          data: { message: exception.message, stack: exception.stack },
+        });
+      }
+    }
+  }
+
+  getActivePlayer() {
+    return this.getPlayerList().find((player) => player.active);
+  }
+  getActivePlayers() {
+    return this.getPlayerList().filter((player) => player.active);
+  }
+  checkPlayersReady() {
+    for (const player of this.getActivePlayers()) {
+      if (!player.activeReady) return false;
+    }
+    return true;
+  }
+  onTimerRestart({ timerId, data: { time, extraTime = 0 } = {} }) {
+    if (!time) time = this.settings.timer.DEFAULT;
+
+    for (const player of this.getActivePlayers()) {
+      if (extraTime) {
+        player.set({ timerEndTime: (player.timerEndTime || 0) + extraTime * 1000 });
+      } else {
+        player.set({ timerEndTime: Date.now() + time * 1000 });
+      }
+      player.set({ timerUpdateTime: Date.now() });
+      if (!player.timerEndTime) throw 'player.timerEndTime === NaN';
+    }
+  }
+
+  async onTimerTick({ timerId, data: { time = null } = {} }) {
+    try {
+      for (const player of this.getActivePlayers()) {
+        if (!player.timerEndTime) {
+          if (this.status === 'FINISHED') {
+            // тут некорректное завершение таймера игры
+            // остановка таймера должна была отработать в endGame
+            // бросать endGameException нельзя, потому что в removeGame будет вызов saveChanges, который попытается сделать broadcastData, но channel к этому моменту будет уже удален
+            lib.timers.timerDelete(this);
+            return;
+          } else throw 'player.timerEndTime === NaN';
+        }
+        // console.log('setInterval', player.timerEndTime - Date.now()); // временно оставил для отладки (все еще появляются setInterval NaN - отловить не смог)
+        if (player.timerEndTime < Date.now()) {
+          // !!!!!!!!
+          this.checkStatus({ cause: 'PLAYER_TIMER_END' });
+          // ???
+          await this.saveChanges('onTimerTick');
+        }
+      }
+    } catch (exception) {
+      if (exception instanceof lib.game.endGameException) {
+        await this.removeGame();
+      } else throw exception;
+    }
+  }
+  onTimerDelete({ timerId }) {
+    for (const player of this.getActivePlayers()) {
+      player.set({
+        timerEndTime: null,
+        timerUpdateTime: Date.now(),
+      });
+    }
+  }
+
+  checkWinnerAndFinishGame() {
+    let winningPlayer = this.getPlayerList().sort((a, b) => (a.money > b.money ? -1 : 1))[0];
+    if (winningPlayer.money <= 0) winningPlayer = null;
+    return this.endGame({ winningPlayer });
+  }
+
+  activatePlayers({ publishText, setData }) {
+    for (const player of this.getPlayerList()) {
+      if (player.eventData.skipRound?.[this.round]) {
+        this.logs(`Игрок ${player.userName} пропускает ход`);
+        player.set({ eventData: { actionsDisabled: true } });
+        continue;
+      }
+      player.activate({ setData, publishText });
+    }
+  }
+  updateClientTableCards() {
+    const clientZone = this.getObjectByCode('Deck[card_zone_client]');
+    const creditZone = this.getObjectByCode('Deck[card_zone_credit]');
+    const featureZone = this.getObjectByCode('Deck[card_zone_feature]');
+
+    this.clientCard = this.getObjectByCode('Deck[card_client]').getRandomItem();
+    this.clientCard.moveToTarget(clientZone);
+    this.featureCard = this.getObjectByCode('Deck[card_feature]').getRandomItem();
+    this.featureCard.moveToTarget(featureZone);
+    this.creditCard = this.getObjectByCode('Deck[card_credit]').smartMoveRandomCard({ target: creditZone });
+
+    if (this.clientReplacedCard) delete this.clientReplacedCard;
+  }
+  removeTableCards() {
+    const cardDeckDrop = this.getObjectByCode('Deck[card_drop]');
+    for (const deck of this.getObjects({ className: 'Deck', attr: { placement: 'table' } })) {
+      deck.moveAllItems({ target: cardDeckDrop }, { visible: false });
+    }
+  }
+  calcClientMoney() {
+    const { clientCard, featureCard, creditCard } = this;
+    let clientMoney = clientCard.money;
+    if (featureCard.money && featureCard.target === 'client') {
+      clientMoney += parseInt(featureCard.money);
+    }
+    clientMoney += clientMoney * (parseInt(creditCard.money) / 100); // у кредита всегда проценты
+    this.clientMoney = clientMoney;
+  }
+  showTableCards() {
+    const creditZone = this.getObjectByCode('Deck[card_zone_credit]');
+    const featureZone = this.getObjectByCode('Deck[card_zone_feature]');
+
+    creditZone.setItemVisible(this.creditCard);
+    featureZone.setItemVisible(this.featureCard);
+
+    for (const player of this.getPlayerList()) {
+      const tableZones = player
+        .getObjects({
+          className: 'Deck',
+        })
+        .filter(({ placement }) => placement == 'table');
+      for (const zone of tableZones) {
+        for (const card of zone.getObjects({ className: 'Card' })) {
+          zone.setItemVisible(card);
+        }
+      }
+    }
+  }
+
+  addNewRoundCardsToPlayers() {
+    for (const player of this.getPlayerList()) {
+      const playerCarHand = player.getObjectByCode('Deck[card_car]');
+      const playerServiceHand = player.getObjectByCode('Deck[card_service]');
+
+      // добавляем новые карты в руку
+      const carCard = this.getObjectByCode('Deck[card_car]').getRandomItem();
+      if (carCard) carCard.moveToTarget(playerCarHand);
+      const carService = this.getObjectByCode('Deck[card_service]').getRandomItem();
+      if (carService) carService.moveToTarget(playerServiceHand);
+
+      if (Object.keys(playerCarHand.itemMap).length > this.settings.playerHand.car.limit) {
+        player.initEvent('dropCard');
+      }
+    }
+  }
+
+  restorePlayersHands() {
+    for (const player of this.getPlayerList()) {
+      if (player === this.roundStepWinner) continue; // карты победителя сбрасываются
+      player.returnCardsToHand();
     }
   }
 });

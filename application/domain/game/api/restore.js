@@ -8,8 +8,8 @@ async (context, { deckType, gameId }) => {
 
   for (const session of user.sessions()) {
     session.set({ gameId, playerId, viewerId });
-    await session.saveChanges();
-    session.emit('joinGame', { deckType, gameId });
+    await session.saveChanges('game.api.restore');
+    session.emit('joinGame', { deckType, gameId }, 'game.api.restore');
   }
 
   return { status: 'ok' };

@@ -1,8 +1,8 @@
 ({
   host: '0.0.0.0',
-  balancer: 8800, // TO_CHANGE
+  balancer: 8870,
   protocol: 'http',
-  ports: [8801, 8802, 8803, 8804], // TO_CHANGE
+  ports: [8871, 8872, 8873, 8874],
   nagle: false,
   timeouts: {
     bind: 2000,

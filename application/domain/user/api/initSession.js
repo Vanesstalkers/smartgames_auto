@@ -41,12 +41,14 @@
       if (session.onClose.length) for (const f of session.onClose) await f();
 
       const user = session.user();
-      user.unsubscribe(`user-${user.id()}`);
-      user.unlinkSession(session);
+      if (user) {
+        user.unsubscribe(`user-${user.id()}`);
+        user.unlinkSession(session);
+      }
 
       // удаляем из store и broadcaster
       session.remove();
-      if (!user.sessions().length) user.remove();
+      if (user && !user.sessions().length) user.remove();
 
       console.log(`session disconnected (token=${session.token}, windowTabId=${windowTabId}`);
     });

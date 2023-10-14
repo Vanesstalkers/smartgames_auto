@@ -41,15 +41,15 @@ async () => {
           }
           
           lib.store.broadcaster.publishAction(channelName, 'gameServerConnected', {
-            code: 'TO_CHANGE',
-            title: 'TO_CHANGE',
-            icon: ['fas', 'microchip'],
+            code: 'auto',
+            title: 'АВТОБИЗНЕС',
+            icon: ['fas', 'car'],
             active: true,
             url:
               // url vue-фронта
               process.env.NODE_ENV === 'development'
-                ? /* 'http://192.168.1.37:TO_CHANGE' */ 'http://192.168.43.128:TO_CHANGE' /* 'http://localhost:TO_CHANGE' */
-                : 'https://smartgames.studio/TO_CHANGE',
+                ? /* 'http://192.168.1.37:8083' */ 'http://192.168.43.128:8083' /* 'http://localhost:8083' */
+                : 'https://smartgames.studio/auto',
             games,
           });
           return;

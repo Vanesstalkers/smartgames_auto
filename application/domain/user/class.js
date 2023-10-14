@@ -1,6 +1,5 @@
 () =>
-  class ReleaseGameUser extends lib.game.userClass() {
-    // TO_CHANGE (название класса + расчет rankings)
+  class AutoGameUser extends lib.game.userClass() {
     async gameFinished({ gameId, gameType, playerEndGameStatus, fullPrice, roundCount }) {
       const {
         helper: { getTutorial },
@@ -20,7 +19,7 @@
             },
           },
         });
-        await this.saveChanges();
+        await this.saveChanges('gameFinished');
         return;
       }
 
@@ -34,7 +33,7 @@
       let penaltySum = 0;
       if (endGameStatus === 'win') {
         penaltySum = 0; // TO_CHANGE
-        income = fullPrice * 1000 - penaltySum;
+        income = fullPrice * 100 - penaltySum;
         rankings[gameType].money = money + income;
         if (income < 0) income = 0; // в рейтинги отрицательный результата пишем
         rankings[gameType].penalty = penalty + penaltySum;
@@ -52,6 +51,6 @@
         incomeText += ` (с учетом штрафа ${penaltySum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}₽)`;
       tutorial[endGameStatus].text = tutorial[endGameStatus].text.replace('[[win-money]]', incomeText);
       this.set({ money: (this.money || 0) + income, helper: tutorial[endGameStatus], rankings });
-      await this.saveChanges();
+      await this.saveChanges('gameFinished');
     }
   };

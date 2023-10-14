@@ -5,14 +5,29 @@
   >
     <div class="inner-content">
       <div class="player-hands">
-        <div v-if="iam || gameState.viewerMode" class="hand-cards-list" ref="scrollbar">
-          <div v-for="deck in cardDecks" :key="deck._id" class="hand-cards" :style="{ width: handCarsWidth }">
+        <div class="hand-cards-list" ref="scrollbar">
+          <div v-if="iam || gameState.viewerMode" class="hand-cards" :style="{ width: handCardsWidth }">
             <card
-              v-for="id in Object.keys(deck.itemMap)"
-              :key="id"
-              :cardId="id"
-              :canPlay="iam"
-              :isSelected="id === gameCustom.selectedCard"
+              v-for="card in handCards"
+              :key="card.id"
+              :cardId="card.id"
+              :cardGroup="card.group"
+              :canPlay="canPlay(card)"
+              :myCard="iam"
+              :isSelected="card.id === gameCustom.selectedCard"
+              :imgExt="'png'"
+            />
+          </div>
+          <div class="hand-cards at-table">
+            <card
+              v-for="card in tableCards"
+              :key="card.id"
+              :cardId="card.id"
+              :cardGroup="card.group"
+              :canPlay="false"
+              :myCard="iam"
+              :isSelected="card.id === gameCustom.selectedCard"
+              :imgExt="'png'"
             />
           </div>
         </div>
@@ -47,15 +62,7 @@ export default {
   data() {
     return {};
   },
-  watch: {
-    mainCardDeckItemsCount: function () {
-      this.$nextTick(() => {
-        const scrollbar = this.$refs.scrollbar;
-        if (!scrollbar) return; // !!! тут соперник - нужно поправить логику
-        scrollbar.scrollTo({ top: 1000000 }); // просто высоты экрана может быть не достаточно при большом количестве карт в руке
-      });
-    },
-  },
+  watch: {},
   setup() {
     return inject('gameGlobals');
   },
@@ -73,10 +80,27 @@ export default {
       return this.store.viewer?.[this.viewerId] || {};
     },
     cardDecks() {
-      return this.deckIds.map((id) => this.store.deck?.[id]).filter((deck) => deck.type === 'card') || [];
+      const map = this.deckIds.map((id) => {
+        const deck = this.store.deck?.[id] || {};
+        if (deck.code.includes('[card_car')) deck.cardGroup = 'car';
+        if (deck.code.includes('[card_service')) deck.cardGroup = 'service';
+        return deck;
+      });
+      return map.filter((deck) => deck.type === 'card') || [];
     },
-    mainCardDeckItemsCount() {
-      return Object.keys(this.cardDecks[0]?.itemMap || {}).length;
+    handCards() {
+      return this.cardDecks
+        .filter(({ placement }) => placement !== 'table')
+        .reduce((arr, deck) => {
+          return arr.concat(Object.keys(deck.itemMap).map((id) => ({ id, group: deck.cardGroup })));
+        }, []);
+    },
+    tableCards() {
+      return this.cardDecks
+        .filter(({ placement }) => placement === 'table')
+        .reduce((arr, deck) => {
+          return arr.concat(Object.keys(deck.itemMap).map((id) => ({ id, group: deck.cardGroup })));
+        }, []);
     },
     deckIds() {
       return Object.keys(this.player.deckMap || {});
@@ -84,15 +108,29 @@ export default {
     showDecks() {
       return this.sessionPlayerIsActive() && this.player.activeEvent?.showDecks;
     },
-    handCarsWidth() {
-      const cardWidth = 130;
-      const maxCardStack = 4;
-      return state.isMobile
-        ? `${cardWidth}px`
-        : `${Math.ceil(this.mainCardDeckItemsCount / maxCardStack) * cardWidth}px`;
+    handCardsWidth() {
+      return state.isMobile && this.state.isPortrait ? `${window.innerWidth - 80}px` : 'auto';
+    },
+    mainCardDeckItemsCount() {
+      return this.handCards.length;
     },
   },
-  methods: {},
+  methods: {
+    canPlay(card) {
+      const tableCar = this.tableCards.find((card) => card.group === 'car');
+      const currentEquip = this.tableCards.reduce(
+        (arr, card) => arr.concat(...(this.store.card?.[card.id]?.equip || [])),
+        []
+      );
+      const cardEquip = this.store.card?.[card.id].equip || [];
+
+      const onlyOneCar = card.group !== 'car' || !tableCar;
+      const exclusiveEquip = !cardEquip.find((equip) => currentEquip.includes(equip));
+      const cardAvailable = !this.player.activeEvent || this.player.activeEvent.eventCards.includes(card.id);
+
+      return this.iam && !this.player.activeReady && cardAvailable && onlyOneCar && exclusiveEquip;
+    },
+  },
 };
 </script>
 
@@ -107,6 +145,7 @@ export default {
   flex-direction: row-reverse;
 }
 #game.mobile-view.portrait-view .player:not(.iam) > .inner-content {
+  flex-wrap: nowrap;
   flex-direction: row;
 }
 
@@ -118,8 +157,12 @@ export default {
   bottom: 0px;
   height: 0px;
 }
-#game.mobile-view .player.iam > .inner-content > .player-hands {
+#game.mobile-view.portrait-view .player.iam > .inner-content > .player-hands {
   flex-wrap: nowrap;
+
+  .hand-cards {
+    flex-wrap: wrap;
+  }
 }
 
 .workers {
@@ -137,11 +180,29 @@ export default {
   width: 100%;
 
   .hand-cards-list {
+    display: flex;
+    align-items: flex-end;
+    flex-direction: row;
+
     &.tutorial-active {
       box-shadow: 0 0 10px 10px #f4e205 !important;
     }
   }
 }
+
+.player.iam .player-hands {
+  .hand-cards-list {
+    flex-direction: row-reverse;
+
+    .hand-cards.at-table {
+      position: absolute;
+      left: auto;
+      right: -120px;
+      bottom: 200px;
+    }
+  }
+}
+
 #game.mobile-view.portrait-view .player-hands {
   justify-content: flex-start;
   height: initial;
@@ -149,16 +210,12 @@ export default {
 #game:not(.mobile-view) .hand-cards-list {
   .hand-cards {
     max-height: 250px;
-    flex-direction: column;
+    flex-direction: row;
   }
 }
 #game.mobile-view .hand-cards-list {
   overflow-y: auto;
   overflow-x: hidden;
-  max-height: 400px;
-  .hand-cards {
-    margin-top: 130px;
-  }
 }
 #game.mobile-view.landscape-view .hand-cards-list {
   @media only screen and (max-height: 360px) {
@@ -168,10 +225,19 @@ export default {
 
 .hand-cards {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  margin-left: 80px;
+  & > .card-event {
+    margin-left: -80px;
+  }
 }
-.hand-cards > .card-event {
-  margin-top: -130px;
+#game.mobile-view.portrait-view .hand-cards-list {
+  .hand-cards {
+    margin-top: 70px;
+    & > .card-event {
+      margin-top: -70px;
+    }
+  }
 }
 
 .deck-counters {
