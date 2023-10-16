@@ -121,14 +121,23 @@
           case 'START_GAME':
             const { playerHand } = this.settings;
             const startDecks = Object.entries(playerHand || {});
-            for (const player of playerList) {
+
+            for (let idx = 0; idx < playerList.length; idx++) {
+              const player = playerList[idx];
+
               player.set({ activeReady: true }); // чтобы в endRound пройти проверку checkPlayersReady
 
               if (startDecks.length) {
                 for (const [deckType, { start: count }] of startDecks) {
-                  const playerHand = player.getObjectByCode(`Deck[card_${deckType}]`);
-                  const deck = this.getObjectByCode(`Deck[card_${deckType}]`);
-                  deck.moveRandomItems({ count, target: playerHand });
+                  if (typeof count === 'object') {
+                    const { customAction, actionData = {} } = count;
+                    actionData.idx = idx;
+                    if (customAction) this.run(customAction, actionData, player);
+                  } else {
+                    const playerHand = player.getObjectByCode(`Deck[card_${deckType}]`);
+                    const deck = this.getObjectByCode(`Deck[card_${deckType}]`);
+                    deck.moveRandomItems({ count, target: playerHand });
+                  }
                 }
               }
             }
@@ -187,9 +196,9 @@
       const authResult = this.allowedToPerformAction(player, actionName);
       if (!authResult.success) throw new Error(authResult.errorMessage);
 
-      await this.run(actionName, data, player);
+      this.run(actionName, data, player);
 
-      await this.saveChanges(`handleAction['${actionName}']`);
+      await this.saveChanges();
     } catch (exception) {
       if (exception instanceof lib.game.endGameException) {
         await this.removeGame();
@@ -244,7 +253,7 @@
           // !!!!!!!!
           this.checkStatus({ cause: 'PLAYER_TIMER_END' });
           // ???
-          await this.saveChanges('onTimerTick');
+          await this.saveChanges();
         }
       }
     } catch (exception) {
@@ -270,26 +279,13 @@
 
   activatePlayers({ publishText, setData }) {
     for (const player of this.getPlayerList()) {
-      if (player.eventData.skipRound?.[this.round]) {
+      if (player.activeEvent?.skipRound) {
         this.logs(`Игрок ${player.userName} пропускает ход`);
-        player.set({ eventData: { actionsDisabled: true } });
+        player.set({ activeEvent: null, eventData: { actionsDisabled: true } });
         continue;
       }
       player.activate({ setData, publishText });
     }
-  }
-  updateClientTableCards() {
-    const clientZone = this.getObjectByCode('Deck[card_zone_client]');
-    const creditZone = this.getObjectByCode('Deck[card_zone_credit]');
-    const featureZone = this.getObjectByCode('Deck[card_zone_feature]');
-
-    this.clientCard = this.getObjectByCode('Deck[card_client]').getRandomItem();
-    this.clientCard.moveToTarget(clientZone);
-    this.featureCard = this.getObjectByCode('Deck[card_feature]').getRandomItem();
-    this.featureCard.moveToTarget(featureZone);
-    this.creditCard = this.getObjectByCode('Deck[card_credit]').smartMoveRandomCard({ target: creditZone });
-
-    if (this.clientReplacedCard) delete this.clientReplacedCard;
   }
   removeTableCards() {
     const cardDeckDrop = this.getObjectByCode('Deck[card_drop]');
@@ -321,6 +317,7 @@
         .filter(({ placement }) => placement == 'table');
       for (const zone of tableZones) {
         for (const card of zone.getObjects({ className: 'Card' })) {
+          card.activeEvent.set({ canPlay: false });
           zone.setItemVisible(card);
         }
       }
@@ -347,7 +344,7 @@
   restorePlayersHands() {
     for (const player of this.getPlayerList()) {
       if (player === this.roundStepWinner) continue; // карты победителя сбрасываются
-      player.returnCardsToHand();
+      player.returnTableCardsToHand();
     }
   }
 });

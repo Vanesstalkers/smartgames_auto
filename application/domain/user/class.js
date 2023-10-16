@@ -19,7 +19,7 @@
             },
           },
         });
-        await this.saveChanges('gameFinished');
+        await this.saveChanges();
         return;
       }
 
@@ -51,6 +51,6 @@
         incomeText += ` (с учетом штрафа ${penaltySum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}₽)`;
       tutorial[endGameStatus].text = tutorial[endGameStatus].text.replace('[[win-money]]', incomeText);
       this.set({ money: (this.money || 0) + income, helper: tutorial[endGameStatus], rankings });
-      await this.saveChanges('gameFinished');
+      await this.saveChanges();
     }
   };

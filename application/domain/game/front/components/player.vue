@@ -126,9 +126,9 @@ export default {
 
       const onlyOneCar = card.group !== 'car' || !tableCar;
       const exclusiveEquip = !cardEquip.find((equip) => currentEquip.includes(equip));
-      const cardAvailable = !this.player.activeEvent || this.player.activeEvent.eventCards.includes(card.id);
+      const cardAvailable = !this.player.activeEvent?.eventCards || this.player.activeEvent?.eventCards?.includes(card.id);
 
-      return this.iam && !this.player.activeReady && cardAvailable && onlyOneCar && exclusiveEquip;
+      return this.iam && cardAvailable && onlyOneCar && exclusiveEquip;
     },
   },
 };

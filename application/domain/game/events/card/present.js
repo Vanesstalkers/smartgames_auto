@@ -1,5 +1,6 @@
 () =>
   new lib.game.GameEvent({
+    present: true,
     init: function () {
       const { game, player } = this.eventContext();
       const [serviceHand] = player.getObjects({
@@ -7,9 +8,9 @@
         attr: { subtype: 'service' },
       });
 
-      this.present = true;
-      this.eventCards = Object.keys(serviceHand.itemMap);
-      player.set({ activeEvent: this });
+      this.set({
+        eventCards: Object.keys(serviceHand.itemMap),
+      });
 
       for (const card of serviceHand.getObjects({ className: 'Card' })) {
         card.set({

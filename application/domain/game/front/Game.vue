@@ -79,7 +79,10 @@ export default {
     Object.assign(gameGlobals, {
       sessionPlayerIsActive() {
         const playerMap = this.getGame().playerMap || {};
-        const activePlayers = Object.keys(playerMap).filter((id) => this.getStore().player?.[id]?.active);
+        const activePlayers = Object.keys(playerMap).filter((id) => {
+          const player = this.getStore().player?.[id] || {};
+          return player.active && !player.activeReady;
+        });
         return activePlayers.includes(this.gameState.sessionPlayerId);
       },
       calcGamePlaneCustomStyleData({ gamePlaneScale, isMobile }) {
@@ -212,47 +215,57 @@ export default {
 };
 </script>
 <style lang="scss">
-#gamePlane {
-  .game-zones {
-    width: 100%;
-    height: 100%;
-
-    [code='Deck[card_zone_client]'] {
-      position: absolute;
-      left: calc(50% - 130px - 10px);
-      top: calc(50% - 90px);
-      z-index: 1;
+#game {
+  #gamePlane {
+    .game-zones {
+      width: 100%;
+      height: 100%;
     }
-
-    [code='Deck[card_zone_client]'] {
-      position: absolute;
-      left: calc(50% - 130px - 10px);
-      top: calc(50% - 90px);
-      z-index: 1;
-    }
-
-    [code='Deck[card_zone_feature]'] {
-      position: absolute;
-      left: calc(50%);
-      top: calc(50% - 90px);
-    }
-    [code='Deck[card_zone_client_dop]'] {
-      position: absolute;
-      left: calc(50% + 28px);
-      top: calc(50% - 90px);
-      z-index: 1;
-    }
-
-    [code='Deck[card_zone_credit]'] {
-      position: absolute;
-      left: calc(50% + 130px + 10px);
-      top: calc(50% - 90px);
-    }
-
-    &.has-client-dop {
-      [code='Deck[card_zone_credit]'] {
-        left: calc(50% + 130px + 10px + 28px);
+  }
+  &[type='sales'] #gamePlane {
+    .game-zones {
+      [code='Deck[card_zone_client]'] {
+        position: absolute;
+        left: calc(50% - 130px - 10px);
+        top: calc(50% - 90px);
+        z-index: 1;
       }
+
+      [code='Deck[card_zone_client]'] {
+        position: absolute;
+        left: calc(50% - 130px - 10px);
+        top: calc(50% - 90px);
+        z-index: 1;
+      }
+
+      [code='Deck[card_zone_feature]'] {
+        position: absolute;
+        left: calc(50%);
+        top: calc(50% - 90px);
+      }
+      [code='Deck[card_zone_client_dop]'] {
+        position: absolute;
+        left: calc(50% + 28px);
+        top: calc(50% - 90px);
+        z-index: 1;
+      }
+
+      [code='Deck[card_zone_credit]'] {
+        position: absolute;
+        left: calc(50% + 130px + 10px);
+        top: calc(50% - 90px);
+      }
+
+      &.has-client-dop {
+        [code='Deck[card_zone_credit]'] {
+          left: calc(50% + 130px + 10px + 28px);
+        }
+      }
+    }
+  }
+  &[type='auction'] #gamePlane {
+    .game-zones {
+      display: none;
     }
   }
 }

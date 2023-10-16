@@ -5,8 +5,9 @@
       const playerCarHand = player.getObjectByCode('Deck[card_car]');
       const carCards = playerCarHand.getObjects({ className: 'Card' });
 
-      this.eventCards = Object.keys(playerCarHand.itemMap);
-      player.set({ activeEvent: this });
+      this.set({
+        eventCards: Object.keys(playerCarHand.itemMap),
+      });
 
       for (const card of carCards) {
         card.set({
