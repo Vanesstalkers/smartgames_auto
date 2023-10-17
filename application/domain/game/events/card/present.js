@@ -3,14 +3,11 @@
     present: true,
     init: function () {
       const { game, player } = this.eventContext();
-      const [serviceHand] = player.getObjects({
-        className: 'Deck',
-        attr: { subtype: 'service' },
-      });
+      const decks = player.getObjects({ className: 'Deck' });
+      const carHand = decks.find((deck) => deck.subtype === 'car');
+      const serviceHand = decks.find((deck) => deck.subtype === 'service');
 
-      this.set({
-        eventCards: Object.keys(serviceHand.itemMap),
-      });
+      carHand.set({ activeEvent: { playDisabled: true } });
 
       for (const card of serviceHand.getObjects({ className: 'Card' })) {
         card.set({
@@ -48,13 +45,22 @@
     handlers: {
       RESET: function ({ skipRound }) {
         const { game, player, sourceId } = this.eventContext();
-        const [playerServiceHand] = player.getObjects({
-          className: 'Deck',
-          attr: { subtype: 'service' },
-        });
+        const decks = player.getObjects({ className: 'Deck' });
+        const carHand = decks.find((deck) => deck.subtype === 'car');
+        const serviceHand = decks.find((deck) => deck.subtype === 'service');
 
-        playerServiceHand.updateAllItems({ activeEvent: null });
-        player.set({ activeEvent: null, eventData: { skipRound } });
+        carHand.set({ activeEvent: null });
+        serviceHand.updateAllItems({ activeEvent: null });
+        player.set({ activeEvent: null });
+        // делаем после обнуления activeEvent, чтобы не удалить событие skipRound
+        if (skipRound) {
+          game.logs({
+            msg: `Игрок {{player}} не стал дарить подарок.`,
+            userId: player.userId,
+          });
+          player.initEvent('skipRound');
+        }
+
         lib.store.broadcaster.publishData(`gameuser-${player.userId}`, {
           helper: null,
         });
@@ -77,7 +83,7 @@
         const { game, player } = this.eventContext();
         this.emit('RESET', {
           // подарок не подарен
-          skipRound: { [game.round + 1]: player.activeEvent ? true : false },
+          skipRound: player.activeEvent ? true : false,
         });
       },
     },

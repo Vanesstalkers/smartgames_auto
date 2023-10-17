@@ -5,20 +5,8 @@
         /* game = {}, gamePlaneScale */
       } = {}"
     >
-      <div :class="['game-zones', clientDopCard ? 'has-client-dop' : '']">
-        <div v-for="deck in tableCardZones" :key="deck._id" :code="deck.code" :style="{ width: handCardsWidth }">
-          <card
-            v-for="id in Object.keys(deck.itemMap)"
-            :key="id"
-            :id="id"
-            :cardId="id"
-            :cardGroup="deck.cardGroup"
-            :canPlay="false"
-            :isSelected="false"
-            imgExt="png"
-          />
-        </div>
-      </div>
+      <sales-game-plane v-if="game.gameType === 'sales'" />
+      <auction-game-plane v-if="game.gameType === 'auction'" />
     </template>
 
     <template #gameinfo="{} = {}">
@@ -61,6 +49,9 @@
 <script>
 import { provide, reactive } from 'vue';
 
+import SalesGamePlane from './games/sales/plane.vue';
+import AuctionGamePlane from './games/auction/plane.vue';
+
 import { prepareGameGlobals } from '~/lib/game/front/gameGlobals.mjs';
 import Game from '~/lib/game/front/Game.vue';
 import card from '~/lib/game/front/components/card.vue';
@@ -68,6 +59,8 @@ import player from './components/player.vue';
 
 export default {
   components: {
+    SalesGamePlane,
+    AuctionGamePlane,
     Game,
     player,
     card,
@@ -176,110 +169,21 @@ export default {
     deckList() {
       return Object.keys(this.game.deckMap).map((id) => this.store.deck?.[id]) || [];
     },
-    tableCardZones() {
-      return Object.keys(this.game.deckMap)
-        .map((id) => {
-          const deck = this.store.deck?.[id];
-          if (deck.code === 'Deck[card_zone_credit]') {
-            deck.cardGroup = 'credit';
-          }
-          if (deck.code === 'Deck[card_zone_feature]') {
-            deck.cardGroup = 'feature';
-          }
-          return deck;
-        })
-        .filter(({ placement } = {}) => placement == 'table');
-    },
-    clientDopCard() {
-      return Object.keys(this.tableCardZones.find((deck) => deck.subtype === 'zone_client_dop')?.itemMap || {})?.[0];
-    },
-    activeCards() {
-      return this.deckList.find((deck) => deck.subtype === 'active') || {};
-    },
-
-    handCardsWidth() {
-      const cardWidth = 130;
-      const maxCardStack = 4;
-      return state.isMobile ? `${cardWidth}px` : `${Math.ceil(1 / maxCardStack) * cardWidth}px`;
-    },
   },
-  methods: {
-    sortActiveCards(arr) {
-      return arr
-        .map((id) => this.store.card?.[id] || {})
-        .sort((a, b) => (a.played > b.played ? 1 : -1)) // сортируем по времени сыгрывания
-        .sort((a, b) => (a.played ? 0 : 1)) // переносим не сыгранные в конец
-        .map((card) => card._id);
-    },
-  },
+  methods: {},
 };
 </script>
 <style lang="scss">
-#game {
-  #gamePlane {
-    .game-zones {
-      width: 100%;
-      height: 100%;
-    }
-  }
-  &[type='sales'] #gamePlane {
-    .game-zones {
-      [code='Deck[card_zone_client]'] {
-        position: absolute;
-        left: calc(50% - 130px - 10px);
-        top: calc(50% - 90px);
-        z-index: 1;
-      }
-
-      [code='Deck[card_zone_client]'] {
-        position: absolute;
-        left: calc(50% - 130px - 10px);
-        top: calc(50% - 90px);
-        z-index: 1;
-      }
-
-      [code='Deck[card_zone_feature]'] {
-        position: absolute;
-        left: calc(50%);
-        top: calc(50% - 90px);
-      }
-      [code='Deck[card_zone_client_dop]'] {
-        position: absolute;
-        left: calc(50% + 28px);
-        top: calc(50% - 90px);
-        z-index: 1;
-      }
-
-      [code='Deck[card_zone_credit]'] {
-        position: absolute;
-        left: calc(50% + 130px + 10px);
-        top: calc(50% - 90px);
-      }
-
-      &.has-client-dop {
-        [code='Deck[card_zone_credit]'] {
-          left: calc(50% + 130px + 10px + 28px);
-        }
-      }
-    }
-  }
-  &[type='auction'] #gamePlane {
-    .game-zones {
-      display: none;
-    }
-  }
+.game-status-label {
+  text-align: right;
+  color: white;
+  font-weight: bold;
+  font-size: 2em;
+  white-space: nowrap;
+  text-shadow: black 1px 0 10px;
 }
-
-.deck > .card-event {
-  width: 60px;
-  height: 90px;
-  border: none;
-  font-size: 36px;
-  display: flex;
-  justify-content: center;
-  align-content: center;
-  color: #ff5900;
-  text-shadow: 1px 1px 0 #fff;
+#game.mobile-view .game-status-label {
+  font-size: 1.5em;
 }
 
 .deck[code='Deck[card_client]'] {
@@ -335,21 +239,16 @@ export default {
   flex-direction: column;
 }
 
-.game-status-label {
-  text-align: right;
-  color: white;
-  font-weight: bold;
-  font-size: 2em;
-  white-space: nowrap;
-  text-shadow: black 1px 0 10px;
-}
-#game.mobile-view .game-status-label {
-  font-size: 1.5em;
-}
-
-.game-zones > div[code='Deck[card_zone_any]'] {
-  position: absolute;
-  right: 0px;
+.deck > .card-event {
+  width: 60px;
+  height: 90px;
+  border: none;
+  font-size: 36px;
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  color: #ff5900;
+  text-shadow: 1px 1px 0 #fff;
 }
 
 .card-event.played {

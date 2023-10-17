@@ -25,7 +25,6 @@
           round: newRoundNumber,
           roundStep: this.featureCard.replaceClient ? 'REPLACE_CLIENT' : 'FIRST_OFFER',
         });
-        // нужно делать после set({round: newRoundNumber}), чтобы корректно отработал skipRound
         this.activatePlayers({
           publishText: 'Сделайте ваше предложение клиенту (одно авто и сколько угодно сервисов).',
         });
@@ -70,8 +69,7 @@
           // у всех карт, выложенных на стол, убираем возможность возврата карты в руку
           for (const deck of player.getObjects({ className: 'Deck', attr: { placement: 'table' } })) {
             for (const card of deck.getObjects({ className: 'Card' })) {
-              card.activeEvent.set({ canPlay: false });
-              // card.activeEvent.emit('RESET');
+              card.activeEvent.set({ playDisabled: true });
             }
           }
 
@@ -145,10 +143,7 @@
         if (this.featureCard.reference && this.roundStepWinner) {
           // дополнительный клиент
           for (const player of players) {
-            if (player !== this.roundStepWinner) {
-              // player.set({ eventData: { skipRound: { [this.round + 1]: true } } });
-              player.initEvent('skipRound');
-            }
+            if (player !== this.roundStepWinner) player.initEvent('skipRound');
           }
         } else {
           this.addNewRoundCardsToPlayers();

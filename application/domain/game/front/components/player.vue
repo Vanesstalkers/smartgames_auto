@@ -24,7 +24,7 @@
               :key="card.id"
               :cardId="card.id"
               :cardGroup="card.group"
-              :canPlay="false"
+              :canPlay="canPlay(card)"
               :myCard="iam"
               :isSelected="card.id === gameCustom.selectedCard"
               :imgExt="'png'"
@@ -80,26 +80,21 @@ export default {
       return this.store.viewer?.[this.viewerId] || {};
     },
     cardDecks() {
-      const map = this.deckIds.map((id) => {
-        const deck = this.store.deck?.[id] || {};
-        if (deck.code.includes('[card_car')) deck.cardGroup = 'car';
-        if (deck.code.includes('[card_service')) deck.cardGroup = 'service';
-        return deck;
-      });
+      const map = this.deckIds.map((id) => this.store.deck?.[id] || {});
       return map.filter((deck) => deck.type === 'card') || [];
     },
     handCards() {
       return this.cardDecks
         .filter(({ placement }) => placement !== 'table')
         .reduce((arr, deck) => {
-          return arr.concat(Object.keys(deck.itemMap).map((id) => ({ id, group: deck.cardGroup })));
+          return arr.concat(Object.entries(deck.itemMap).map(([id, { group }]) => ({ id, group, deck })));
         }, []);
     },
     tableCards() {
       return this.cardDecks
         .filter(({ placement }) => placement === 'table')
         .reduce((arr, deck) => {
-          return arr.concat(Object.keys(deck.itemMap).map((id) => ({ id, group: deck.cardGroup })));
+          return arr.concat(Object.entries(deck.itemMap).map(([id, { group }]) => ({ id, group, deck })));
         }, []);
     },
     deckIds() {
@@ -117,18 +112,21 @@ export default {
   },
   methods: {
     canPlay(card) {
+      const playerAvailable =
+        (this.sessionPlayerIsActive() || this.player.activeEvent?.canPlay) && !this.player.activeEvent?.playDisabled;
+      const deckAvailable = !card.deck.activeEvent?.playDisabled;
+
       const tableCar = this.tableCards.find((card) => card.group === 'car');
       const currentEquip = this.tableCards.reduce(
         (arr, card) => arr.concat(...(this.store.card?.[card.id]?.equip || [])),
         []
       );
-      const cardEquip = this.store.card?.[card.id].equip || [];
-
       const onlyOneCar = card.group !== 'car' || !tableCar;
+      const cardEquip = this.store.card?.[card.id]?.equip || [];
       const exclusiveEquip = !cardEquip.find((equip) => currentEquip.includes(equip));
-      const cardAvailable = !this.player.activeEvent?.eventCards || this.player.activeEvent?.eventCards?.includes(card.id);
+      const customCheck = (onlyOneCar && exclusiveEquip) || card.deck.placement === 'table';
 
-      return this.iam && cardAvailable && onlyOneCar && exclusiveEquip;
+      return this.iam && playerAvailable && deckAvailable && customCheck;
     },
   },
 };

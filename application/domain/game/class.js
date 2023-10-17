@@ -5,7 +5,7 @@
       ...lib.chat['@class'].decorate(),
       ...lib.game.decorators['@hasDeck'].decorate(),
     });
-    this.preventSaveFields([]); // TO_CHANGE
+    // this.preventSaveFields([]);
 
     this.defaultClasses({
       Player: domain.game.objects.Player,
