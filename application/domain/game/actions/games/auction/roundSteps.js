@@ -28,99 +28,105 @@
     case 'AUCTION_START':
       {
         if (this.auctionCount == 0) {
-          this.set({ roundStep: 'SALES_OFFERS' });
-          this.run('endRound');
+          for (const player of players) {
+            player.decks.car.set({ activeEvent: null });
+          }
+          initSalesOffersStep.call(this, { player: this.currentPlayer });
         } else {
-          const clientZone = this.getObjectByCode('Deck[card_zone_auction_client]');
-          const carZone = this.getObjectByCode('Deck[card_zone_auction_car]');
+          this.clientCard = this.decks.client.getRandomItem();
+          this.clientCard.moveToTarget(this.decks.zone_auction_client);
+          this.carCard = this.decks.car.getRandomItem();
+          this.carCard.moveToTarget(this.decks.zone_auction_car);
 
-          this.clientCard = this.getObjectByCode('Deck[card_client]').getRandomItem();
-          this.clientCard.moveToTarget(clientZone);
-          this.carCard = this.getObjectByCode('Deck[card_car]').getRandomItem();
-          this.carCard.moveToTarget(carZone);
+          for (const player of players) {
+            player.decks.car.set({ activeEvent: { playDisabled: true } });
+          }
 
-          this.set({ bidSum: -1 * (players.length - 1), roundStep: 'AUCTION_BID' });
+          initAuctionBidStep.call(this, {
+            bidSum: -1 * (players.length - 1),
+            player: this.currentPlayer || players[0],
+          });
         }
-        this.run('endRound');
       }
       break;
     case 'AUCTION_BID':
       {
-        let currentPlayer = this.lastActivePlayer;
-        if (!currentPlayer) {
-          currentPlayer = players[0];
-          this.lastActivePlayer = currentPlayer; // ссылки на объекты ставятся нативно, а не через set({})
-          currentPlayer.activate({ publishText: 'Делайте вашу ставку' });
-          lib.timers.timerRestart(this);
-        } else {
-          const nextPlayer = currentPlayer.nextPlayer();
-          this.lastActivePlayer = nextPlayer; // ссылки на объекты ставятся нативно, а не через set({})
+        const currentPlayer = this.currentPlayer;
+        const nextPlayer = currentPlayer.nextPlayer();
 
-          let bidSum = calcAuction.call(this, currentPlayer);
-          if (bidSum === 0 && this.bidSum < 0) bidSum = this.bidSum + 1;
-          if (bidSum > this.bidSum) {
-            const playedDeck = currentPlayer.getObjectByCode('Deck[card_service_played]');
-            for (const card of playedDeck.getObjects({ className: 'Card' })) {
-              card.set({ activeEvent: { playDisabled: true } });
-            }
-
-            this.set({ bidSum });
-            nextPlayer.activate({ publishText: 'Делайте вашу ставку' });
-            lib.timers.timerRestart(this);
-          } else {
-            const clientSalesDeck = this.addDeck({ type: 'card', subtype: 'sales', placement: 'table' });
-            this.clientCard.moveToTarget(clientSalesDeck);
-            this.clientCard.set({ visible: true });
-            const cardCredit = this.getObjectByCode('Deck[card_credit]');
-            cardCredit.getRandomItem().moveToTarget(clientSalesDeck);
-            const cardFeature = this.getObjectByCode('Deck[card_feature]');
-            cardFeature.getRandomItem().moveToTarget(clientSalesDeck);
-
-            const deckDrop = this.getObjectByCode('Deck[card_drop]');
-            if (this.bidSum === 0) {
-              this.carCard.moveToTarget(deckDrop);
-            } else {
-              {
-                // winner
-                const carDeck = nextPlayer.getObjectByCode('Deck[card_car]');
-                this.carCard.moveToTarget(carDeck);
-
-                const serviceDeckPlayed = nextPlayer.getObjectByCode('Deck[card_service_played]');
-                serviceDeckPlayed.moveAllItems({ target: deckDrop }, { visible: false }); // !!!! заменить
-              }
-
-              {
-                // loser
-                const serviceDeckPlayed = currentPlayer.getObjectByCode('Deck[card_service_played]');
-                const serviceDeckInHand = currentPlayer.getObjectByCode('Deck[card_service]');
-                serviceDeckPlayed.moveAllItems(
-                  { target: serviceDeckInHand },
-                  {
-                    visible: false,
-                    activeEvent: null,
-                  }
-                );
-              }
-            }
-
-            this.set({
-              auctionCount: this.auctionCount - 1,
-              roundStep: 'AUCTION_START',
-            });
-            this.run('endRound');
+        let bidSum = calcAuction.call(this, currentPlayer);
+        if (bidSum === 0 && this.bidSum < 0) bidSum = this.bidSum + 1; // логика проверки нулевых ставок (по итогу сбрасываем машину, если никто не сделал ставку)
+        if (bidSum > this.bidSum) {
+          const playedCars = currentPlayer.decks.service_played.getObjects({ className: 'Card' });
+          for (const card of playedCars) {
+            card.set({ activeEvent: { playDisabled: true } });
           }
+          initAuctionBidStep.call(this, { bidSum, player: nextPlayer });
+        } else {
+          const clientSalesDeck = this.addDeck(
+            { type: 'card', subtype: 'sales', placement: 'table' },
+            { parentDirectLink: false }
+          );
+          // порядок добавления влияет на визуализацию
+          this.decks.feature.getRandomItem().moveToTarget(clientSalesDeck);
+          this.decks.credit.getRandomItem().moveToTarget(clientSalesDeck);
+          this.clientCard.moveToTarget(clientSalesDeck);
+          this.clientCard.set({ visible: true, activeEvent: { playDisabled: true } });
+
+          if (this.bidSum === 0) {
+            this.carCard.moveToTarget(this.decks.drop);
+          } else {
+            {
+              // winner
+              this.carCard.moveToTarget(nextPlayer.decks.car);
+
+            }
+
+            {
+              // loser
+              currentPlayer.decks.service_played.moveAllItems(
+                {
+                  target: currentPlayer.decks.service,
+                },
+                { visible: false, activeEvent: null }
+              );
+            }
+          }
+
+          this.set({
+            auctionCount: this.auctionCount - 1,
+            roundStep: 'AUCTION_START',
+          });
+          this.currentPlayer = currentPlayer;
+          this.run('endRound');
         }
       }
       break;
     case 'SALES_OFFERS':
       {
-        const nextPlayer = this.lastActivePlayer.nextPlayer();
+        if (false) {
+          this.set({ roundStep: 'CHECK_SALES' });
+        } else {
+          this.set({ roundStep: 'FIRST_OFFER' });
+          this.currentPlayer.activate({ publishText: 'Сделайте ваше предложение клиенту' });
+          lib.timers.timerRestart(this);
+        }
+      }
+      break;
+    case 'FIRST_OFFER':
+      {
+        const currentPlayer = this.currentPlayer;
 
-        // ???
+        const target = this.selectedSaleDeck;
+        const ownerCode = currentPlayer.code;
+        currentPlayer.decks.car_played.moveAllItems({ target }, { visible: false, ownerCode });
+        currentPlayer.decks.service_played.moveAllItems({ target }, { visible: false, ownerCode });
 
-        nextPlayer.activate({ publishText: 'Делайте ваше предложение клиенту' });
-        this.set({ roundStep: 'SALES_OFFERS' });
-        lib.timers.timerRestart(this);
+        initSalesOffersStep.call(this, { player: currentPlayer.nextPlayer() });
+      }
+      break;
+    case 'CHECK_SALES':
+      {
       }
       break;
     // case 'REPLACE_CLIENT':
@@ -263,6 +269,28 @@
     //   }
     //   break;
   }
+
+  function initAuctionBidStep({ bidSum, player }) {
+    this.set({ bidSum, roundStep: 'AUCTION_BID' });
+    this.currentPlayer = player; // ссылки на объекты ставятся нативно, а не через set({})
+    player.activate({ publishText: 'Делайте вашу ставку' });
+    lib.timers.timerRestart(this);
+  }
+  function initSalesOffersStep({ player }) {
+    const salesDecks = this.getObjects({ className: 'Deck', attr: { subtype: 'sales' } });
+    for (const deck of salesDecks) {
+      deck.set({ activeEvent: null });
+      const [clientCard] = deck.getObjects({ className: 'Card', attr: { group: 'client' } });
+      clientCard.initEvent('selectClientToSale', { player });
+    }
+
+    this.set({ roundStep: 'SALES_OFFERS' });
+    if (this.selectedSaleDeck) delete this.selectedSaleDeck;
+    this.currentPlayer = player;
+    player.activate({ publishText: 'Выберите клиента, которому хотите сделать предложение' });
+    lib.timers.timerRestart(this);
+  }
+
   function calcAuction(player) {
     const priceMods = [];
     const [serviceDeck] = player.getObjects({ className: 'Deck', attr: { subtype: 'service_played' } });

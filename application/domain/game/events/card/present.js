@@ -69,9 +69,8 @@
       },
       TRIGGER: function ({ target: card }) {
         const { game, player } = this.eventContext();
-        const dropDeck = game.getObjectByCode('Deck[card_drop]');
 
-        card.moveToTarget(dropDeck);
+        card.moveToTarget(game.decks.drop);
         card.set({ activeEvent: null });
 
         this.emit('RESET');

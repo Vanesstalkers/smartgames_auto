@@ -7,16 +7,14 @@
   const card = this.getObjectById(cardId);
 
   if (card.group === 'car') {
-    const targetDeck = player.getObjectByCode('Deck[card_car_played]');
-    card.moveToTarget(targetDeck);
+    card.moveToTarget(player.decks.car_played);
   }
   if (card.group === 'service') {
-    const targetDeck = player.getObjectByCode(`Deck[card_service_played]`);
-    card.moveToTarget(targetDeck);
-    if (this.roundStep === 'SECOND_OFFER') {
+    card.moveToTarget(player.decks.service_played);
       // все карты на столе уже visible = true
       card.set({ visible: true });
     }
   }
+  
   card.initEvent('returnCardToHand', { player });
 });

@@ -288,8 +288,9 @@
     }
   }
   removeTableCards() {
-    const cardDeckDrop = this.getObjectByCode('Deck[card_drop]');
-    for (const deck of this.getObjects({ className: 'Deck', attr: { placement: 'table' } })) {
+    const cardDeckDrop = this.decks.drop;
+    const tableDecks = this.getObjects({ className: 'Deck', attr: { placement: 'table' } });
+    for (const deck of tableDecks) {
       deck.moveAllItems({ target: cardDeckDrop }, { visible: false });
     }
   }
@@ -303,11 +304,8 @@
     this.clientMoney = clientMoney;
   }
   showTableCards() {
-    const creditZone = this.getObjectByCode('Deck[card_zone_credit]');
-    const featureZone = this.getObjectByCode('Deck[card_zone_feature]');
-
-    creditZone.setItemVisible(this.creditCard);
-    featureZone.setItemVisible(this.featureCard);
+    this.decks.zone_credit.setItemVisible(this.creditCard);
+    this.decks.zone_feature.setItemVisible(this.featureCard);
 
     for (const player of this.getPlayerList()) {
       const tableZones = player
@@ -326,18 +324,15 @@
 
   addNewRoundCardsToPlayers() {
     for (const player of this.getPlayerList()) {
-      const playerCarHand = player.getObjectByCode('Deck[card_car]');
-      const playerServiceHand = player.getObjectByCode('Deck[card_service]');
-
       // добавляем новые карты в руку
-      const carCard = this.getObjectByCode('Deck[card_car]').getRandomItem();
-      if (carCard) carCard.moveToTarget(playerCarHand);
-      const carService = this.getObjectByCode('Deck[card_service]').getRandomItem();
-      if (carService) carService.moveToTarget(playerServiceHand);
+      const carCard = this.decks.car.getRandomItem();
+      if (carCard) carCard.moveToTarget(player.decks.car);
+      const serviceCard = this.decks.service.getRandomItem();
+      if (serviceCard) serviceCard.moveToTarget(player.decks.service);
 
-      if (Object.keys(playerCarHand.itemMap).length > this.settings.playerHand.car.limit) {
-        player.initEvent('dropCard');
-      }
+      const carItems = Object.keys(player.decks.car.itemMap);
+      const tooManyCardsInHand = carItems.length > this.settings.playerHand.car.limit;
+      if (tooManyCardsInHand) player.initEvent('dropCard');
     }
   }
 

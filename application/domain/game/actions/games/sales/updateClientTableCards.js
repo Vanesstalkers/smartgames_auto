@@ -1,13 +1,11 @@
-(function(){
-    const clientZone = this.getObjectByCode('Deck[card_zone_client]');
-    const creditZone = this.getObjectByCode('Deck[card_zone_credit]');
-    const featureZone = this.getObjectByCode('Deck[card_zone_feature]');
+(function () {
+  this.clientCard = this.decks.client.getRandomItem();
+  this.clientCard.moveToTarget(this.decks.zone_client);
+  this.featureCard = this.decks.feature.getRandomItem();
+  this.featureCard.moveToTarget(this.decks.zone_feature);
+  this.creditCard = this.decks.credit.smartMoveRandomCard({
+    target: this.decks.zone_credit,
+  });
 
-    this.clientCard = this.getObjectByCode('Deck[card_client]').getRandomItem();
-    this.clientCard.moveToTarget(clientZone);
-    this.featureCard = this.getObjectByCode('Deck[card_feature]').getRandomItem();
-    this.featureCard.moveToTarget(featureZone);
-    this.creditCard = this.getObjectByCode('Deck[card_credit]').smartMoveRandomCard({ target: creditZone });
-
-    if (this.clientReplacedCard) delete this.clientReplacedCard;
-})
+  if (this.clientReplacedCard) delete this.clientReplacedCard;
+});

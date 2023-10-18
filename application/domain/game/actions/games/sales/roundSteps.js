@@ -36,15 +36,17 @@
         this.logs(`Произошла замена клиента.`);
 
         this.clientReplacedCard = this.clientCard;
-        this.clientCard = this.getObjectByCode('Deck[card_client]').getRandomItem();
+        this.clientCard = this.decks.client.getRandomItem();
 
         if (!this.clientCard) {
           this.logs(`В колоде закончились карты клиентов.`);
           return this.checkWinnerAndFinishGame();
         }
 
-        this.clientCard.moveToTarget(this.getObjectByCode('Deck[card_zone_client_dop]'));
-        for (const player of players) player.returnTableCardsToHand();
+        this.clientCard.moveToTarget(this.decks.zone_client_dop);
+        for (const player of players) {
+          player.returnTableCardsToHand();
+        }
         this.showTableCards();
 
         this.activatePlayers({ publishText: 'Клиент поменялся, вы можете сделать новое предложение.' });
@@ -130,8 +132,8 @@
       break;
     case 'SHOW_RESULTS':
       {
-        const emptyClientDeck = this.getObjectByCode('Deck[card_client]').itemsCount() === 0;
-        const emptyFeatureDeck = this.getObjectByCode('Deck[card_feature]').itemsCount() === 0;
+        const emptyClientDeck = this.decks.client.itemsCount() === 0;
+        const emptyFeatureDeck = this.decks.feature.itemsCount() === 0;
         if (emptyClientDeck || emptyFeatureDeck) {
           this.logs(`В колоде закончились карты ${emptyClientDeck ? 'клиентов' : 'сервисов'}.`);
           return this.checkWinnerAndFinishGame();

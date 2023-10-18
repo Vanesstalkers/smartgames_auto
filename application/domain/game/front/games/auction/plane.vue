@@ -17,7 +17,7 @@
         v-for="deck in tableSalesZones"
         :key="deck._id"
         :code="deck.code"
-        :class="['sales-deck']"
+        :class="['sales-deck', deck.activeEvent?.currentSale ? 'active-sale' : '']"
         :style="{ width: handCardsWidth }"
       >
         <card
@@ -26,7 +26,7 @@
           :id="id"
           :cardId="id"
           :cardGroup="group"
-          :canPlay="false"
+          :canPlay="sessionPlayerIsActive() && group === 'client'"
           :isSelected="false"
           imgExt="png"
         />
@@ -72,7 +72,7 @@ export default {
     },
 
     tableCardZones() {
-      return Object.keys(this.game.deckMap).map((id) => this.store.deck?.[id]);
+      return Object.keys(this.game.deckMap).map((id) => this.store.deck?.[id] || {});
     },
     tableAuctionZones() {
       return this.tableCardZones.filter((deck) => deck.placement == 'table' && deck.subtype != 'sales');
@@ -125,6 +125,10 @@ export default {
 
           .card-event {
             margin-left: -80px;
+          }
+          &.active-sale {
+            scale: 1.5;
+            margin-top: 250px;
           }
         }
       }
