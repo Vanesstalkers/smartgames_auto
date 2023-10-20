@@ -14,7 +14,6 @@
               :cardGroup="card.group"
               :canPlay="canPlay(card)"
               :myCard="iam"
-              :isSelected="card.id === gameCustom.selectedCard"
               :imgExt="'png'"
             />
           </div>
@@ -26,7 +25,6 @@
               :cardGroup="card.group"
               :canPlay="canPlay(card)"
               :myCard="iam"
-              :isSelected="card.id === gameCustom.selectedCard"
               :imgExt="'png'"
             />
           </div>

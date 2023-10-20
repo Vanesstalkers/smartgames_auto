@@ -17,17 +17,34 @@
       },
       TRIGGER: function ({ target }) {
         const { game, player, source: card } = this.eventContext();
-        // у game много TRIGGER-событий - все лишние сбрасываем, а одно выбранное обрабатываем
-        this.emit('RESET');
+        // у game много TRIGGER-событий, проверка нужна, чтобы не инициировать лишние
+        if (target !== card) return { preventListenerRemove: true };
 
         if (target === card) {
-          const selectedSaleDeck = card.parent();
-          selectedSaleDeck.set({ activeEvent: { currentSale: true } });
-          game.selectedSaleDeck = selectedSaleDeck;
-          game.run('endRound', {}, player);
+          if (game.selectedSaleDeck) game.selectedSaleDeck.set({ activeEvent: null });
+          if (this.cancelAction) {
+            delete game.selectedSaleDeck;
+            this.set({ cancelAction: null, buttonText: 'Выбрать' });
+          } else {
+            if (game.selectedSaleDeck) {
+              const [clientCard] = game.selectedSaleDeck.getObjects({
+                className: 'Card',
+                attr: { group: 'client' },
+              });
+              clientCard.set(
+                { activeEvent: { cancelAction: null, buttonText: 'Выбрать' } },
+                { reset: ['activeEvent'] }
+              );
+            }
+            const selectedSaleDeck = card.parent();
+            game.selectedSaleDeck = selectedSaleDeck;
+            selectedSaleDeck.set({ activeEvent: { currentSale: true } });
+            this.set({ cancelAction: true, buttonText: 'Отмена' });
+          }
+          return { preventListenerRemove: true };
         }
       },
-      ROUND_END: function () {
+      SALES_OFFERS: function () {
         this.emit('RESET');
       },
     },

@@ -107,7 +107,7 @@
         const player = this.roundStepWinner;
 
         // рассчитываем предложение клиенту заново (с учетом добавленных сервисов)
-        const { fullPrice, carTitle } = calcOffer.call(this, player);
+        const { fullPrice, carTitle } = calcOfferForPlayer.call(this, player);
         if (fullPrice <= this.clientMoney) {
           this.logs(
             `Клиент приобрел автомобиль "${carTitle}" и сервисы за ${new Intl.NumberFormat().format(
@@ -177,7 +177,7 @@
     for (const player of this.getPlayerList()) {
       let offer;
       try {
-        offer = calcOffer.call(this, player);
+        offer = calcOfferForPlayer.call(this, player);
       } catch (err) {
         if (err === 'no_car') continue;
         else throw err;
@@ -203,36 +203,12 @@
     }
     return bestOffer;
   }
-  function calcOffer(player) {
-    const { featureCard } = this;
-    const [carDeck] = player.getObjects({ className: 'Deck', attr: { subtype: 'car_played' } });
+  function calcOfferForPlayer(player) {
+    const [carDeck] = player.getObjects({ className: 'Deck', attr: { subtype: 'car_played' } }); // ??? почему не через .decks
     const [carCard] = carDeck.getObjects({ className: 'Card' });
-    if (!carCard) throw 'no_car';
-
-    const offer = { player, carPrice: 0, stars: 0, priceMods: [], priceGroup: [], equip: [] };
-    offer.carTitle = carCard.title;
-    offer.carPrice = carCard.price;
-    offer.stars = carCard.stars;
-    offer.priceGroup.push(...carCard.priceGroup);
-    offer.equip.push(...carCard.equip);
-    if (featureCard.price) offer.priceMods.push(featureCard.price);
-
-    const [serviceDeck] = player.getObjects({ className: 'Deck', attr: { subtype: 'service_played' } });
-    for (const card of serviceDeck.getObjects({ className: 'Card' })) {
-      const exclusiveEquip = !card.equip || !card.equip.find((equip) => offer.equip.includes(equip));
-      if (!exclusiveEquip) continue;
-
-      if (card.stars) offer.stars += card.stars;
-      if (card.priceGroup) offer.priceGroup.push(...card.priceGroup);
-      if (card.equip) offer.equip.push(...card.equip);
-      offer.priceMods.push(card.price);
-    }
-
-    offer.fullPrice = offer.priceMods.reduce((price, mod) => {
-      if (mod.at(-1) === '%') return price + offer.carPrice * (parseInt(mod) / 100);
-      return price + parseInt(mod);
-    }, offer.carPrice);
-
-    return offer;
+    const [serviceDeck] = player.getObjects({ className: 'Deck', attr: { subtype: 'service_played' } }); // ??? .decks
+    const serviceCards = serviceDeck.getObjects({ className: 'Card' });
+    const { featureCard } = this;
+    this.calcOffer({ player, carCard, serviceCards, featureCard });
   }
 });

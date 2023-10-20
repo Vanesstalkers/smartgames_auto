@@ -123,6 +123,7 @@
         { type: 'card', subtype: 'credit', placement: 'main', cardGroups: ['credit'] },
         { type: 'card', subtype: 'feature', placement: 'main' },
         { type: 'card', subtype: 'drop', placement: 'drop' },
+        { type: 'card', subtype: 'drop_service', placement: 'drop' },
         { type: 'card', subtype: 'zone_auction_client', placement: 'table', access: 'all' },
         { type: 'card', subtype: 'zone_auction_car', placement: 'table', access: 'all' },
       ],

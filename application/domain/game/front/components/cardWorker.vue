@@ -13,7 +13,9 @@
     @click="controlAction"
   >
     <div class="money">{{ new Intl.NumberFormat().format(player.money || 0) }}₽</div>
-    <div v-if="showEndRoundBtn" class="action-btn end-round-btn">Закончить раунд</div>
+    <div v-if="showEndRoundBtn" :class="['action-btn', 'end-round-btn', player.activeEvent?.roundBtn?.class || '']">
+      {{ player.activeEvent?.roundBtn?.label || 'Закончить раунд' }}
+    </div>
     <div v-if="showTimer" class="end-round-timer">
       {{ this.localTimer }}
     </div>
@@ -209,6 +211,10 @@ export default {
   position: absolute;
   bottom: 0px;
   width: 100%;
+  min-height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   font-size: 0.5em;
   text-align: center;
   cursor: pointer;

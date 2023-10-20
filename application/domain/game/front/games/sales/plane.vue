@@ -8,7 +8,6 @@
         :cardId="id"
         :cardGroup="group"
         :canPlay="false"
-        :isSelected="false"
         imgExt="png"
       />
     </div>

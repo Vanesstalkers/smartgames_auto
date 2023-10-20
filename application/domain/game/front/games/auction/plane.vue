@@ -8,7 +8,6 @@
         :cardId="id"
         :cardGroup="group"
         :canPlay="false"
-        :isSelected="false"
         imgExt="png"
       />
     </div>
@@ -21,15 +20,30 @@
         :style="{ width: handCardsWidth }"
       >
         <card
-          v-for="[id, { group }] in Object.entries(deck.itemMap)"
+          v-for="[id, { group }] in Object.entries(deck.itemMap).filter(([id, { owner }]) => !owner)"
           :key="id"
           :id="id"
           :cardId="id"
           :cardGroup="group"
           :canPlay="sessionPlayerIsActive() && group === 'client'"
-          :isSelected="false"
           imgExt="png"
         />
+
+        <div class="offers">
+          <div class="owner" v-for="{ ownerCode, offers } in deck.owners" :key="ownerCode">
+            <div class="offer" v-for="[offerCode, itemGroup] in Object.entries(offers)" :key="offerCode">
+              <card
+                v-for="{ id, group } in itemGroup"
+                :key="id"
+                :id="id"
+                :cardId="id"
+                :cardGroup="group"
+                :canPlay="false"
+                imgExt="png"
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -70,6 +84,9 @@ export default {
     gameDataLoaded() {
       return this.game.addTime;
     },
+    sessionPlayer() {
+      return this.store.player?.[this.gameState.sessionPlayerId] || {};
+    },
 
     tableCardZones() {
       return Object.keys(this.game.deckMap).map((id) => this.store.deck?.[id] || {});
@@ -78,7 +95,25 @@ export default {
       return this.tableCardZones.filter((deck) => deck.placement == 'table' && deck.subtype != 'sales');
     },
     tableSalesZones() {
-      return this.tableCardZones.filter((deck) => deck.placement == 'table' && deck.subtype == 'sales');
+      return this.tableCardZones
+        .filter((deck) => deck.placement == 'table' && deck.subtype == 'sales')
+        .map((deck) => {
+          deck.owners = Object.entries(deck.itemMap).reduce(
+            (obj, [id, { group, owner }]) => {
+              if (owner) {
+                if (!obj[owner.code]) obj[owner.code] = {};
+                if (!obj[owner.code][owner.order]) obj[owner.code][owner.order] = [];
+                obj[owner.code][owner.order].push({ id, group });
+              }
+              return obj;
+            },
+            { 'Player[1]': {}, 'Player[2]': {} }
+          );
+          const sessionPlayerCode = this.sessionPlayer.code;
+          deck.owners = Object.entries(deck.owners).map(([id, offers]) => ({ ownerCode: id, offers }));
+          deck.owners.sort((a, b) => (a.ownerCode === sessionPlayerCode ? 1 : -1));
+          return deck;
+        });
     },
 
     handCardsWidth() {
@@ -122,13 +157,42 @@ export default {
 
         .sales-deck {
           display: flex;
+          margin: 0px 50px;
+          position: relative;
+
+          &.active-sale {
+            scale: 1.5;
+            margin-top: 250px;
+            z-index: 1;
+          }
 
           .card-event {
             margin-left: -80px;
           }
-          &.active-sale {
-            scale: 1.5;
-            margin-top: 250px;
+
+          .offers {
+            position: absolute;
+            left: 0px;
+            top: 170px;
+            width: 370px;
+            height: 0px;
+            margin-left: -140px;
+            display: flex;
+            justify-content: space-between;
+            transform-origin: bottom;
+            scale: 0.5;
+
+            .owner {
+              max-width: 30%;
+              .offer {
+                display: flex;
+              }
+            }
+            .owner:last-child {
+              .offer {
+                justify-content: flex-end;
+              }
+            }
           }
         }
       }

@@ -303,6 +303,35 @@
     clientMoney += clientMoney * (parseInt(creditCard.money) / 100); // у кредита всегда проценты
     this.clientMoney = clientMoney;
   }
+  calcOffer({ player, carCard, serviceCards, featureCard }) {
+    if (!carCard) throw 'no_car';
+
+    const offer = { player, carPrice: 0, stars: 0, priceMods: [], priceGroup: [], equip: [] };
+    offer.carTitle = carCard.title;
+    offer.carPrice = carCard.price;
+    offer.stars = carCard.stars;
+    offer.priceGroup.push(...carCard.priceGroup);
+    offer.equip.push(...carCard.equip);
+    if (featureCard.price) offer.priceMods.push(featureCard.price);
+
+    for (const card of serviceCards) {
+      const exclusiveEquip = !card.equip || !card.equip.find((equip) => offer.equip.includes(equip));
+      if (!exclusiveEquip) continue;
+
+      if (card.stars) offer.stars += card.stars;
+      if (card.priceGroup) offer.priceGroup.push(...card.priceGroup);
+      if (card.equip) offer.equip.push(...card.equip);
+      offer.priceMods.push(card.price);
+    }
+
+    offer.fullPrice = offer.priceMods.reduce((price, mod) => {
+      if (mod.at(-1) === '%') return price + offer.carPrice * (parseInt(mod) / 100);
+      return price + parseInt(mod);
+    }, offer.carPrice);
+
+    return offer;
+  }
+
   showTableCards() {
     this.decks.zone_credit.setItemVisible(this.creditCard);
     this.decks.zone_feature.setItemVisible(this.featureCard);

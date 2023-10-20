@@ -18,7 +18,10 @@
           <div v-if="deck._id && deck.code === 'Deck[card_client]'" class="card-event">
             {{ Object.keys(deck.itemMap).length }}
           </div>
-          <div v-if="deck._id && deck.code === 'Deck[card_feature]'" class="card-event">
+          <div v-if="deck._id && deck.code === 'Deck[card_car]'" class="card-event">
+            {{ Object.keys(deck.itemMap).length }}
+          </div>
+          <div v-if="deck._id && deck.code === 'Deck[card_drop_service]'" class="card-event">
             {{ Object.keys(deck.itemMap).length }}
           </div>
         </div>
@@ -174,6 +177,11 @@ export default {
 };
 </script>
 <style lang="scss">
+
+.card-event.played {
+  filter: none !important;
+}
+
 .game-status-label {
   text-align: right;
   color: white;
@@ -186,72 +194,42 @@ export default {
   font-size: 1.5em;
 }
 
-.deck[code='Deck[card_client]'] {
-  position: absolute;
-  top: 35px;
-  right: 70px;
-  cursor: default;
-  .card-event {
-    background-image: url(./assets/client-back-side.png);
+#gameInfo {
+  .deck {
+    position: absolute;
+    top: 35px;
+    cursor: default;
+
+    .card-event {
+      width: 60px;
+      height: 90px;
+      border: none;
+      font-size: 36px;
+      display: flex;
+      justify-content: center;
+      align-content: center;
+      color: #ff5900;
+      text-shadow: 1px 1px 0 #fff;
+    }
+
+    &[code='Deck[card_client]'] {
+      right: 70px;
+      .card-event {
+        background-image: url(./assets/client-back-side.png);
+      }
+    }
+    &[code='Deck[card_car]'] {
+      right: 0px;
+      .card-event {
+        background-image: url(./assets/car-back-side.png);
+      }
+    }
+    &[code='Deck[card_drop_service]'] {
+      right: 140px;
+      .card-event {
+        background-image: url(./assets/service-back-side.png);
+      }
+    }
   }
-}
-.deck[code='Deck[card_feature]'] {
-  position: absolute;
-  top: 35px;
-  right: 0px;
-  cursor: default;
-  .card-event {
-    background-image: url(./assets/feature-back-side.png);
-  }
-}
-
-.deck[code='Deck[card_drop]'] {
-  position: absolute;
-  filter: grayscale(1);
-  transform: scale(0.5);
-  top: 65px;
-  right: -10px;
-  cursor: default;
-}
-.deck[code='Deck[card_drop]'] > .card-event {
-  color: #ccc;
-}
-
-.deck[code='Deck[card_active]'] {
-  position: absolute;
-  top: 140px;
-  right: 0px;
-  display: flex;
-}
-#game.landscape-view .deck[code='Deck[card_active]'] {
-  top: 0px;
-  right: -135px;
-}
-
-.deck[code='Deck[card_active]'] .card-event {
-  margin-top: -135px;
-}
-.deck[code='Deck[card_active]'] .card-event:first-child {
-  margin-top: 0px !important;
-}
-.deck-active {
-  display: flex;
-  flex-direction: column;
-}
-
-.deck > .card-event {
-  width: 60px;
-  height: 90px;
-  border: none;
-  font-size: 36px;
-  display: flex;
-  justify-content: center;
-  align-content: center;
-  color: #ff5900;
-  text-shadow: 1px 1px 0 #fff;
-}
-
-.card-event.played {
-  filter: none !important;
 }
 </style>
