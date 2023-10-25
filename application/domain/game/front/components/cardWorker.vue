@@ -12,9 +12,9 @@
     :style="customStyle"
     @click="controlAction"
   >
-    <div class="money">{{ new Intl.NumberFormat().format(player.money || 0) }}₽</div>
-    <div v-if="showEndRoundBtn" :class="['action-btn', 'end-round-btn', player.activeEvent?.roundBtn?.class || '']">
-      {{ player.activeEvent?.roundBtn?.label || 'Закончить раунд' }}
+    <div class="money">{{ new Intl.NumberFormat().format((player.money || 0) * 1000) }}₽</div>
+    <div v-if="showEndRoundBtn" :class="['action-btn', 'end-round-btn', roundBtn.class || '']">
+      {{ roundBtn.label || 'Закончить раунд' }}
     </div>
     <div v-if="showTimer" class="end-round-timer">
       {{ this.localTimer }}
@@ -92,8 +92,11 @@ export default {
 
       return style;
     },
+    roundBtn() {
+      return this.player.eventData.roundBtn || {};
+    },
     choiceEnabled() {
-      return this.sessionPlayerIsActive() && this.player.activeEvent?.choiceEnabled;
+      return this.sessionPlayerIsActive() && this.player.eventData.choiceEnabled;
     },
     playerDecks() {
       return Object.keys(this.player.deckMap || {}).map((id) => this.store.deck?.[id] || {});

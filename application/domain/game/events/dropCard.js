@@ -6,7 +6,7 @@
       const carCards = player.decks.car.getObjects({ className: 'Card' });
       for (const card of carCards) {
         card.set({
-          activeEvent: {
+          eventData: {
             cardClass: 'alert', // дополнительный css-класс карты
             buttonText: 'Сбросить карту', // тест кнопки на карте
           },
@@ -19,10 +19,10 @@
     },
     handlers: {
       RESET: function () {
-        const { game, player, sourceId } = this.eventContext();
+        const { game, player, source, sourceId } = this.eventContext();
 
-        player.decks.car.updateAllItems({ activeEvent: null });
-        player.set({ activeEvent: null });
+        player.decks.car.updateAllItems({ eventData: { cardClass: null, buttonText: null } });
+        source.removeEvent(this);
 
         game.removeAllEventListeners({ sourceId });
       },
@@ -31,7 +31,9 @@
         // проверка на дубли событий ( if (target !== card) {...} ) не нужна, потому что она перекрывается проверкой initPlayers в toggleEventHandlers
 
         target.moveToTarget(game.decks.drop);
-        target.set({ activeEvent: null });
+        target.set({
+          eventData: { cardClass: null, buttonText: null },
+        });
 
         const carCardItems = Object.keys(player.decks.car.itemMap);
         const count = carCardItems.length - game.settings.playerHand.car.limit;

@@ -99,9 +99,6 @@ export default {
     gameDataLoaded: function () {
       // тут ловим обновление страницы
     },
-    'game.activeEvent': function () {
-      // тут ловим инициацию событий карт
-    },
   },
   computed: {
     state() {
@@ -158,6 +155,10 @@ export default {
             PRESENT: 'Подарок клиенту',
             SECOND_OFFER: 'Дополнительные продажи',
             ROUND_END: 'Окончание раунда',
+            SALES_OFFERS: 'Предложение клиенту',
+            AUCTION_BET: 'Ставки на аукционе',
+            CHECK_DEAL: 'Оценка предложений',
+            REFERENCE_CLIENT: 'Привел друга'
           };
 
           const roundStep = this.game.roundStep;
@@ -177,7 +178,6 @@ export default {
 };
 </script>
 <style lang="scss">
-
 .card-event.played {
   filter: none !important;
 }

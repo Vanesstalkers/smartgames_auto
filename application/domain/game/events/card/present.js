@@ -2,16 +2,16 @@
   new lib.game.GameEvent({
     present: true,
     init: function () {
-      const { game, player } = this.eventContext();
-      const decks = player.getObjects({ className: 'Deck' });
-      const carHand = decks.find((deck) => deck.subtype === 'car');
-      const serviceHand = decks.find((deck) => deck.subtype === 'service');
+      const { game, player, source } = this.eventContext();
 
-      carHand.set({ activeEvent: { playDisabled: true } });
+      player.decks.car.set({ eventData: { playDisabled: true } });
+      player.decks.service.set({ eventData: { playDisabled: null } });
 
-      for (const card of serviceHand.getObjects({ className: 'Card' })) {
+      const serviceCards = player.decks.service.getObjects({ className: 'Card' });
+      for (const card of serviceCards) {
         card.set({
-          activeEvent: {
+          eventData: {
+            activeEvents: [this],
             cardClass: 'danger', // дополнительный css-класс карты
             buttonText: 'Подарить', // тест кнопки на карте
           },
@@ -44,15 +44,15 @@
     },
     handlers: {
       RESET: function ({ skipRound }) {
-        const { game, player, sourceId } = this.eventContext();
-        const decks = player.getObjects({ className: 'Deck' });
-        const carHand = decks.find((deck) => deck.subtype === 'car');
-        const serviceHand = decks.find((deck) => deck.subtype === 'service');
+        const { game, player, source, sourceId } = this.eventContext();
 
-        carHand.set({ activeEvent: null });
-        serviceHand.updateAllItems({ activeEvent: null });
-        player.set({ activeEvent: null });
-        // делаем после обнуления activeEvent, чтобы не удалить событие skipRound
+        player.decks.service.set({ eventData: { playDisabled: true } });
+        player.decks.service.updateAllItems({
+          eventData: { activeEvents: [], cardClass: null, buttonText: null },
+        });
+        source.removeEvent(this);
+        player.removeEvent(this);
+
         if (skipRound) {
           game.logs({
             msg: `Игрок {{player}} не стал дарить подарок.`,
@@ -70,8 +70,8 @@
       TRIGGER: function ({ target: card }) {
         const { game, player } = this.eventContext();
 
+        card.set({ eventData: { activeEvents: [], cardClass: null, buttonText: null } });
         card.moveToTarget(game.decks.drop);
-        card.set({ activeEvent: null });
 
         this.emit('RESET');
 
@@ -80,9 +80,10 @@
 
       PRESENT: function () {
         const { game, player } = this.eventContext();
+        const eventStillEnabled = player.eventData.activeEvents.find((event) => event === this);
         this.emit('RESET', {
           // подарок не подарен
-          skipRound: player.activeEvent ? true : false,
+          skipRound: eventStillEnabled ? true : false,
         });
       },
     },

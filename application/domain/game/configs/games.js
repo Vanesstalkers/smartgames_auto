@@ -76,9 +76,9 @@
       timer: (baseTimer) => {
         return {
           DEFAULT: baseTimer,
-          // SECOND_OFFER: Math.ceil(baseTimer / 2),
-          // PRESENT: Math.ceil(baseTimer / 3),
-          // SHOW_RESULTS: Math.max(5, Math.ceil(baseTimer / 5)),
+          SECOND_OFFER: Math.ceil(baseTimer / 2),
+          PRESENT: Math.ceil(baseTimer / 3),
+          SHOW_RESULTS: Math.max(5, Math.ceil(baseTimer / 5)),
           // CARD_DROP: Math.max(5, Math.ceil(baseTimer / 5)),
         };
       },

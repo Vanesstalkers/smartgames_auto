@@ -9,6 +9,7 @@
 
     this.defaultClasses({
       Player: domain.game.objects.Player,
+      Deck: domain.game.objects.Deck,
       Card: domain.game.objects.Card,
     });
   }
@@ -24,7 +25,6 @@
     this.settings = data.settings;
     this.status = data.status || 'WAIT_FOR_PLAYERS';
     this.round = data.round || 0;
-    if (data.activeEvent) this.activeEvent = data.activeEvent;
     this.availablePorts = data.availablePorts || [];
 
     const { configs } = domain.game;
@@ -279,11 +279,7 @@
 
   activatePlayers({ publishText, setData }) {
     for (const player of this.getPlayerList()) {
-      if (player.activeEvent?.skipRound) {
-        this.logs(`Игрок ${player.userName} пропускает ход`);
-        player.set({ activeEvent: null, eventData: { actionsDisabled: true } });
-        continue;
-      }
+      if (player.skipRoundCheck()) continue;
       player.activate({ setData, publishText });
     }
   }
@@ -291,7 +287,10 @@
     const cardDeckDrop = this.decks.drop;
     const tableDecks = this.getObjects({ className: 'Deck', attr: { placement: 'table' } });
     for (const deck of tableDecks) {
-      deck.moveAllItems({ target: cardDeckDrop }, { visible: false });
+      deck.moveAllItems({
+        target: cardDeckDrop,
+        setData: { visible: false },
+      });
     }
   }
   calcClientMoney() {
@@ -344,7 +343,7 @@
         .filter(({ placement }) => placement == 'table');
       for (const zone of tableZones) {
         for (const card of zone.getObjects({ className: 'Card' })) {
-          card.activeEvent.set({ canPlay: false });
+          card.set({ eventData: { canPlay: false } });
           zone.setItemVisible(card);
         }
       }
@@ -370,5 +369,20 @@
       if (player === this.roundStepWinner) continue; // карты победителя сбрасываются
       player.returnTableCardsToHand();
     }
+  }
+  createClientDealDeck() {
+    const clientDealDeck = this.addDeck(
+      { type: 'card', subtype: 'deal', placement: 'table' },
+      { parentDirectLink: false }
+    );
+
+    // порядок добавления влияет на визуализацию
+    this.decks.feature.getRandomItem().moveToTarget(clientDealDeck);
+    this.decks.credit.getRandomItem().moveToTarget(clientDealDeck);
+    this.clientCard.moveToTarget(clientDealDeck);
+    this.clientCard.set({ visible: true, eventData: { playDisabled: true } });
+    clientDealDeck.clientCard = this.clientCard;
+
+    return clientDealDeck;
   }
 });

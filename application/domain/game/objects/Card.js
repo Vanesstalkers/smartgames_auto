@@ -4,7 +4,7 @@
     this.broadcastableFields(
       this.broadcastableFields().concat(
         // добавляем недостающие поля
-        ['group', 'equip', 'ownerCode']
+        ['price', 'group', 'stars', 'equip', 'priceGroup']
       )
     );
 

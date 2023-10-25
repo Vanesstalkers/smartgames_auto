@@ -81,12 +81,30 @@ export default {
       const map = this.deckIds.map((id) => this.store.deck?.[id] || {});
       return map.filter((deck) => deck.type === 'card') || [];
     },
+    cardDecksData() {
+      return this.cardDecks.map(({ code, eventData }) => ({ code, eventData }));
+    },
     handCards() {
       return this.cardDecks
         .filter(({ placement }) => placement !== 'table')
         .reduce((arr, deck) => {
-          return arr.concat(Object.entries(deck.itemMap).map(([id, { group }]) => ({ id, group, deck })));
-        }, []);
+          return arr.concat(
+            Object.entries(deck.itemMap).map(([id, { group }]) => {
+              const { price = 0, priceGroup, stars } = this.store.card[id] || {};
+              const cardOrder =
+                parseInt(price) * (price.toString().includes('%') ? 100 : 1) +
+                (priceGroup ? 1000000 : 0) +
+                (stars ? 5000000 : 0);
+              return {
+                id,
+                group,
+                deck,
+                cardOrder,
+              };
+            })
+          );
+        }, [])
+        .sort((a, b) => (a.cardOrder > b.cardOrder ? -1 : 1));
     },
     tableCards() {
       return this.cardDecks
@@ -98,9 +116,6 @@ export default {
     deckIds() {
       return Object.keys(this.player.deckMap || {});
     },
-    showDecks() {
-      return this.sessionPlayerIsActive() && this.player.activeEvent?.showDecks;
-    },
     handCardsWidth() {
       return state.isMobile && this.state.isPortrait ? `${window.innerWidth - 80}px` : 'auto';
     },
@@ -111,8 +126,8 @@ export default {
   methods: {
     canPlay(card) {
       const playerAvailable =
-        (this.sessionPlayerIsActive() || this.player.activeEvent?.canPlay) && !this.player.activeEvent?.playDisabled;
-      const deckAvailable = !card.deck.activeEvent?.playDisabled;
+        (this.sessionPlayerIsActive() || this.player.eventData.canPlay) && !this.player.eventData.playDisabled;
+      const deckAvailable = !card.deck.eventData.playDisabled;
 
       const tableCar = this.tableCards.find((card) => card.group === 'car');
       const currentEquip = this.tableCards.reduce(

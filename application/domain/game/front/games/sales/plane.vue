@@ -32,9 +32,6 @@ export default {
     gameDataLoaded: function () {
       // тут ловим обновление страницы
     },
-    'game.activeEvent': function () {
-      // тут ловим инициацию событий карт
-    },
   },
   computed: {
     state() {

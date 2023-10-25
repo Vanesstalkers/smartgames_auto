@@ -11,12 +11,17 @@
         imgExt="png"
       />
     </div>
-    <div :class="['sales-zones']">
+    <div :class="['deal-zones']">
       <div
-        v-for="deck in tableSalesZones"
+        v-for="deck in tableDealZones"
         :key="deck._id"
         :code="deck.code"
-        :class="['sales-deck', deck.activeEvent?.currentSale ? 'active-sale' : '']"
+        :class="[
+          'deal-deck',
+          deck.eventData.currentDeal ? 'active-deal' : '',
+          deck.eventData.referencePlayerCode ? 'exclusive' : '',
+          deck.eventData.referencePlayerCode !== sessionPlayer.code ? 'disabled' : '',
+        ]"
         :style="{ width: handCardsWidth }"
       >
         <card
@@ -67,9 +72,6 @@ export default {
     gameDataLoaded: function () {
       // тут ловим обновление страницы
     },
-    'game.activeEvent': function () {
-      // тут ловим инициацию событий карт
-    },
   },
   computed: {
     state() {
@@ -92,11 +94,11 @@ export default {
       return Object.keys(this.game.deckMap).map((id) => this.store.deck?.[id] || {});
     },
     tableAuctionZones() {
-      return this.tableCardZones.filter((deck) => deck.placement == 'table' && deck.subtype != 'sales');
+      return this.tableCardZones.filter((deck) => deck.placement == 'table' && deck.subtype != 'deal');
     },
-    tableSalesZones() {
+    tableDealZones() {
       return this.tableCardZones
-        .filter((deck) => deck.placement == 'table' && deck.subtype == 'sales')
+        .filter((deck) => deck.placement == 'table' && deck.subtype == 'deal')
         .map((deck) => {
           deck.owners = Object.entries(deck.itemMap).reduce(
             (obj, [id, { group, owner }]) => {
@@ -144,7 +146,7 @@ export default {
         top: calc(50% - 90px);
       }
 
-      .sales-zones {
+      .deal-zones {
         position: absolute;
         left: 0px;
         top: 50px;
@@ -155,15 +157,24 @@ export default {
         transform-origin: center top;
         scale: 0.7;
 
-        .sales-deck {
+        .deal-deck {
           display: flex;
           margin: 0px 50px;
           position: relative;
 
-          &.active-sale {
+          &.active-deal {
             scale: 1.5;
             margin-top: 250px;
             z-index: 1;
+          }
+
+          &.exclusive {
+            box-shadow: 0px 0px 20px 0px gold;
+            border: 2px solid gold;
+            border-radius: 4px;
+          }
+          &.exclusive.disabled {
+            opacity: 0.5;
           }
 
           .card-event {
