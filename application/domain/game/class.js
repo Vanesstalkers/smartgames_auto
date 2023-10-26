@@ -24,6 +24,7 @@
     this.addTime = data.addTime;
     this.settings = data.settings;
     this.status = data.status || 'WAIT_FOR_PLAYERS';
+    this.statusLabel = data.statusLabel || 'Ожидание игроков';
     this.round = data.round || 0;
     this.availablePorts = data.availablePorts || [];
 
@@ -94,7 +95,7 @@
           case 'PLAYER_JOIN':
             if (this.getFreePlayerSlot()) return;
 
-            this.set({ status: 'PREPARE_START' });
+            this.set({ statusLabel: 'Подготовка к игре', status: 'PREPARE_START' });
 
             if (false) {
               // TO_CHANGE (меняем, если игроки должны что-то делать перед началом игры)
@@ -171,6 +172,9 @@
         }
         break;
     }
+  }
+  stepLabel(label) {
+    return `Раунд ${this.round} (${label})`;
   }
 
   allowedToPerformAction(player, eventName) {
@@ -277,9 +281,9 @@
     return this.endGame({ winningPlayer });
   }
 
-  activatePlayers({ publishText, setData }) {
+  activatePlayers({ publishText, setData, disableSkipRoundCheck = false }) {
     for (const player of this.getPlayerList()) {
-      if (player.skipRoundCheck()) continue;
+      if (!disableSkipRoundCheck && player.skipRoundCheck()) continue;
       player.activate({ setData, publishText });
     }
   }
@@ -343,24 +347,9 @@
         .filter(({ placement }) => placement == 'table');
       for (const zone of tableZones) {
         for (const card of zone.getObjects({ className: 'Card' })) {
-          card.set({ eventData: { canPlay: false } });
           zone.setItemVisible(card);
         }
       }
-    }
-  }
-
-  addNewRoundCardsToPlayers() {
-    for (const player of this.getPlayerList()) {
-      // добавляем новые карты в руку
-      const carCard = this.decks.car.getRandomItem();
-      if (carCard) carCard.moveToTarget(player.decks.car);
-      const serviceCard = this.decks.service.getRandomItem();
-      if (serviceCard) serviceCard.moveToTarget(player.decks.service);
-
-      const carItems = Object.keys(player.decks.car.itemMap);
-      const tooManyCardsInHand = carItems.length > this.settings.playerHand.car.limit;
-      if (tooManyCardsInHand) player.initEvent('dropCard');
     }
   }
 

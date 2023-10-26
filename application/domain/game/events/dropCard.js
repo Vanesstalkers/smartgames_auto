@@ -7,36 +7,41 @@
       for (const card of carCards) {
         card.set({
           eventData: {
+            activeEvents: [this],
             cardClass: 'alert', // дополнительный css-класс карты
             buttonText: 'Сбросить карту', // тест кнопки на карте
           },
         });
       }
-
-      player.activate({
-        publishText: `Выберите карты, которые хотите сбросить. В руке должно остаться не больше ${game.settings.playerHand.car.limit} карт авто.`,
-      });
     },
     handlers: {
       RESET: function () {
         const { game, player, source, sourceId } = this.eventContext();
 
-        player.decks.car.updateAllItems({ eventData: { cardClass: null, buttonText: null } });
+        player.decks.car.updateAllItems({
+          eventData: { activeEvents: [], cardClass: null, buttonText: null },
+        });
         source.removeEvent(this);
 
         game.removeAllEventListeners({ sourceId });
       },
       TRIGGER: function ({ target }) {
         const { game, player, source: card } = this.eventContext();
-        // проверка на дубли событий ( if (target !== card) {...} ) не нужна, потому что она перекрывается проверкой initPlayers в toggleEventHandlers
+        const {
+          decks: { drop: dropDeck },
+          settings: {
+            playerHand: {
+              car: { limit: carLimit },
+            },
+          },
+        } = game;
 
-        target.moveToTarget(game.decks.drop);
+        target.moveToTarget(dropDeck);
         target.set({
           eventData: { cardClass: null, buttonText: null },
         });
 
-        const carCardItems = Object.keys(player.decks.car.itemMap);
-        const count = carCardItems.length - game.settings.playerHand.car.limit;
+        const count = player.decks.car.itemsCount() - carLimit;
         if (count <= 0) {
           this.emit('RESET');
           game.run('endRound', {}, player);
@@ -46,11 +51,18 @@
       },
       ROUND_END: function () {
         const { game, player } = this.eventContext();
+        const {
+          decks: { drop: dropDeck },
+          settings: {
+            playerHand: {
+              car: { limit: carLimit },
+            },
+          },
+        } = game;
 
-        const carCardItems = Object.keys(player.decks.car.itemMap);
-        const count = carCardItems.length - game.settings.playerHand.car.limit;
+        const count = player.decks.car.itemsCount() - carLimit;
         if (count > 0) {
-          player.decks.car.moveRandomItems({ count, target: game.decks.drop });
+          player.decks.car.moveRandomItems({ count, target: dropDeck });
         }
 
         this.emit('RESET');

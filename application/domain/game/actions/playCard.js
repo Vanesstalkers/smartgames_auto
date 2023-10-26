@@ -1,10 +1,15 @@
-(function ({ cardId }, player) {
-  if (this.activeEvent)
-    throw new Error(
-      this.activeEvent.errorMsg || 'Игрок не может совершить это действие, пока не завершит активное событие.'
-    );
-
+(function ({ cardId, targetPlayerId }, player) {
   const card = this.getObjectById(cardId);
+
+  if (card.eventData.playDisabled || card.parent().eventData.playDisabled || player.eventData.playDisabled)
+    throw new Error('Эту карту нельзя разыгрывать.');
+
+  if (card.eventData.activeEvents.length) {
+    for (const event of card.eventData.activeEvents) {
+      event.emit('TRIGGER', { targetId: cardId, targetPlayerId });
+    }
+    return;
+  }
 
   if (card.group === 'car') {
     card.moveToTarget(player.decks.car_played);
@@ -15,6 +20,6 @@
       card.set({ visible: true });
     }
   }
-  
+
   card.initEvent('returnCardToHand', { player });
 });

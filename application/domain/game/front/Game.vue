@@ -12,7 +12,7 @@
     <template #gameinfo="{} = {}">
       <div class="wrapper">
         <div class="game-status-label">
-          {{ statusLabel }}
+          {{ game.statusLabel }}
         </div>
         <div v-for="deck in deckList" :key="deck._id" class="deck" :code="deck.code">
           <div v-if="deck._id && deck.code === 'Deck[card_client]'" class="card-event">
@@ -142,33 +142,6 @@ export default {
       const timerMod = 30 / gameTimer;
       const configMod = { blitz: 0.5, standart: 0.75, hardcore: 1 }[gameConfig];
       return Math.floor(baseSum * timerMod * configMod);
-    },
-    statusLabel() {
-      switch (this.game.status) {
-        case 'WAIT_FOR_PLAYERS':
-          return 'Ожидание игроков';
-        case 'PREPARE_START':
-          return 'Подготовка к игре'; // TO_CHANGE (меняем на свое описание этапа раунда)
-        case 'IN_PROCESS': {
-          const roundLabels = {
-            FIRST_OFFER: 'Первое предложение',
-            PRESENT: 'Подарок клиенту',
-            SECOND_OFFER: 'Дополнительные продажи',
-            ROUND_END: 'Окончание раунда',
-            SALES_OFFERS: 'Предложение клиенту',
-            AUCTION_BET: 'Ставки на аукционе',
-            CHECK_DEAL: 'Оценка предложений',
-            REFERENCE_CLIENT: 'Привел друга'
-          };
-
-          const roundStep = this.game.roundStep;
-          const label = roundLabels[roundStep] || roundStep;
-
-          return `Раунд ${this.game.round} (${label})`;
-        }
-        case 'FINISHED':
-          return 'Игра закончена';
-      }
     },
     deckList() {
       return Object.keys(this.game.deckMap).map((id) => this.store.deck?.[id]) || [];

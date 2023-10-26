@@ -158,6 +158,7 @@ export default {
         scale: 0.7;
 
         .deal-deck {
+          height: 100%;
           display: flex;
           margin: 0px 50px;
           position: relative;
