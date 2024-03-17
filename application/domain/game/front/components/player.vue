@@ -31,7 +31,25 @@
         </div>
       </div>
       <div class="workers">
+        <div v-if="iam" :style="{ color: 'red', background: 'black' }">{{ player.eventData }}</div>
+        <div v-if="iam" :style="{ color: 'orange', background: 'black' }">{{ cardDecksData }}</div>
         <card-worker :playerId="playerId" :viewerId="viewerId" :iam="iam" :showControls="showControls" />
+      </div>
+      <div
+        v-if="iam"
+        :class="[
+          'player-helper',
+          player.staticHelper?.text ? 'new-tutorial' : '',
+          helperChecked ? 'helper-checked' : '',
+        ]"
+      >
+        <div v-if="iam" class="static-helper helper-link helper-avatar" @click.stop="tutorialAction" />
+        <dialog-helper
+          v-if="iam && helperVisible"
+          style="display: block"
+          :dialogStyle="{}"
+          :customData="player.staticHelper"
+        />
       </div>
     </div>
   </div>
@@ -43,12 +61,14 @@ import { PerfectScrollbar } from 'vue2-perfect-scrollbar';
 
 import card from '~/lib/game/front/components/card.vue';
 import cardWorker from './cardWorker.vue';
+import dialogHelper from '~/lib/helper/front/components/dialog.vue';
 
 export default {
   components: {
     PerfectScrollbar,
     card,
     cardWorker,
+    dialogHelper,
   },
   props: {
     customClass: Array,
@@ -58,9 +78,17 @@ export default {
     showControls: Boolean,
   },
   data() {
-    return {};
+    return { helperVisible: false, helperChecked: false };
   },
-  watch: {},
+  watch: {
+    'player.staticHelper.text': (val) => {
+      if (val) this.helperChecked = false;
+    },
+    'player.staticHelper': function () {
+      if (val) this.helperChecked = false;
+    },
+  },
+
   setup() {
     return inject('gameGlobals');
   },
@@ -141,6 +169,10 @@ export default {
 
       return this.iam && playerAvailable && deckAvailable && customCheck;
     },
+    tutorialAction() {
+      this.helperChecked = true;
+      this.helperVisible = !this.helperVisible;
+    },
   },
 };
 </script>
@@ -177,6 +209,7 @@ export default {
 }
 
 .workers {
+  position: relative;
   z-index: 1; /* карточка воркера должна быть видна при размещении игровых зон из руки */
 }
 
@@ -200,6 +233,34 @@ export default {
     }
   }
 }
+.player-helper {
+  position: absolute;
+  right: 0px;
+  bottom: 170px;
+
+  .static-helper.helper-link {
+    position: absolute;
+    bottom: 0px;
+    right: 90px;
+    box-shadow: none;
+  }
+
+  .helper-dialog {
+    z-index: 0 !important;
+    display: block;
+    position: relative;
+    transform-origin: right bottom;
+
+    .content {
+      width: auto;
+    }
+  }
+}
+.player-helper.new-tutorial:not(.helper-checked) {
+  .static-helper.helper-link {
+    box-shadow: 0 0 10px 10px #f4e205;
+  }
+}
 
 .player.iam .player-hands {
   .hand-cards-list {
@@ -208,7 +269,7 @@ export default {
     .hand-cards.at-table {
       position: absolute;
       left: auto;
-      right: -120px;
+      right: 20px;
       bottom: 200px;
     }
   }

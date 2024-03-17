@@ -6,16 +6,12 @@
       'card-worker',
       'card-worker-' + player.code,
       player.active ? 'active' : '',
-      choiceEnabled ? 'active-event' : '',
+      selectable ? 'selectable' : '',
       showEndRoundBtn || showLeaveBtn ? 'has-action' : '',
     ]"
     :style="customStyle"
-    @click="controlAction"
   >
     <div class="money">{{ new Intl.NumberFormat().format((player.money || 0) * 1000) }}₽</div>
-    <div v-if="showEndRoundBtn" :class="['action-btn', 'end-round-btn', roundBtn.class || '']">
-      {{ roundBtn.label || 'Закончить раунд' }}
-    </div>
     <div v-if="showTimer" class="end-round-timer">
       {{ this.localTimer }}
     </div>
@@ -25,7 +21,10 @@
     <div v-if="!iam" class="service-deck card-event">
       {{ serviceDeckCount }}
     </div>
-    <div v-if="showLeaveBtn" class="action-btn leave-game-btn">Выйти из игры</div>
+    <div v-if="showEndRoundBtn" :class="['action-btn', 'end-round-btn', roundBtn.class || '']" @click="controlAction">
+      {{ roundBtn.label || 'Закончить раунд' }}
+    </div>
+    <div v-if="showLeaveBtn" class="action-btn leave-game-btn" @click="controlAction">Выйти из игры</div>
   </div>
 </template>
 
@@ -95,8 +94,8 @@ export default {
     roundBtn() {
       return this.player.eventData.roundBtn || {};
     },
-    choiceEnabled() {
-      return this.sessionPlayerIsActive() && this.player.eventData.choiceEnabled;
+    selectable() {
+      return this.sessionPlayerIsActive() && this.player.eventData.selectable;
     },
     playerDecks() {
       return Object.keys(this.player.deckMap || {}).map((id) => this.store.deck?.[id] || {});
@@ -126,11 +125,10 @@ export default {
   },
   methods: {
     async controlAction() {
-      if (this.choiceEnabled) return; // выбор игрока в контексте события карты
+      if (this.selectable) return; // выбор игрока в контексте события карты
       if (this.showEndRoundBtn) return await this.endRound();
       if (this.showLeaveBtn) return await this.leaveGame();
     },
-
     async endRound() {
       // TO_CHANGE (свои обработчики конца раунда)
 
@@ -162,6 +160,9 @@ export default {
   border-radius: 10px;
   margin: 0px 0px 0px 5px;
   box-shadow: inset 0px 20px 20px 0px black;
+  &.active {
+    outline: 4px solid green;
+  }
   .money {
     position: absolute;
     top: 0px;
@@ -171,18 +172,7 @@ export default {
     color: #f4e205;
     padding-top: 4px;
   }
-}
-.card-worker.has-action {
-  cursor: pointer;
-}
-.card-worker.has-action:hover .action-btn {
-  background: green;
-}
-.card-worker.active {
-  outline: 4px solid green;
-}
 
-.card-worker {
   .card-event {
     position: absolute;
     bottom: 0px;
@@ -205,8 +195,13 @@ export default {
     }
   }
 }
-.card-worker.active-event .end-round-btn,
-.card-worker.active-event .end-round-timer {
+.card-worker.has-action:hover .action-btn {
+  cursor: pointer;
+  background: green;
+}
+
+.card-worker.selectable .end-round-btn,
+.card-worker.selectable .end-round-timer {
   display: none;
 }
 

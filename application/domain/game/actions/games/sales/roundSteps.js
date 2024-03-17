@@ -10,13 +10,12 @@
         car: { limit: carLimitInHand },
       },
     },
-    // getObjectByCode: getByCode, // нельзя тут объявлять, потому что потеряется контекст выполнения
   } = this;
-  const players = this.getPlayerList();
+  const players = this.players();
 
   const calcOfferForPlayer = (player) => {
-    const carCard = player.decks.car_played.getObjects({ className: 'Card' })[0];
-    const serviceCards = player.decks.service_played.getObjects({ className: 'Card' });
+    const carCard = player.decks.car_played.select('Card')[0];
+    const serviceCards = player.decks.service_played.select('Card');
     const { featureCard } = this;
     return this.calcOffer({ player, carCard, serviceCards, featureCard });
   };
@@ -92,8 +91,13 @@
         this.calcClientMoney();
 
         this.activatePlayers({
-          publishText: 'Сделайте ваше предложение клиенту (одно авто и сколько угодно сервисов).',
-          setData: { eventData: { playDisabled: null, roundBtn: { label: 'Сделать предложение' } } },
+          setData: {
+            staticHelper: { text: 'Сделайте ваше предложение клиенту (одно авто и сколько угодно сервисов).' },
+            eventData: {
+              playDisabled: null,
+              roundBtn: { label: 'Сделать предложение' },
+            },
+          },
         });
         this.set({ round: newRoundNumber }); // иначе stepLabel в следующем set(...) не подхватит корректное значение
         this.set({
@@ -160,7 +164,7 @@
 
         // у всех карт, выложенных на стол, убираем возможность возврата карты в руку делать через блокировку deck нельзя, потому что позже в нее будут добавляться дополнительные карты
         for (const deck of player.getObjects({ className: 'Deck', attr: { placement: 'table' } })) {
-          for (const card of deck.getObjects({ className: 'Card' })) {
+          for (const card of deck.select('Card')) {
             card.set({ eventData: { playDisabled: true } });
           }
         }
@@ -216,7 +220,7 @@
           player.set({ money });
 
           if (money >= winMoneySum) {
-            return this.endGame({ winningPlayer: player });
+            return this.run('endGame', { winningPlayer: player });
           }
         } else {
           this.logs(`Клиент отказался от сделки из-за превышения допустимой стоимости сервисов.`);

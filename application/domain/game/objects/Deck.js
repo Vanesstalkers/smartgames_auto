@@ -9,7 +9,7 @@
       });
       const realItems = Object.entries(this.itemMap);
       const playerPreparedItems = realItems.filter(([key, val]) => {
-        const item = this.getObjectById(key);
+        const item = this.get(key);
         if (item.visible && val.owner?.code === player.code) return true;
         const fakeId = item.fakeId[this.id()];
         return preparedData.itemMap[fakeId] && val.owner?.code === player.code;

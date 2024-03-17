@@ -1,5 +1,5 @@
 (function ({ cardId, targetPlayerId }, player) {
-  const card = this.getObjectById(cardId);
+  const card = this.get(cardId);
 
   if (card.eventData.playDisabled || card.parent().eventData.playDisabled || player.eventData.playDisabled)
     throw new Error('Эту карту нельзя разыгрывать.');
@@ -16,6 +16,11 @@
   }
   if (card.group === 'service') {
     card.moveToTarget(player.decks.service_played);
+
+    if (
+      this.roundStep === 'SECOND_OFFER' ||
+      this.roundStep === 'AUCTION_BET'
+    ) {
       // все карты на столе уже visible = true
       card.set({ visible: true });
     }

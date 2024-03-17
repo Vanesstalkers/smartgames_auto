@@ -8,9 +8,8 @@
       winMoneySum,
       auctionsPerRound,
     },
-    // getObjectByCode: getByCode, // нельзя тут объявлять, потому что потеряется контекст выполнения
   } = this;
-  const players = this.getPlayerList();
+  const players = this.players();
 
   const getRandomClient = () => {
     const client = this.decks.client.getRandomItem();
@@ -18,7 +17,7 @@
       const winningPlayer = players.sort((a, b) => {
         return a.money > b.money ? -1 : 1;
       })[0];
-      this.endGame({ winningPlayer });
+      this.run('endGame', { winningPlayer });
     }
     return client;
   };
@@ -111,7 +110,7 @@
   const processDealData = (deck) => {
     const offers = {};
     let offersCount = 0;
-    for (const card of deck.getObjects({ className: 'Card' })) {
+    for (const card of deck.select('Card')) {
       if (card.group === 'client') {
         if (card.eventData.replacedClient) this.clientCardNew = card;
         else this.clientCard = card;
@@ -121,7 +120,7 @@
         const key = card.owner.code + card.owner.order;
         if (!offers[key]) {
           offers[key] = {
-            player: this.getObjectByCode(card.owner.code),
+            player: this.find(card.owner.code),
             order: card.owner.order,
             serviceCards: [],
           };
@@ -140,7 +139,7 @@
   const calcAuction = (player) => {
     const priceMods = [];
     const serviceDeck = player.getObjects({ className: 'Deck', attr: { subtype: 'service_played' } })[0];
-    for (const card of serviceDeck.getObjects({ className: 'Card' })) {
+    for (const card of serviceDeck.select('Card')) {
       priceMods.push(card.price);
     }
     const carPrice = this.carCard.price;
@@ -189,16 +188,16 @@
     return bestOffer;
   };
   const setDeckCardsVisible = (deck, { setData }) => {
-    for (const card of deck.getObjects({ className: 'Card' })) {
+    for (const card of deck.select('Card')) {
       card.set(setData);
       deck.setItemVisible(card);
     }
   };
   const returnCardsToOwners = (deck) => {
-    const cards = deck.getObjects({ className: 'Card' });
+    const cards = deck.select('Card');
     for (const card of cards) {
       if (!card.owner) continue;
-      const player = this.getObjectByCode(card.owner.code);
+      const player = this.find(card.owner.code);
       card.set({ eventData: { playDisabled: null } });
       card.moveToTarget(player.decks[card.group]); // card.group == (car || service)
     }
@@ -216,11 +215,11 @@
 
     return Object.keys(stars)
       .sort((a, b) => (a === maxStarsCode ? -1 : 1))
-      .map((code) => ({ code, player: this.getObjectByCode(code) }));
+      .map((code) => ({ code, player: this.find(code) }));
   };
   const restoreCardsForDeals = ({ orderedPlayers, maxStars }) => {
     const stars = this.dealStars;
-    const serviceCards = this.decks.drop_service.getObjects({ className: 'Card' });
+    const serviceCards = this.decks.drop_service.select('Card');
     for (let i = 0; i < maxStars; i++) {
       for (const { code, player } of orderedPlayers) {
         if ((stars[code] || 0) == 0) continue;
@@ -285,7 +284,7 @@
         if (betSum > this.betSum) {
           this.set({ betSum }); // нельзя переносить в initAuctionBetStep, иначе будет ложный вызов noAuctionBets
 
-          const playedCards = currentPlayer.decks.service_played.getObjects({ className: 'Card' });
+          const playedCards = currentPlayer.decks.service_played.select('Card');
           for (const card of playedCards) card.set({ eventData: { playDisabled: true } });
 
           // ! будет работать только для 2-х игроков
@@ -419,7 +418,7 @@
               const { player: winningPlayer } = orderedPlayers.sort((a, b) => {
                 return a.player.money > b.player.money ? -1 : 1;
               })[0];
-              this.endGame({ winningPlayer });
+              this.run('endGame', { winningPlayer });
             }
 
             for (const { code, player } of orderedPlayers) {
@@ -575,8 +574,8 @@
     case 'SECOND_OFFER':
       {
         const { roundStepWinner: player, selectedDealDeck, featureCard, clientMoney, dealStars } = this;
-        const carCard = player.decks.car_played.getObjects({ className: 'Card' })[0];
-        const serviceCards = player.decks.service_played.getObjects({ className: 'Card' });
+        const carCard = player.decks.car_played.select('Card')[0];
+        const serviceCards = player.decks.service_played.select('Card');
 
         // рассчитываем предложение клиенту заново (с учетом добавленных сервисов)
         const { fullPrice, carTitle, stars } = this.calcOffer({ carCard, serviceCards, featureCard });

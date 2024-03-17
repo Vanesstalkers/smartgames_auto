@@ -3,7 +3,7 @@ import { GameObject, GameObjectData, GameObjectConfig, objects as _objects } fro
 import { ObjectId } from 'mongodb';
 
 export default class Game extends _Game {
-  checkStatus(data: { cause: string }): void;
+  stepLabel(label: string): string;
 }
 
 export namespace objects {
