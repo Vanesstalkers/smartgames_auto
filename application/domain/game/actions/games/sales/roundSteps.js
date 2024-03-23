@@ -276,7 +276,7 @@
           const { dropCardsPlayers } = addNewRoundCardsToPlayers();
           if (dropCardsPlayers.length) {
             for (const player of dropCardsPlayers) {
-              player.initEvent('dropCard');
+              player.initEvent('dropCard', { player });
               player.activate({
                 publishText: `Выберите карты, которые хотите сбросить. В руке должно остаться не больше ${carLimitInHand} карт авто.`,
                 setData: { eventData: { playDisabled: null } },

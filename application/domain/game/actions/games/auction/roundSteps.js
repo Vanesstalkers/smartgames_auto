@@ -167,7 +167,7 @@
       }
 
       if (
-        offer.fullPrice < clientMoney &&
+        offer.fullPrice <= clientMoney &&
         offer.stars >= stars &&
         (priceGroup === '*' || offer.priceGroup.find((group) => priceGroup.includes(group)))
       ) {
@@ -338,10 +338,24 @@
       {
         const { currentPlayer } = this;
         const {
-          decks: { service: serviceDeck, car_played: playedCarDeck, service_played: playedServiceDeck },
+          decks: { car: carDeck, service: serviceDeck, car_played: playedCarDeck, service_played: playedServiceDeck },
         } = currentPlayer;
+        let emptyOffer = playedCarDeck.itemsCount() === 0;
 
-        const emptyOffer = playedCarDeck.itemsCount() === 0;
+        if (!this.selectedDealDeck) {
+          if (!emptyOffer) {
+            const moveConfig = {
+              emitEvent: 'RESET',
+              setData: { visible: false },
+            };
+            playedCarDeck.moveAllItems({ ...moveConfig, target: carDeck });
+            playedServiceDeck.moveAllItems({ ...moveConfig, target: serviceDeck });
+            emptyOffer = true;
+          }
+        } else {
+          this.selectedDealDeck.set({ eventData: { currentDeal: null } });
+        }
+
         if (emptyOffer) {
           this.logs(
             `Так как игрок ${currentPlayer.userName} не сделал ни одного предложения, то он заканчивает участие на данном этапе.`
@@ -363,10 +377,6 @@
           };
           playedCarDeck.moveAllItems(moveConfig);
           playedServiceDeck.moveAllItems(moveConfig);
-        }
-
-        if (this.selectedDealDeck) {
-          this.selectedDealDeck.set({ eventData: { currentDeal: null } });
         }
 
         if (this.completedOffers.length !== players.length) {
@@ -584,8 +594,9 @@
 
         if (fullPrice <= clientMoney) {
           const formattedPrice = new Intl.NumberFormat().format((fullPrice || 0) * 1000);
+          const services = serviceCards.map(({ title }) => `"${title}"`).join(', ');
           this.logs(
-            `Клиент "${this.clientCard.title}" приобрел автомобиль "${carTitle}" и сервисы за ${formattedPrice}₽.`
+            `Клиент "${this.clientCard.title}" приобрел автомобиль "${carTitle}" и сервисы (${services}) за ${formattedPrice}₽.`
           );
 
           const money = player.money + fullPrice;

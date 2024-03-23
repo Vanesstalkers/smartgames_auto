@@ -40,7 +40,7 @@
     if (featureCard.money && featureCard.target === 'client') {
       clientMoney += parseInt(featureCard.money);
     }
-    clientMoney += clientMoney * (parseInt(creditCard.money) / 100); // у кредита всегда проценты
+    clientMoney *= Math.floor(100 / parseInt(creditCard.pv));
     this.clientMoney = clientMoney;
   }
   calcOffer({ player, carCard, serviceCards, featureCard }) {

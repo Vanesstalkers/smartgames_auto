@@ -17,7 +17,7 @@
               :imgExt="'png'"
             />
           </div>
-          <div class="hand-cards at-table">
+          <div class="hand-cards at-table" :cardCount="tableCards.length">
             <card
               v-for="card in tableCards"
               :key="card.id"
@@ -31,8 +31,8 @@
         </div>
       </div>
       <div class="workers">
-        <div v-if="iam" :style="{ color: 'red', background: 'black' }">{{ player.eventData }}</div>
-        <div v-if="iam" :style="{ color: 'orange', background: 'black' }">{{ cardDecksData }}</div>
+        <!-- <div v-if="iam" :style="{ color: 'red', background: 'black' }">{{ player.eventData }}</div>
+        <div v-if="iam" :style="{ color: 'orange', background: 'black' }">{{ cardDecksData }}</div> -->
         <card-worker :playerId="playerId" :viewerId="viewerId" :iam="iam" :showControls="showControls" />
       </div>
       <div
@@ -81,10 +81,10 @@ export default {
     return { helperVisible: false, helperChecked: false };
   },
   watch: {
-    'player.staticHelper.text': (val) => {
+    'player.staticHelper.text': function (val) {
       if (val) this.helperChecked = false;
     },
-    'player.staticHelper': function () {
+    'player.staticHelper': function (val) {
       if (val) this.helperChecked = false;
     },
   },
@@ -299,6 +299,9 @@ export default {
   display: flex;
   flex-wrap: nowrap;
   margin-left: 80px;
+  &[cardcount='0'] {
+    margin-left: 0px;
+  }
   & > .card-event {
     margin-left: -80px;
   }

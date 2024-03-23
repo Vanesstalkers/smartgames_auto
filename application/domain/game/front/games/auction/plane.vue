@@ -25,7 +25,7 @@
         :style="{ width: handCardsWidth }"
       >
         <card
-          v-for="[id, { group }] in Object.entries(deck.itemMap).filter(([id, { owner }]) => !owner)"
+          v-for="[id, { group }] in deck.cards"
           :key="id"
           :id="id"
           :cardId="id"
@@ -100,6 +100,7 @@ export default {
       return this.tableCardZones
         .filter((deck) => deck.placement == 'table' && deck.subtype == 'deal')
         .map((deck) => {
+          deck.cards = Object.entries(deck.itemMap).filter(([id, { owner }]) => !owner);
           deck.owners = Object.entries(deck.itemMap).reduce(
             (obj, [id, { group, owner }]) => {
               if (owner) {
@@ -127,7 +128,7 @@ export default {
   methods: {},
 };
 </script>
-<style lang="scss" scoped>
+<style lang="scss">
 #game {
   #gamePlane {
     .game-zones {
@@ -137,19 +138,19 @@ export default {
       [code='Deck[card_zone_auction_client]'] {
         position: absolute;
         left: calc(50% - 130px - 10px);
-        top: calc(50% - 90px);
+        top: 50%;
         z-index: 1;
       }
       [code='Deck[card_zone_auction_car]'] {
         position: absolute;
         left: calc(50%);
-        top: calc(50% - 90px);
+        top: 50%;
       }
 
       .deal-zones {
         position: absolute;
         left: 0px;
-        top: 50px;
+        top: calc(50% - 180px);
         width: 100%;
         display: flex;
         justify-content: center;
@@ -180,6 +181,10 @@ export default {
 
           .card-event {
             margin-left: -80px;
+
+            .card-info-btn {
+              left: 10px!important;
+            }
           }
 
           .offers {

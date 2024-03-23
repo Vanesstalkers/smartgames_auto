@@ -12,11 +12,16 @@
         },
       });
     }
+    const serviceCards = player.decks.service.select('Card');
+    for (const card of serviceCards) {
+      card.set({ eventData: { playDisabled: true } });
+    }
   },
   handlers: {
     RESET: function () {
       const { game, player, source, sourceId } = this.eventContext();
 
+      player.decks.service.updateAllItems({ eventData: { playDisabled: null } });
       player.decks.car.updateAllItems({
         eventData: { activeEvents: [], cardClass: null, buttonText: null },
       });
@@ -25,7 +30,7 @@
       game.removeAllEventListeners({ sourceId });
     },
     TRIGGER: function ({ target }) {
-      const { game, player, source: card } = this.eventContext();
+      const { game, player } = this.eventContext();
       const {
         decks: { drop: dropDeck },
         settings: {

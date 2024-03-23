@@ -1,5 +1,5 @@
 <template>
-  <game>
+  <game :gamePlaneScaleMin="1" :gamePlaneScaleMax="2">
     <template
       #gameplane="{
         /* game = {}, gamePlaneScale */
