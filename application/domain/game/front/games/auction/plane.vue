@@ -23,15 +23,17 @@
           deck.eventData.referencePlayerCode !== sessionPlayer.code ? 'disabled' : '',
         ]"
         :style="{ width: handCardsWidth }"
+        :cardCount="deck.cards.length"
       >
         <card
-          v-for="[id, { group }] in deck.cards"
+          v-for="[id, { group, order }] in deck.cards"
           :key="id"
           :id="id"
           :cardId="id"
           :cardGroup="group"
           :canPlay="sessionPlayerIsActive() && group === 'client'"
           imgExt="png"
+          :order="order"
         />
 
         <div class="offers">
@@ -100,7 +102,11 @@ export default {
       return this.tableCardZones
         .filter((deck) => deck.placement == 'table' && deck.subtype == 'deal')
         .map((deck) => {
-          deck.cards = Object.entries(deck.itemMap).filter(([id, { owner }]) => !owner);
+          deck.cards = Object.entries(deck.itemMap)
+            .filter(([id, { owner }]) => !owner)
+            .map(([id, card]) => [id, { ...card, order: this.getCardOrder({ id, group: card.group }) }]);
+          deck.cards.sort(([aid, a], [bid, b]) => (a.order > b.order ? 1 : -1));
+
           deck.owners = Object.entries(deck.itemMap).reduce(
             (obj, [id, { group, owner }]) => {
               if (owner) {
@@ -118,14 +124,24 @@ export default {
           return deck;
         });
     },
-
     handCardsWidth() {
       const cardWidth = 130;
       const maxCardStack = 4;
       return state.isMobile ? `${cardWidth}px` : `${Math.ceil(1 / maxCardStack) * cardWidth}px`;
     },
   },
-  methods: {},
+  methods: {
+    getCardOrder({ id, group }) {
+      switch (group) {
+        case 'feature':
+          return 0;
+        case 'credit':
+          return 1;
+        case 'client':
+          return this.store.card?.[id]?.eventData?.replacedClient ? 3 : 2;
+      }
+    },
+  },
 };
 </script>
 <style lang="scss">
@@ -183,7 +199,29 @@ export default {
             margin-left: -80px;
 
             .card-info-btn {
-              left: 10px!important;
+              left: 10px !important;
+              z-index: 1;
+            }
+          }
+
+          &[cardCount='4'] {
+            .card-event[order='2']:after {
+              content: '';
+              background: #0f0f0f;
+              width: 24px;
+              height: 37px;
+              position: absolute;
+              left: 4px;
+              top: 4px;
+            }
+            .card-event[order='3']:after {
+              content: '';
+              background: #0f0f0f;
+              width: 24px;
+              height: 50px;
+              position: absolute;
+              left: 4px;
+              top: 40px;
             }
           }
 

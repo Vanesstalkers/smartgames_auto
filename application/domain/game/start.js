@@ -39,17 +39,16 @@ async () => {
               };
             }
           }
-          
+
+          const url = 'https://smartgames.studio/auto';
           lib.store.broadcaster.publishAction(channelName, 'gameServerConnected', {
             code: 'auto',
-            title: 'АВТОБИЗНЕС',
+            title: 'Автобизнес',
             icon: ['fas', 'car'],
             active: true,
-            url:
-              // url vue-фронта
-              process.env.NODE_ENV === 'development'
-                ? /* 'http://192.168.1.37:8083' */ 'http://192.168.43.128:8083' /* 'http://localhost:8083' */
-                : 'https://smartgames.studio/auto',
+            url: process.env.NODE_ENV === 'development' ? 'http://localhost:8083' : url,
+            serverUrl:
+              process.env.NODE_ENV === 'development' ? `http://localhost:${config.server.balancer}` : `${url}/api`,
             games,
           });
           return;

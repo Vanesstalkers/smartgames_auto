@@ -16,7 +16,7 @@
           CARD_DROP: Math.max(5, Math.ceil(baseTimer / 5)),
         };
       },
-      winMoneySum: 7000,
+      winMoneySum: 17000,
       cardsToRemove: [],
       playerHand: {
         car: {
@@ -82,8 +82,7 @@
           // CARD_DROP: Math.max(5, Math.ceil(baseTimer / 5)),
         };
       },
-      auctionsPerRound: 4,
-      winMoneySum: 7000,
+      winMoneySum: 17000,
       cardsToRemove: [],
       playerHand: {
         service: {
