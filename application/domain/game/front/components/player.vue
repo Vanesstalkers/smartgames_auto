@@ -145,7 +145,7 @@ export default {
       return Object.keys(this.player.deckMap || {});
     },
     handCardsWidth() {
-      return state.isMobile && this.state.isPortrait ? `${window.innerWidth - 80}px` : 'auto';
+      return state.isMobile && state.isPortrait ? `${window.innerWidth - 80}px` : 'auto';
     },
     mainCardDeckItemsCount() {
       return this.handCards.length;

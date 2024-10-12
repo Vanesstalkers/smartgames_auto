@@ -37,6 +37,7 @@
     // ! после включения для работы нужно добавить auth.1/dummy.js
 
     session.onClose = [];
+    // !!!! возможно нужно будет перенести в lib.user.api.initSession
     context.client.addListener('close', async () => {
       if (session.onClose.length) for (const f of session.onClose) await f();
 

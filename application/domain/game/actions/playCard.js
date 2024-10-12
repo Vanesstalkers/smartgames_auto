@@ -19,6 +19,7 @@
 
     if (
       this.roundStep === 'SECOND_OFFER' ||
+      // !!!! переделать в логику с разными файлами для разных игр
       this.roundStep === 'AUCTION_BET'
     ) {
       // все карты на столе уже visible = true

@@ -88,9 +88,6 @@ export default {
     gameDataLoaded() {
       return this.game.addTime;
     },
-    sessionPlayer() {
-      return this.store.player?.[this.gameState.sessionPlayerId] || {};
-    },
 
     tableCardZones() {
       return Object.keys(this.game.deckMap).map((id) => this.store.deck?.[id] || {});

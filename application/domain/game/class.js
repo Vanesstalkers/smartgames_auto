@@ -5,18 +5,17 @@
       ...lib.chat['@class'].decorate(),
       ...lib.game.decorators['@hasDeck'].decorate(),
     });
-    // this.preventSaveFields([]);
 
     this.defaultClasses({
-      Player: domain.game.objects.Player,
-      Deck: domain.game.objects.Deck,
-      Card: domain.game.objects.Card,
+      Player: domain.game['@objects'].Player,
+      Deck: domain.game['@objects'].Deck,
+      Card: domain.game['@objects'].Card,
     });
   }
 
   getFullPrice() {
     const baseSum = 1000; // TO_CHANGE (меняем на свою сумму дохода за игру)
-    const timerMod = 30 / this.gameTimer;
+    const timerMod = 30000 / this.gameTimer;
     const configMod = { blitz: 0.5, standart: 0.75, hardcore: 1 }[this.gameConfig];
     return Math.floor(baseSum * timerMod * configMod);
   }

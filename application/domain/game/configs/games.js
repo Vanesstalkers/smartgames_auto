@@ -5,6 +5,7 @@
       default: {
         title: 'Стандарт',
       },
+      // добавить два уровня сложности: с подсказками (расчет текущей суммы сделки) и без них
     },
     itemsDefault: {
       timer: (baseTimer) => {
@@ -21,7 +22,7 @@
       playerHand: {
         car: {
           start: 3,
-          limit: 5,
+          limit: 3,
         },
         service: {
           start: 3,
@@ -71,6 +72,7 @@
       default: {
         title: 'Стандарт',
       },
+      // добавить два уровня сложности: с подсказками (расчет текущей суммы сделки) и без них
     },
     itemsDefault: {
       timer: (baseTimer) => {
@@ -82,6 +84,7 @@
           // CARD_DROP: Math.max(5, Math.ceil(baseTimer / 5)),
         };
       },
+      auctionsPerRound: 1,
       winMoneySum: 17000,
       cardsToRemove: [],
       playerHand: {

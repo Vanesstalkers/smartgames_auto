@@ -81,11 +81,6 @@ export default {
         });
         return activePlayers.includes(this.gameState.sessionPlayerId);
       },
-      calcGamePlaneCustomStyleData({ gamePlaneScale, isMobile }) {
-        return {
-          transformOrigin: 'center',
-        };
-      },
     });
 
     gameGlobals.gameCustom = reactive({
@@ -123,9 +118,6 @@ export default {
       const result = ids.slice(curPlayerIdx + 1).concat(ids.slice(0, curPlayerIdx));
       return result;
     },
-    sessionPlayer() {
-      return this.store.player?.[this.gameState.sessionPlayerId] || {};
-    },
     sessionUserCardDeckLength() {
       return (
         Object.keys(
@@ -139,7 +131,7 @@ export default {
     fullPrice() {
       const { gameTimer, gameConfig } = this.game;
       const baseSum = 1000; // TO_CHANGE (меняем на свою сумму дохода за игру)
-      const timerMod = 30 / gameTimer;
+      const timerMod = 30000 / gameTimer;
       const configMod = { blitz: 0.5, standart: 0.75, hardcore: 1 }[gameConfig];
       return Math.floor(baseSum * timerMod * configMod);
     },

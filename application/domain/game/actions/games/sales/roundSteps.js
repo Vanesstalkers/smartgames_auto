@@ -20,6 +20,7 @@
     return this.calcOffer({ player, carCard, serviceCards, featureCard });
   };
 
+  // !!! попробовать переписать более универсально для всех трех auto-игр
   const selectBestOffer = () => {
     const { clientCard, clientCardNew, clientMoney } = this;
     const offers = [];
@@ -169,6 +170,7 @@
           }
         }
 
+        // ??? непонятно зачем эта проверка
         if (this.featureCard.canPlay()) this.featureCard.play({ player });
 
         this.set({

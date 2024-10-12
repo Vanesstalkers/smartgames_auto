@@ -149,6 +149,7 @@
     }, 0);
     return fullPrice;
   };
+  // !!! попробовать переписать более универсально для всех трех auto-игр
   const selectBestOffer = (offersMap) => {
     const { clientCard, clientCardNew, clientMoney, featureCard } = this;
     const offers = [];
@@ -534,7 +535,9 @@
           service.moveToTarget(player.decks.service_played);
         }
 
+        // ??? непонятно зачем эта проверка
         if (this.featureCard.canPlay()) this.featureCard.play({ player });
+        
         if (this.featureCard.reference) {
           // !!! createClientDealDeck работает только с this.clientCard, но в этом месте проблем не возникает, потому что дальше по коду case-а он не используется
           this.clientCard = getRandomClient();
