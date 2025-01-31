@@ -7,7 +7,7 @@
     });
 
     this.defaultClasses({
-      Player: domain.game['@objects'].Player,
+      Player: domain.game._objects.Player,
       Deck: domain.game['@objects'].Deck,
       Card: domain.game['@objects'].Card,
     });

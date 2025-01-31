@@ -64,7 +64,7 @@
         helper: null,
       });
 
-      game.removeAllEventListeners({ sourceId });
+      game.removeAllEventListeners({ event: this });
     },
     TRIGGER: function ({ target: card }) {
       const { game, player } = this.eventContext();

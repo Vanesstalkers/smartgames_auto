@@ -18,7 +18,7 @@
       deck.clientCard.removeEvent(this);
       deck.removeEvent(this);
 
-      game.removeAllEventListeners({ sourceId });
+      game.removeAllEventListeners({ event: this });
     },
     TRIGGER: function ({ target }) {
       const { game, player, source: deck } = this.eventContext();

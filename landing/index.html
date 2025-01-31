@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Набор бизнес-карт "Автобизнес"</title>
+    <link
+      rel="stylesheet"
+      href="//cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css" />
+    <style>
+      body {
+        font-size: 18px;
+      }
+      .small {
+        font-size: 14px;
+      }
+      .app-name-link {
+        text-shadow: 1px 1px 2px black;
+        font-weight: bold;
+        text-decoration: underline;
+      }
+      .sidebar-nav .file.active {
+        text-shadow: 1px 1px 2px black;
+      }
+      .inline-gallery-container {
+        width: 100%;
+        padding-bottom: 10%;
+      }
+    </style>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.7.2/css/lightgallery.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.7.2/lightgallery.min.js"></script>
+  </head>
+  <body>
+    <div id="app">Loading ...</div>
+    <script src="//unpkg.com/docsify-edit-on-github@1.0.1/index.js"></script>
+    <script>
+      window.$docsify = {
+        themeColor: "#f4e205",
+        // repo: "Vanesstalkers/smartgames_auto",
+        name: "Автобизнес",
+        // logo: '/assets/logo-studio.png',
+        homepage: "introduction.md",
+        auto2top: true,
+        coverpage: true,
+        executeScript: true,
+        loadSidebar: true,
+        skipLink: false,
+        // alias: {
+        //   "/.*/_sidebar.md": "/_sidebar.md",
+        // },
+        loadNavbar: true,
+        mergeNavbar: true,
+        // maxLevel: 4,
+        subMaxLevel: 3,
+        ga: "UA-112753287-1",
+        //   plugins: [
+        //     EditOnGithubPlugin.create('https://github.com/adrianbj/TracyDebugger/tree/master/docs/')
+        //   ],
+        // search: {
+        //   paths: [
+        //     "/", // => /README.md
+        //     // "/introduction", // => /introduction.md
+        //   ],
+        //   placeholder: "Искать",
+        //   noData: "Ничего не найдено",
+        // },
+        pagination: {
+          previousText: "Назад",
+          nextText: "Вперед",
+        },
+        plugins: [
+          function gallery(hook, vm) {
+            hook.afterEach(function (html) {
+              html = html.replaceAll(
+                /\<!-- GALLERY\((.*)\) -->/g,
+                `<div
+                  id="inline-gallery-container"
+                  type="$1"
+                  class="inline-gallery-container"
+                  style="height: 200px"
+                 ></div>
+                `
+              );
+              return html;
+            });
+            hook.doneEach(async function () {
+              const lgContainers = document.getElementsByClassName("inline-gallery-container");
+              for (const lgContainer of lgContainers) {
+                if (!lgContainer) return;
+                const type = lgContainer.getAttribute('type');
+
+                const serverOrigin = 'https://smartgames.studio/auto/api';
+                const method = 'POST';
+                const headers = { 'Content-Type': 'application/json' };
+                const body = JSON.stringify({ path: 'game.api.cards', args: [{ selectGroup: type }] });
+                const images = await fetch(serverOrigin + '/api/action/public', { method, headers, mode: 'cors', body }).then((res) =>
+                  res.text().then((packet) => {
+                    const {
+                      result: { cards },
+                    } = JSON.parse(packet);
+                    return cards;
+                  })
+                );
+
+                const inlineGallery = lightGallery(lgContainer, {
+                  container: lgContainer,
+                  dynamic: true,
+                  // Turn off hash plugin in case if you are using it
+                  // as we don't want to change the url on slide change
+                  hash: false,
+                  // Do not allow users to close the gallery
+                  closable: false,
+                  // Add maximize icon to enlarge the gallery
+                  showMaximizeIcon: true,
+                  // Append caption inside the slide item
+                  // to apply some animation for the captions (Optional)
+                  appendSubHtmlTo: ".lg-item",
+                  // Delay slide transition to complete captions animations
+                  // before navigating to different slides (Optional)
+                  // You can find caption animation demo on the captions demo page
+                  slideDelay: 400,
+                  dynamicEl: images.map(name => ({ src: `${serverOrigin}/img/cards/${name}` })),
+                });
+
+                // Since we are using dynamic mode, we need to programmatically open lightGallery
+                inlineGallery.openGallery();
+              }
+            });
+          },
+          function pageFooter(hook, vm) {
+            var footer = [
+              "<hr/>",
+              "<footer>",
+              '<span>Игровая платформа: <a href="https://smartgames.studio/#/" target="_blank">www.smartgames.studio</a> </span><div>SmartGames.Studio &copy; 2024</div>',
+              "</footer>",
+            ].join("");
+
+            hook.afterEach(function (html) {
+              return html + footer;
+            });
+          },
+        ],
+      };
+    </script>
+    <script src="//cdn.jsdelivr.net/gh/sy-records/docsify-nightly/lib/docsify.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-themeable@0/dist/js/docsify-themeable.min.js"></script>
+    <!-- <script src="//cdn.jsdelivr.net/gh/sy-records/docsify-nightly/lib/plugins/ga.min.js"></script> -->
+    <!-- <script src="//cdn.jsdelivr.net/gh/sy-records/docsify-nightly/lib/plugins/search.min.js"></script> -->
+    <!-- <script src="//unpkg.com/prismjs/components/prism-php.min.js"></script> -->
+    <script src="//cdn.jsdelivr.net/gh/sy-records/docsify-nightly/lib/plugins/zoom-image.min.js"></script>
+    <script src="//unpkg.com/docsify-copy-code"></script>
+    <script src="//unpkg.com/docsify-pagination/dist/docsify-pagination.min.js"></script>
+    <script src="//cdn.jsdelivr.net/gh/rizdaprasetya/docsify-fix-pageload-scroll@master/index.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>
+  </body>
+</html>
