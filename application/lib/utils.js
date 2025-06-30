@@ -99,7 +99,7 @@
 
   // ! рефакторить только одновременно с mergeDeep (на фронте)
   mergeDeep({ target, source, masterObj = {}, config = {}, keyPath = [] }) {
-    const { reset = [], deleteNull = false } = config;
+    const { reset = [], deleteNull = false, removeEmptyObject = false } = config;
     // обнуляем ключи в заданных объектах (для передачи обновлений клиенту и БД)
     if (reset.includes(keyPath.join('.'))) {
       for (const key of Object.keys(masterObj)) target[key] = null;
@@ -118,7 +118,7 @@
               config,
               keyPath: [...keyPath, key],
             });
-            if (config.removeEmptyObject && Object.keys(target[key]).length === 0) {
+            if (removeEmptyObject && Object.keys(target[key]).length === 0) {
               // изменений во вложенном объекте нет (удаляем, чтобы он не перетерся в БД)
               delete target[key];
             }
@@ -144,7 +144,7 @@
               config,
               keyPath: [...keyPath, key],
             });
-            if (config.removeEmptyObject && Object.keys(target[key]).length === 0) {
+            if (removeEmptyObject && Object.keys(target[key]).length === 0) {
               // изменений во вложенном объекте нет (удаляем, чтобы он не перетерся в БД)
               delete target[key];
             }
@@ -310,13 +310,262 @@
     // structuredClone не умеет копировать функции и переводить их в строки (+ он в метархии все равно не работает)
     const replacer = convertFuncToString
       ? (key, value) => {
-          if (typeof value === 'function') return value.toString();
-          return value;
-        }
+        if (typeof value === 'function') return value.toString();
+        return value;
+      }
       : null;
     return JSON.parse(JSON.stringify(data, replacer));
   },
   keysToNull(obj) {
     return Object.fromEntries(Object.keys(obj).map((key) => [key, null]));
   },
+  calcObjDifference(obj1, obj2) {
+    const result = {};
+
+    Object.keys(obj1).forEach((key) => {
+      if (obj2.hasOwnProperty(key)) {
+        result[key] = Math.abs(obj1[key] - obj2[key]);
+      }
+    });
+
+    return result;
+  },
+
+  circularArray: class {
+    #items = new Map();
+    #keys = [];
+    currentKey = null;
+    #saveCallback = null;
+    #removedKeys = new Set();
+    #forceNextKey = null;
+    #forcePrevKey = null;
+    #fixedState = null;
+
+    constructor(items = {}, { onSave = null } = {}) {
+      Object.entries(items).forEach(([key, value]) => {
+        this.add(key, value);
+      });
+      this.#saveCallback = onSave;
+    }
+
+    wrapItem(item, { active = true } = {}) {
+      return { data: item, active };
+    }
+
+    async save() {
+      return typeof this.#saveCallback === 'function'
+        ? await this.#saveCallback(this)
+        : Promise.resolve();
+    }
+
+    add(key, element, { active = true } = {}) {
+      const restoreKey = this.#removedKeys.has(key);
+      if (restoreKey) this.#removedKeys.delete(key);
+      this.#items.set(key, this.wrapItem(element, { active }));
+      if (!restoreKey) this.#keys.push(key);
+      this.currentKey ??= key;
+      this.#saveCallback?.();
+      return this;
+    }
+
+    #findNextKey(currentIndex, direction = 1) {
+      const length = this.#keys.length;
+      if (!length) return null;
+
+      let nextIndex = currentIndex;
+      let nextKey;
+      let i = 0;
+
+      do {
+        nextIndex = (nextIndex + direction + length) % length;
+        nextKey = this.#keys[nextIndex];
+        
+        if (i++ > this.#keys.length) throw new Error('CircularArray next key not found');
+      } while (
+        !this.#items.get(nextKey).active ||
+        this.#removedKeys.has(nextKey)
+      );
+
+      return nextKey;
+    }
+
+    #applySoftDelete() {
+      if (this.#removedKeys.has(this.currentKey)) {
+        const index = this.#keys.indexOf(this.currentKey);
+        this.#items.delete(this.currentKey);
+        this.#keys.splice(index, 1);
+        this.#removedKeys.delete(this.currentKey);
+      }
+    }
+
+    next({ fixState = false } = {}) {
+      if (!this.#keys.length) return null;
+
+      if (this.#forceNextKey !== null) {
+        const forcedKey = this.#forceNextKey;
+        this.#forceNextKey = null;
+        this.currentKey = forcedKey;
+        if (fixState) {
+          this.#fixedState = {
+            key: forcedKey,
+            data: this.#items.get(forcedKey).data
+          };
+        }
+        return this.#items.get(forcedKey).data;
+      }
+
+      const currentIndex = this.#keys.indexOf(this.currentKey);
+      const nextKey = this.#findNextKey(currentIndex, 1);
+
+      this.#applySoftDelete();
+      this.currentKey = nextKey;
+
+      if (fixState) {
+        this.#fixedState = {
+          key: nextKey,
+          data: this.#items.get(nextKey).data
+        };
+      }
+
+      return this.#items.get(nextKey).data;
+    }
+
+    previous() {
+      if (!this.#keys.length) return null;
+
+      if (this.#forcePrevKey !== null) {
+        const forcedKey = this.#forcePrevKey;
+        this.#forcePrevKey = null;
+        this.currentKey = forcedKey;
+        return this.#items.get(forcedKey).data;
+      }
+
+      const currentIndex = this.#keys.indexOf(this.currentKey);
+      const prevKey = this.#findNextKey(currentIndex, -1);
+
+      this.#applySoftDelete();
+      this.currentKey = prevKey;
+
+      return this.#items.get(prevKey).data;
+    }
+
+    current({ loadFixedState = false, fixState = false } = {}) {
+      if (!this.currentKey) return null;
+
+      if (loadFixedState && this.#fixedState && this.#fixedState.key === this.currentKey) {
+        return this.#fixedState.data;
+      }
+
+      if (fixState) {
+        this.#fixedState = {
+          key: this.currentKey,
+          data: this.#items.get(this.currentKey).data
+        };
+      }
+
+      return this.#items.get(this.currentKey).data;
+    }
+
+    setKey(key) {
+      if (!this.#items.has(key)) throw new Error('CircularArray key not exists');
+      this.currentKey = key;
+      this.#saveCallback?.();
+      return this;
+    }
+
+    setActive(key, active = true) {
+      if (!this.#items.has(key)) throw new Error('CircularArray key not exists');
+      this.#items.get(key).active = active;
+      this.#saveCallback?.();
+      return this;
+    }
+
+    remove(key) {
+      if (!this.#items.has(key)) throw new Error('CircularArray key not exists');
+
+      if (this.currentKey === key) {
+        this.#removedKeys.add(key);
+      } else {
+        const index = this.#keys.indexOf(key);
+        this.#items.delete(key);
+        this.#keys.splice(index, 1);
+      }
+
+      this.#saveCallback?.();
+      return this;
+    }
+
+    setActiveAll(active = true) {
+      for (const item of this.#items.values()) {
+        item.active = active;
+      }
+      this.#saveCallback?.();
+      return this;
+    }
+
+    get(key) {
+      return this.#items.get(key);
+    }
+
+    getKeys() {
+      return [...this.#keys];
+    }
+
+    update(key, newData, { active = null } = {}) {
+      if (!this.#items.has(key)) throw new Error('CircularArray key not exists');
+
+      const item = this.#items.get(key);
+      item.data = newData;
+      if (active !== null) {
+        item.active = active;
+      }
+      this.#saveCallback?.();
+      return this;
+    }
+
+    size() {
+      return this.#keys.length;
+    }
+
+    setForceNext(key) {
+      if (key !== null && !this.#items.has(key)) {
+        throw new Error('CircularArray key not exists');
+      }
+      this.#forceNextKey = key;
+      return this;
+    }
+
+    getForceNext() {
+      return this.#forceNextKey;
+    }
+
+    clearForceNext() {
+      this.#forceNextKey = null;
+      return this;
+    }
+
+    setForcePrevious(key) {
+      if (key !== null && !this.#items.has(key)) {
+        throw new Error('CircularArray key not exists');
+      }
+      this.#forcePrevKey = key;
+      return this;
+    }
+
+    clearFixedState() {
+      this.#fixedState = null;
+      return this;
+    }
+
+    toJSON() {
+      return {
+        keys: this.#keys,
+        currentKey: this.currentKey,
+        items: Object.fromEntries(
+          Array.from(this.#items.entries())
+            .map(([key, { active }]) => [key, { active }])
+        )
+      };
+    }
+  }
 });

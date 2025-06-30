@@ -2,7 +2,7 @@
   <div
     id="app"
     :class="[state.isMobile ? 'mobile-view' : '', state.isLandscape ? 'landscape-view' : 'portrait-view']"
-    :current-route="$root.state.currentRoute"
+    :current-route="$root.state.currentRoute.name"
   >
     <button @click="toggleFullscreen" class="fullscreen-btn">
       <span v-if="!state.isFullscreen">

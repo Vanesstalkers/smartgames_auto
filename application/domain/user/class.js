@@ -43,9 +43,8 @@
       rankings[gameType].totalTime = totalTime + roundCount;
       rankings[gameType].avrTime = Math.floor(rankings[gameType].totalTime / rankings[gameType].win);
 
-      const tutorial = clone(getTutorial('game-tutorial-finished'), {
-        convertFuncToString: true,
-      });
+      const { steps } = getTutorial('game-tutorial-finished');
+      const tutorial = clone(steps, { convertFuncToString: true });
       let incomeText = `${income.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')} ₽`;
       if (penaltySum > 0)
         incomeText += ` (с учетом штрафа ${penaltySum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}₽)`;

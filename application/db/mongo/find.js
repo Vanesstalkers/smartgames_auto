@@ -1,8 +1,8 @@
 async (col, query, options) => {
-  //console.warn('db find col=', col);
-  const result = await db.mongo.client
-    .collection(col)
-    .find(query, options)
-    .toArray();
-  return result;
+  const cursor = db.mongo.client.collection(col).find(query);
+  
+  if (options.sort) cursor.sort(options.sort);
+  if (options.limit) cursor.limit(options.limit);
+
+  return await cursor.toArray();
 };

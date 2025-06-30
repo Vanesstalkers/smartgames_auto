@@ -4,6 +4,7 @@
   "types": "types/global.d.ts",
   "scripts": {
     "dev": "set NODE_ENV=development&& node server.js",
+    "devi": "set NODE_ENV=development&& node --inspect server.js",
     "buildAll": "cd front && npm ci && npm run build && cd .. && npm ci",
     "buildFront": "cd front && npm run build",
     "test": "npm run lint && npm run types && node test/system.js",

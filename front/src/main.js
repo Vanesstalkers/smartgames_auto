@@ -27,9 +27,12 @@ const init = async () => {
   const serverHost =
     process.env.NODE_ENV === 'development' || new URLSearchParams(document.location.search).get('dev')
       ? `${location.hostname}:${port}`
-      : `${location.hostname}/api`;
+      : `${location.hostname + location.pathname}api/`;
 
   const metacom = Metacom.create(`${protocol}://${serverHost}`);
+  metacom.on('error', (err) => {
+    console.log({ err });
+  });
   const { api } = metacom;
   window.metacom = metacom;
   window.api = api;
@@ -39,18 +42,21 @@ const init = async () => {
 
   const state = {
     serverOrigin: `${location.protocol}//${serverHost}`,
+    innerWidth: window.innerWidth,
+    innerHeight: window.innerHeight,
     isMobile: false,
     isLandscape: true,
     isPortrait: false,
     isFullscreen: false,
+    gamePlaneNeedUpdate: false,
     guiScale: 1,
     store: {},
     emit: {
       updateStore(data) {
         mergeDeep({ target: state.store, source: data });
       },
-      alert(data) {
-        prettyAlert(data);
+      alert(data, config) {
+        prettyAlert(data, config);
       },
       logout() {
         window.app.$set(window.app.$root.state, 'currentUser', '');
@@ -62,29 +68,42 @@ const init = async () => {
     },
   };
 
-  api.action.on('emit', ({ eventName, data }) => {
+  api.action.on('emit', ({ eventName, data, config }) => {
     const event = state.emit[eventName];
     if (!event) return console.error(`event "${eventName}" not found`);
-    event(data);
+    event(data, config);
   });
 
   window.addEventListener('message', async function (e) {
     const { path, args, routeTo, emit } = e.data;
-    if (path && args) return await api.action.call({ path, args }).catch((err) => prettyAlert(err));
-    if (routeTo)
+    if (path && args) {
+      const result = await api.action.call({ path, args }).catch((err) => prettyAlert(err));
+
+      if (result?.logout === true) {
+        return await api.action.call({ path: 'lobby.api.logout' }).catch(prettyAlert);
+      }
+      return result;
+
+    }
+
+    if (routeTo) {
       return router.push({ path: routeTo }).catch((err) => {
         console.log(err);
       });
+    }
+
     if (emit) {
-      const { name: eventName, data } = emit;
+      const { name: eventName, data, config } = emit;
       const event = state.emit[eventName];
+
       if (!event) return console.error(`event "${eventName}" not found`);
-      return await event(data);
+
+      return await event(data, config);
     }
   });
 
   router.beforeEach((to, from, next) => {
-    state.currentRoute = to.name;
+    state.currentRoute = to;
     return next();
   });
 
@@ -95,7 +114,6 @@ const init = async () => {
           handlers = config;
           config = {};
         }
-        const { login, password, demo } = config || {};
         const { success: onSuccess, error: onError } = handlers;
 
         const token = localStorage.getItem(window.tokenName);
@@ -103,15 +121,7 @@ const init = async () => {
           (await api.action
             .public({
               path: 'user.api.initSession',
-              args: [
-                {
-                  token,
-                  windowTabId: window.name,
-                  login,
-                  password,
-                  demo,
-                },
-              ],
+              args: [{ token, windowTabId: window.name, ...config }],
             })
             .catch(async (err) => {
               if (typeof onError === 'function') await onError(err);
@@ -184,6 +194,8 @@ const init = async () => {
   const checkDevice = () => {
     const width = window.innerWidth;
     const height = window.innerHeight;
+    state.innerWidth = screen.width;
+    state.innerHeight = screen.height;
     state.isMobile = isMobile() ? true : false;
     state.isLandscape = height < width;
     state.isPortrait = !state.isLandscape;

@@ -15,10 +15,9 @@
       text: 'Вы можете управлять положением и размером игрового поля с помощью кнопок в этом блоке. При нажатии на центральную кнопку блока игровое поле восстановится в базовом масштабе по центру - это может быть полезно, если вы случайно переместили игровое поле за пределы экрана.',
       active: '.move.gui-btn',
       actions: {
-        before: (self) => {
-          const $rootEl = self.$root.$el;
-          const $controls = $rootEl.querySelector('.gameplane-controls');
-          if (!$controls) $rootEl.querySelector('.move.gui-btn')?.click();
+        before: ({ $root }) => {
+          const $controls = $root.querySelector('.gameplane-controls');
+          if (!$controls) $root.querySelector('.move.gui-btn')?.click();
         },
       },
       buttons: [{ text: 'Продолжай', step: 'planeControlsMouseLeft' }],
@@ -28,8 +27,7 @@
       text: 'При зажатой левой кнопке мыши можно перемещать игровое поле.',
       img: '/img/tutorial/mouse-left.png',
       actions: {
-        before: (self) => {
-          const { isMobile } = self.state;
+        before: ({ state: { isMobile } }) => {
           const skipStep = isMobile ? true : false;
           return { skipStep };
         },
@@ -41,8 +39,7 @@
       text: 'При зажатой правой кнопке мыши можно вращать игровое поле.',
       img: '/img/tutorial/mouse-right.png',
       actions: {
-        before: (self) => {
-          const { isMobile } = self.state;
+        before: ({ state: { isMobile } }) => {
           const skipStep = isMobile ? true : false;
           return { skipStep };
         },
@@ -54,8 +51,7 @@
       text: 'Игровое поле можно перемешать.',
       img: '/img/tutorial/touch-move.png',
       actions: {
-        before: (self) => {
-          const { isMobile } = self.state;
+        before: ({ state: { isMobile } }) => {
           const skipStep = isMobile ? false : true;
           return { skipStep };
         },
@@ -67,8 +63,7 @@
       text: 'Также можно менять его масштаб.',
       img: '/img/tutorial/touch-scroll.png',
       actions: {
-        before: (self) => {
-          const { isMobile } = self.state;
+        before: ({ state: { isMobile } }) => {
           const skipStep = isMobile ? false : true;
           return { skipStep };
         },
@@ -80,8 +75,7 @@
       text: 'Колесиком мыши можно приближать и удалять игровое поле.',
       img: '/img/tutorial/mouse-middle.png',
       actions: {
-        before: (self) => {
-          const { isMobile } = self.state;
+        before: ({ state: { isMobile } }) => {
           const skipStep = isMobile ? true : false;
           return { skipStep };
         },
@@ -93,10 +87,9 @@
       text: 'Центральная кнопка предоставляет доступ к логам текущей игры. В них записываются все значимые события, последовательность которых вы можете в любой момент изучить.',
       active: '.log.gui-btn',
       actions: {
-        before: (self) => {
-          const $rootEl = self.$root.$el;
-          const $controls = $rootEl.querySelector('.gameplane-controls');
-          if ($controls) $rootEl.querySelector('.move.gui-btn')?.click();
+        before: ({ $root }) => {
+          const $controls = $root.querySelector('.gameplane-controls');
+          if ($controls) $root.querySelector('.move.gui-btn')?.click();
         },
       },
       buttons: [{ text: 'Продолжай', step: 'chat' }],

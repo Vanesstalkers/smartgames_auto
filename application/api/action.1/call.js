@@ -2,11 +2,15 @@
   // access: 'public',
   method: async ({ path, args = [] }) => {
     try {
-      const splittedPath = path.split('.');
-      if (!splittedPath.includes('api')) throw new Error(`Method (path="${path}") not found`);
+      const splittedPath = new Set(path.split('.'));
+      if (!splittedPath.has('api')) throw new Error(`Method (path="${path}") not found`);
 
-      let method = lib.utils.getDeep(domain, splittedPath);
-      if (!method) method = lib.utils.getDeep(lib, splittedPath);
+      let method = lib.utils.getDeep(domain, [...splittedPath]);
+      if (!method) {
+        splittedPath.delete('corporate');
+        method = lib.utils.getDeep(domain, [...splittedPath]);
+      }
+      if (!method) method = lib.utils.getDeep(lib, [...splittedPath]);
 
       if (typeof method !== 'function') throw new Error(`Method (path="${path}") not found`);
       if (!Array.isArray(args)) args = [args || {}];
