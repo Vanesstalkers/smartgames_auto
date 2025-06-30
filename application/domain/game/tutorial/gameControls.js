@@ -48,7 +48,7 @@
     },
     planeControlsMouseMiddle: {
       pos: 'bottom-right',
-      text: 'Игровое поле можно перемешать.',
+      text: 'Игровое поле можно перемещать.',
       img: '/img/tutorial/touch-move.png',
       actions: {
         before: ({ state: { isMobile } }) => {
