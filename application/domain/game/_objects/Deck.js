@@ -1,4 +1,4 @@
-(class Deck extends lib.game.objects.Deck {
+(class Deck extends lib.game._objects.Deck { 
   prepareBroadcastData({ data, player, viewerMode }) {
     const { visibleId, preparedData } = super.prepareBroadcastData({ data, player, viewerMode });
 

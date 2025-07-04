@@ -1,5 +1,5 @@
 (function ({ idx }, player) {
-  const serviceCards = this.getObjects({ className: 'Card', attr: { group: 'service' } });
+  const serviceCards = this.select({ className: 'Card', attr: { group: 'service' } });
   serviceCards.sort((a, b) => {
     return a.id() < b.id() ? -1 : a.id() > b.id() ? 1 : 0;
   });

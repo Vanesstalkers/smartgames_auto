@@ -1,4 +1,7 @@
 async (context, { deckType, gameType, gameConfig, gameTimer, creator }) => {
+
+  lib.game.flush.exec();
+
   const { sessionId, userId } = context.session.state;
   const session = lib.store('session').get(sessionId);
   const user = session.user();

@@ -8,8 +8,8 @@
 
     this.defaultClasses({
       Player: domain.game._objects.Player,
-      Deck: domain.game['@objects'].Deck,
-      Card: domain.game['@objects'].Card,
+      Deck: domain.game._objects.Deck,
+      Card: domain.game._objects.Card,
     });
   }
 
@@ -25,7 +25,7 @@
 
   removeTableCards() {
     const cardDeckDrop = this.decks.drop;
-    const tableDecks = this.getObjects({ className: 'Deck', attr: { placement: 'table' } });
+    const tableDecks = this.select({ className: 'Deck', attr: { placement: 'table' } });
     for (const deck of tableDecks) {
       deck.moveAllItems({
         target: cardDeckDrop,

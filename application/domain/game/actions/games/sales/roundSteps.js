@@ -84,7 +84,8 @@
         this.clientCard.moveToTarget(this.decks.zone_client);
         this.featureCard = this.decks.feature.getRandomItem();
         this.featureCard.moveToTarget(this.decks.zone_feature);
-        this.creditCard = this.decks.credit.smartMoveRandomCard({
+        this.creditCard = this.run('smartMoveRandomCard', {
+          deck: this.decks.credit,
           target: this.decks.zone_credit,
         });
         if (this.clientCardNew) delete this.clientCardNew;
@@ -164,14 +165,13 @@
         this.logs(`Клиента заинтересовал автомобиль "${carTitle}".`);
 
         // у всех карт, выложенных на стол, убираем возможность возврата карты в руку делать через блокировку deck нельзя, потому что позже в нее будут добавляться дополнительные карты
-        for (const deck of player.getObjects({ className: 'Deck', attr: { placement: 'table' } })) {
+        for (const deck of player.select({ className: 'Deck', attr: { placement: 'table' } })) {
           for (const card of deck.select('Card')) {
             card.set({ eventData: { playDisabled: true } });
           }
         }
 
-        // ??? непонятно зачем эта проверка
-        if (this.featureCard.canPlay()) this.featureCard.play({ player });
+        this.featureCard.play({ player });
 
         this.set({
           statusLabel: this.stepLabel('Подарок клиенту'),

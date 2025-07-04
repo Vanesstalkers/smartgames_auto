@@ -1,4 +1,4 @@
-(class Card extends lib.game.objects.Card {
+(class Card extends lib.game._objects.Card {
   constructor(data, { parent }) {
     super(data, { parent });
     this.broadcastableFields(

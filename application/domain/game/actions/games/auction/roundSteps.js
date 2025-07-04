@@ -62,7 +62,7 @@
   const initSelectClientEvent = (player) => {
     const dealDecks = this.replacedClientDeal
       ? [this.replacedClientDeal]
-      : this.getObjects({ className: 'Deck', attr: { subtype: 'deal' } });
+      : this.select({ className: 'Deck', attr: { subtype: 'deal' } });
     for (const deck of dealDecks) {
       if (
         deck.eventData.referencePlayerCode && // эксклюзивный клиент
@@ -138,7 +138,7 @@
 
   const calcAuction = (player) => {
     const priceMods = [];
-    const serviceDeck = player.getObjects({ className: 'Deck', attr: { subtype: 'service_played' } })[0];
+    const serviceDeck = player.select({ className: 'Deck', attr: { subtype: 'service_played' } })[0];
     for (const card of serviceDeck.select('Card')) {
       priceMods.push(card.price);
     }
@@ -404,7 +404,7 @@
       break;
     case 'CHECK_DEAL':
       {
-        const dealDeck = this.getObjects({
+        const dealDeck = this.select({
           className: 'Deck',
           attr: { subtype: 'deal' },
         }).find((deck) => {
@@ -535,8 +535,7 @@
           service.moveToTarget(player.decks.service_played);
         }
 
-        // ??? непонятно зачем эта проверка
-        if (this.featureCard.canPlay()) this.featureCard.play({ player });
+        this.featureCard.play({ player });
         
         if (this.featureCard.reference) {
           // !!! createClientDealDeck работает только с this.clientCard, но в этом месте проблем не возникает, потому что дальше по коду case-а он не используется

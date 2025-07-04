@@ -2,7 +2,7 @@
   host: '0.0.0.0',
   balancer: 8870,
   protocol: 'http',
-  ports: [8871, 8872, 8873, 8874],
+  ports: [8871/*, 8872, 8873, 8874*/],
   nagle: false,
   timeouts: {
     bind: 2000,
