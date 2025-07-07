@@ -4,6 +4,8 @@
     :class="[state.isMobile ? 'mobile-view' : '', state.isLandscape ? 'landscape-view' : 'portrait-view']"
     :current-route="$root.state.currentRoute.name"
   >
+  {{ 123 }}
+  {{ $root.state.currentRoute.name }}
     <button @click="toggleFullscreen" class="fullscreen-btn">
       <span v-if="!state.isFullscreen">
         <font-awesome-icon icon="fa-solid fa-expand" class="fa-xl" />

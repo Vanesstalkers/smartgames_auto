@@ -19,8 +19,6 @@
         }
       }
     }
-
-    player.set({ activeReady: true }); // чтобы в endRound пройти проверку checkPlayersReady
   }
 
   this.initEvent(
@@ -34,14 +32,7 @@
             userId: player.userId,
           });
 
-          const timerOverdueCounter = (game.timerOverdueCounter || 0) + 1;
-          // если много ходов было завершено по таймауту, то скорее всего все игроки вышли и ее нужно завершать
-          if (timerOverdueCounter > game.settings.autoFinishAfterRoundsOverdue) {
-            game.run('endGame');
-          }
-          game.set({ timerOverdueCounter });
-
-          game.run('endRound', player);
+          game.run('roundEnd', { timerOverdue: true });
           return { preventListenerRemove: true };
         },
       },
@@ -50,7 +41,7 @@
   );
 
   this.set({ status: 'IN_PROCESS', roundStep: 'ROUND_START' });
-  this.run('endRound');
+  this.run('roundStart');
 
   return { status: 'ok' };
 });

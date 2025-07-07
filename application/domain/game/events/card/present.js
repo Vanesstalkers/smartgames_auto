@@ -1,5 +1,5 @@
 () => ({
-  present: true,
+  name: 'present',
   init: function () {
     const { game, player, source } = this.eventContext();
 
@@ -31,7 +31,7 @@
             await api.action
               .call({
                 path: 'game.api.action',
-                args: [{ name: 'endRound' }],
+                args: [{ name: 'roundEnd' }],
               })
               .catch(prettyAlert);
 
@@ -42,7 +42,7 @@
     });
   },
   handlers: {
-    RESET: function ({ skipRound }) {
+    RESET: function ({ skipTurn }) {
       const { game, player, source, sourceId } = this.eventContext();
 
       player.decks.service.set({ eventData: { playDisabled: true } });
@@ -52,12 +52,9 @@
       source.removeEvent(this);
       player.removeEvent(this);
 
-      if (skipRound) {
-        game.logs({
-          msg: `Игрок {{player}} не стал дарить подарок.`,
-          userId: player.userId,
-        });
-        player.initEvent('skipRound');
+      if (skipTurn) {
+        game.logs({ msg: `Игрок {{player}} не стал дарить подарок.`, userId: player.userId });
+        player.set({ eventData: { skipTurn: true } });
       }
 
       lib.store.broadcaster.publishData(`gameuser-${player.userId}`, {
@@ -74,16 +71,13 @@
 
       this.emit('RESET');
 
-      game.run('endRound', {}, player);
+      game.run('roundEnd', {}, player);
     },
 
     PRESENT: function () {
       const { game, player } = this.eventContext();
-      const eventStillEnabled = player.eventData.activeEvents.find((event) => event === this);
-      this.emit('RESET', {
-        // подарок не подарен
-        skipRound: eventStillEnabled ? true : false,
-      });
+      const presentNotGiven = player.eventData.activeEvents.find((event) => event === this);
+      this.emit('RESET', { skipTurn: presentNotGiven });
     },
   },
 });

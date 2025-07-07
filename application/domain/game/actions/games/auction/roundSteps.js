@@ -38,7 +38,10 @@
       roundStep: 'AUCTION_BET',
     });
 
-    if (player.skipRoundCheck()) {
+    if (player.eventData.skipTurn) {
+      this.logs({ msg: `Игрок {{player}} пропускает ход.`, userId: player.userId });
+      player.set({ eventData: { skipTurn: null } });
+
       // в AUCTION_BET сработает проверка playerNullBet с вызовом initAuctionBetStep({ player: nextPlayer })
       this.run('endRound');
       return;
@@ -536,7 +539,7 @@
         }
 
         this.featureCard.play({ player });
-        
+
         if (this.featureCard.reference) {
           // !!! createClientDealDeck работает только с this.clientCard, но в этом месте проблем не возникает, потому что дальше по коду case-а он не используется
           this.clientCard = getRandomClient();
@@ -556,7 +559,7 @@
           statusLabel: this.stepLabel('Подарок клиенту'),
           roundStep: 'PRESENT',
         });
-        if (player.findEvent({ present: true })) {
+        if (player.findEvent({ name: 'present' })) {
           this.logs(`Происходит выбор подарка клиенту.`);
           player.activate();
           lib.timers.timerRestart(this, { time: timer.PRESENT });

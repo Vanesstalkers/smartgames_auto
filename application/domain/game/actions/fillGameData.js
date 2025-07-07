@@ -1,6 +1,12 @@
-(function ({ data, newGame }) {
+(function (data) {
+  const { configs } = domain.game;
+  const { Card: deckItemClass } = this.defaultClasses();
+
+  const newGame = data.newGame;
+  
   if (data.store) this.store = data.store;
   this.logs(data.logs);
+
   this.deckType = data.deckType;
   this.gameType = data.gameType;
   this.gameConfig = data.gameConfig;
@@ -10,10 +16,9 @@
   this.status = data.status;
   this.statusLabel = data.statusLabel;
   this.round = data.round || 0;
-  if (data.cardEvents) this.cardEvents = data.cardEvents;
-
-  const { configs } = domain.game;
-  const { Card: deckItemClass } = this.defaultClasses();
+  this.roundActivePlayerId = data.roundActivePlayerId;
+  this.cardEvents = data.cardEvents || {};
+  this.title = data.title;
 
   if (data.playerMap) {
     data.playerList = [];
@@ -22,8 +27,6 @@
     data.playerList = data.settings.playerList;
   }
   for (const item of data.playerList || []) this.run('addPlayer', item);
-
-  if (newGame) this.run('initPlayerWaitEvents');
 
   if (data.deckMap) {
     data.deckList = [];

@@ -1,6 +1,5 @@
 (function () {
   const {
-    round,
     // eventData, // нельзя тут объявлять, потому что он динамически обновится в toggleEventHandlers
     settings: {
       // конфиги
@@ -12,6 +11,7 @@
     },
   } = this;
   const players = this.players();
+  const result = { newRoundLogEvents: [], newRoundNumber: this.round, statusLabel, roundStep };
 
   const calcOfferForPlayer = (player) => {
     const carCard = player.decks.car_played.select('Card')[0];
@@ -77,8 +77,8 @@
   switch (this.roundStep) {
     case 'ROUND_START':
       {
-        const newRoundNumber = round + 1;
-        this.logs(`Начало раунда №${newRoundNumber}.`);
+        result.newRoundNumber++;
+        result.newRoundLogEvents.push(`<a>Начало раунда №${result.newRoundNumber}.</a>`);
 
         this.clientCard = this.decks.client.getRandomItem();
         this.clientCard.moveToTarget(this.decks.zone_client);
@@ -101,17 +101,15 @@
             },
           },
         });
-        this.set({ round: newRoundNumber }); // иначе stepLabel в следующем set(...) не подхватит корректное значение
-        this.set({
-          statusLabel: this.stepLabel('Первое предложение'),
-          roundStep: this.featureCard.replaceClient ? 'REPLACE_CLIENT' : 'FIRST_OFFER',
-        });
-        lib.timers.timerRestart(this);
+
+        result.statusLabel = `Раунд ${result.newRoundNumber} (Первое предложение)`;
+        result.roundStep = this.featureCard.replaceClient ? 'REPLACE_CLIENT' : 'FIRST_OFFER';
+        return { ...result, timerRestart: true, endRound: false };
       }
-      break;
+
     case 'REPLACE_CLIENT':
       {
-        this.logs(`Произошла замена клиента.`);
+        result.newRoundLogEvents.push(`Произошла замена клиента.`);
 
         this.clientCardNew = this.decks.client.getRandomItem();
         this.clientCardNew.set({
@@ -120,7 +118,7 @@
         });
 
         if (!this.clientCardNew) {
-          this.logs(`В колоде закончились карты клиентов.`);
+          result.newRoundLogEvents.push(`В колоде закончились карты клиентов.`);
           return this.checkWinnerAndFinishGame();
         }
 
@@ -131,38 +129,31 @@
         this.showTableCards();
 
         this.activatePlayers({ publishText: 'Клиент поменялся, вы можете сделать новое предложение.' });
-        this.set({
-          statusLabel: this.stepLabel('Первое предложение'),
-          roundStep: 'FIRST_OFFER',
-        });
-        lib.timers.timerRestart(this);
+
+        result.statusLabel = this.stepLabel('Первое предложение');
+        result.roundStep = 'FIRST_OFFER';
+        return { ...result, timerRestart: true, endRound: false };
       }
-      break;
+
     case 'FIRST_OFFER':
       {
         this.showTableCards();
 
-        const {
-          bestOffer: { player, carTitle },
-          offersCount,
-        } = selectBestOffer();
+        const { bestOffer: { player, carTitle }, offersCount } = selectBestOffer();
 
         if (!player) {
           if (offersCount > 0) {
-            this.logs(`Клиента не устроило ни одно из предложений.`);
-            this.set({
-              statusLabel: this.stepLabel('Результаты раунда'),
-              roundStep: 'SHOW_RESULTS',
-            });
+            result.newRoundLogEvents.push(`Клиента не устроило ни одно из предложений.`);
+            result.statusLabel = this.stepLabel('Результаты раунда');
+            result.roundStep = 'SHOW_RESULTS';
           } else {
-            this.set({ roundStep: 'CARD_DROP' });
+            result.roundStep = 'CARD_DROP';
           }
-          this.run('endRound');
-          return;
+          return { ...result, timerRestart: false, endRound: true };
         }
 
         this.roundStepWinner = player;
-        this.logs(`Клиента заинтересовал автомобиль "${carTitle}".`);
+        result.newRoundLogEvents.push(`Клиента заинтересовал автомобиль "${carTitle}".`);
 
         // у всех карт, выложенных на стол, убираем возможность возврата карты в руку делать через блокировку deck нельзя, потому что позже в нее будут добавляться дополнительные карты
         for (const deck of player.select({ className: 'Deck', attr: { placement: 'table' } })) {
@@ -173,21 +164,18 @@
 
         this.featureCard.play({ player });
 
-        this.set({
-          statusLabel: this.stepLabel('Подарок клиенту'),
-          roundStep: 'PRESENT',
-        });
+        result.statusLabel = this.stepLabel('Подарок клиенту');
+        result.roundStep = 'PRESENT';
 
-        if (player.findEvent({ present: true })) {
-          this.logs(`Происходит выбор подарка клиенту.`);
+        if (player.findEvent({ name: 'present' })) {
+          result.newRoundLogEvents.push(`Происходит выбор подарка клиенту.`);
           player.activate();
-          lib.timers.timerRestart(this, { time: timer.PRESENT });
-          return;
+          return { ...result, timerRestart: timer.PRESENT, endRound: false };
         }
 
-        this.run('endRound');
+        return { ...result, timerRestart: false, endRound: true };
       }
-      break;
+
     case 'PRESENT':
       {
         this.roundStepWinner.activate({
@@ -197,14 +185,13 @@
         this.roundStepWinner.decks.service.set({
           eventData: { playDisabled: null }, // мог быть выставлен playDisabled после present-event
         });
-        this.set({
-          statusLabel: this.stepLabel('Дополнительные продажи'),
-          roundStep: 'SECOND_OFFER',
-        });
-        this.logs(`Начались продажи дополнительных сервисов клиенту.`);
-        lib.timers.timerRestart(this, { time: timer.SECOND_OFFER });
+
+        result.newRoundLogEvents.push(`Начались продажи дополнительных сервисов клиенту.`);
+        result.statusLabel = this.stepLabel('Дополнительные продажи');
+        result.roundStep = 'SECOND_OFFER';
+        return { ...result, timerRestart: timer.SECOND_OFFER, endRound: false };
       }
-      break;
+
     case 'SECOND_OFFER':
       {
         const player = this.roundStepWinner;
@@ -212,7 +199,7 @@
         // рассчитываем предложение клиенту заново (с учетом добавленных сервисов)
         const { fullPrice, carTitle } = calcOfferForPlayer(player);
         if (fullPrice <= this.clientMoney) {
-          this.logs(
+          result.newRoundLogEvents.push(
             `Клиент приобрел автомобиль "${carTitle}" и сервисы за ${new Intl.NumberFormat().format(
               (fullPrice || 0) * 1000
             )}₽.`
@@ -221,37 +208,33 @@
           const money = player.money + fullPrice;
           player.set({ money });
 
-          if (money >= winMoneySum) {
-            return this.run('endGame', { winningPlayer: player });
-          }
+          if (money >= winMoneySum) return this.run('endGame', { winningPlayer: player });
         } else {
-          this.logs(`Клиент отказался от сделки из-за превышения допустимой стоимости сервисов.`);
+          result.newRoundLogEvents.push(`Клиент отказался от сделки из-за превышения допустимой стоимости сервисов.`);
           delete this.roundStepWinner;
         }
 
-        this.set({
-          statusLabel: this.stepLabel('Результаты раунда'),
-          roundStep: 'SHOW_RESULTS',
-        });
-        this.run('endRound');
+        result.statusLabel = this.stepLabel('Результаты раунда');
+        result.roundStep = 'SHOW_RESULTS';
+        return { ...result, timerRestart: false, endRound: true };
       }
-      break;
+
     case 'SHOW_RESULTS':
       {
         this.activatePlayers({
           setData: { eventData: { playDisabled: true, roundBtn: { label: 'Завершить раунд' } } },
-          disableSkipRoundCheck: true,
+          disableSkipTurnCheck: true,
         });
-        this.set({ roundStep: 'CARD_DROP' });
-        lib.timers.timerRestart(this, { time: timer.SHOW_RESULTS });
+        result.roundStep = 'CARD_DROP';
+        return { ...result, timerRestart: timer.SHOW_RESULTS, endRound: false };
       }
-      break;
+
     case 'CARD_DROP':
       {
         const emptyClientDeck = this.decks.client.itemsCount() === 0;
         const emptyFeatureDeck = this.decks.feature.itemsCount() === 0;
         if (emptyClientDeck || emptyFeatureDeck) {
-          this.logs(`В колоде закончились карты ${emptyClientDeck ? 'клиентов' : 'сервисов'}.`);
+          result.newRoundLogEvents.push(`В колоде закончились карты ${emptyClientDeck ? 'клиентов' : 'сервисов'}.`);
           return this.checkWinnerAndFinishGame();
         }
 
@@ -262,15 +245,15 @@
           });
         }
 
-        this.set({
-          statusLabel: this.stepLabel('Окончание раунда'),
-          roundStep: 'ROUND_END',
-        });
+        result.statusLabel = this.stepLabel('Окончание раунда');
+        result.roundStep = 'ROUND_END';
+
         if (this.featureCard.reference && this.roundStepWinner) {
           // дополнительный клиент (играем без добавления карт в руку)
 
           for (const player of players) {
-            if (player !== this.roundStepWinner) player.initEvent('skipRound');
+            if (player === this.roundStepWinner) continue;
+            player.set({ eventData: { skipTurn: true } });
           }
         } else {
           // чтобы не было лишней логики в первом раунде, карты в руку добавляем в конце раунда
@@ -284,19 +267,21 @@
                 setData: { eventData: { playDisabled: null } },
               });
             }
-            lib.timers.timerRestart(this, { time: timer.CARD_DROP });
-            return;
+
+            return { ...result, timerRestart: timer.CARD_DROP, endRound: false };
           }
         }
-        this.run('endRound');
+
+        return { ...result, timerRestart: false, endRound: true };
       }
-      break;
+
     case 'ROUND_END':
       {
         this.removeTableCards();
-        this.set({ roundStep: 'ROUND_START', roundStepWinner: null });
-        this.run('endRound');
+        this.set({ roundStepWinner: null });
+
+        result.roundStep = 'ROUND_START';
+        return { ...result, timerRestart: false, endRound: true };
       }
-      break;
   }
 });

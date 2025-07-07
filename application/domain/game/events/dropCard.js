@@ -48,7 +48,7 @@
       const count = player.decks.car.itemsCount() - carLimit;
       if (count <= 0) {
         this.emit('RESET');
-        game.run('endRound', {}, player);
+        game.run('roundEnd', {}, player);
       } else {
         return { preventListenerRemove: true };
       }

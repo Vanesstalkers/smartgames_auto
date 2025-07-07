@@ -77,7 +77,7 @@ export default {
         const playerMap = this.getGame().playerMap || {};
         const activePlayers = Object.keys(playerMap).filter((id) => {
           const player = this.getStore().player?.[id] || {};
-          return player.active && !player.activeReady;
+          return player.active && !player.eventData?.actionsDisabled;
         });
         return activePlayers.includes(this.gameState.sessionPlayerId);
       },
