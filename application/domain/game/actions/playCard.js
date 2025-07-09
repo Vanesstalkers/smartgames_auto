@@ -4,10 +4,14 @@
   if (card.eventData.playDisabled || card.parent().eventData.playDisabled || player.eventData.playDisabled)
     throw new Error('Эту карту нельзя разыгрывать.');
 
-  if (card.eventData.activeEvents.length) {
-    for (const event of card.eventData.activeEvents) {
-      event.emit('TRIGGER', { targetId: cardId, targetPlayerId });
-    }
+  if (card.eventData.canReturn) {
+    const deck = player.decks[card.group];
+    if (deck) card.moveToTarget(deck);
+
+    card.set({
+      ...{ visible: null, played: null },
+      eventData: { canReturn: null, playDisabled: null, cardClass: null, buttonText: null },
+    });
     return;
   }
 
@@ -27,5 +31,11 @@
     }
   }
 
-  card.initEvent('returnCardToHand', { player });
+  card.set({
+    eventData: {
+      canReturn: true,
+      cardClass: 'highlight-off',
+      buttonText: 'Вернуть', // текст кнопки на карте
+    },
+  });
 });

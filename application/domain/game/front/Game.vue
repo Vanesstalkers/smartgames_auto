@@ -12,7 +12,7 @@
     <template #gameinfo="{} = {}">
       <div class="wrapper">
         <div class="game-status-label">
-          {{ game.statusLabel }}
+          {{ statusLabel }}
         </div>
         <div v-for="deck in deckList" :key="deck._id" class="deck" :code="deck.code">
           <div v-if="deck._id && deck.code === 'Deck[card_client]'" class="card-event">
@@ -77,7 +77,7 @@ export default {
         const playerMap = this.getGame().playerMap || {};
         const activePlayers = Object.keys(playerMap).filter((id) => {
           const player = this.getStore().player?.[id] || {};
-          return player.active && !player.activeReady;
+          return player.active && !player.eventData?.actionsDisabled;
         });
         return activePlayers.includes(this.gameState.sessionPlayerId);
       },
@@ -110,6 +110,12 @@ export default {
     },
     showPlayerControls() {
       return this.game.status === 'IN_PROCESS';
+    },
+    restoringGameState() {
+      return this.game.status === 'RESTORING_GAME';
+    },
+    statusLabel() {
+      return this.restoringGameState ? 'Восстановление игры' : this.game.statusLabel;
     },
     playerIds() {
       const ids = Object.keys(this.game.playerMap || {}).sort((id1, id2) => (id1 > id2 ? 1 : -1));

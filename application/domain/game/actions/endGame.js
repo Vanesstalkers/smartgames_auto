@@ -1,5 +1,5 @@
 (function ({ winningPlayer, canceledByUser } = {}) {
-  this.run('endGame', { winningPlayer, canceledByUser, customFinalize: true });
+  this.run('lib.endGame', { winningPlayer, canceledByUser, customFinalize: true });
 
   this.broadcastAction('gameFinished', {
     gameId: this.id(),
