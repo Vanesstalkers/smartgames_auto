@@ -80,13 +80,13 @@ export default {
 
       [code='Deck[card_zone_client]'] {
         position: absolute;
-        left: calc(50% - 130px - 10px);
+        left: calc(50% - 130px - 10px + 400px);
         top: calc(50% - 90px);
         z-index: 1;
       }
       [code='Deck[card_zone_feature]'] {
         position: absolute;
-        left: calc(50%);
+        left: calc(50% + 400px);
         top: calc(50% - 90px);
       }
       [code='Deck[card_zone_client_dop]'] {
@@ -97,7 +97,7 @@ export default {
       }
       [code='Deck[card_zone_credit]'] {
         position: absolute;
-        left: calc(50% + 130px + 10px);
+        left: calc(50% + 130px + 10px + 400px);
         top: calc(50% - 90px);
       }
     }

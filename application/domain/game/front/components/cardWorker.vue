@@ -1,16 +1,11 @@
 <template>
-  <div
-    v-if="player._id || viewer._id"
-    :id="player._id"
-    :class="[
-      'card-worker',
-      'card-worker-' + player.code,
-      player.active ? 'active' : '',
-      selectable ? 'selectable' : '',
-      showEndRoundBtn || showLeaveBtn ? 'has-action' : '',
-    ]"
-    :style="customStyle"
-  >
+  <div v-if="player._id || viewer._id" :id="player._id" :class="[
+    'card-worker',
+    'card-worker-' + player.code,
+    player.active ? 'active' : '',
+    selectable ? 'selectable' : '',
+    showControlBtn || showLeaveBtn ? 'has-action' : '',
+  ]" :style="customStyle">
     <div class="money">{{ new Intl.NumberFormat().format((player.money || 0) * 1000) }}₽</div>
     <div v-if="showTimer" class="end-round-timer">
       {{ this.localTimer }}
@@ -21,8 +16,8 @@
     <div v-if="!iam" class="service-deck card-event">
       {{ serviceDeckCount }}
     </div>
-    <div v-if="showEndRoundBtn" :class="['action-btn', 'end-round-btn', roundBtn.class || '']" @click="controlAction">
-      {{ roundBtn.label || 'Закончить раунд' }}
+    <div v-if="showControlBtn" :class="['action-btn', 'end-round-btn', controlBtn.class || '']" @click="controlAction">
+      {{ controlBtn.label || 'Закончить раунд' }}
     </div>
     <div v-if="showLeaveBtn" class="action-btn leave-game-btn" @click="controlAction">Выйти из игры</div>
   </div>
@@ -36,7 +31,7 @@ export default {
     playerId: String,
     viewerId: String,
     iam: Boolean,
-    showControls: Boolean,
+    // showControls: Boolean,
   },
   data() {
     return {
@@ -62,6 +57,7 @@ export default {
       return this.state.store?.user?.[this.state.currentUser] || {};
     },
     player() {
+      console.log("player() {", this.playerId);
       const player = this.store.player?.[this.playerId] || {};
       // через watch не осилил (проблема при создании игры - "Vue cannot detect property addition or deletion")
       if (player.timerEndTime && this.localTimerUpdateTime !== player.timerUpdateTime) {
@@ -75,6 +71,7 @@ export default {
           }
         }, 1000);
       }
+      console.log("player() {", player);
       return player || {};
     },
     viewer() {
@@ -91,8 +88,8 @@ export default {
 
       return style;
     },
-    roundBtn() {
-      return this.player.eventData.roundBtn || {};
+    controlBtn() {
+      return this.player.eventData.controlBtn;
     },
     selectable() {
       return this.sessionPlayerIsActive() && this.player.eventData.selectable;
@@ -108,31 +105,34 @@ export default {
       const deck = this.playerDecks.find(({ subtype }) => subtype === 'service');
       return Object.keys(deck?.itemMap || {}).length || 0;
     },
-    showEndRoundBtn() {
-      return this.showControls && this.iam && this.sessionPlayerIsActive() && !this.player.activeReady;
+    showControlBtn() {
+      return this.iam && this.sessionPlayerIsActive() && this.controlBtn?.label && !this.controlBtn.leaveGame;
     },
     showTimer() {
       return (
         this.player.active &&
-        !this.player.activeReady &&
+        !this.player.eventData.actionsDisabled &&
         this.player.timerEndTime &&
         this.game.status != 'WAIT_FOR_PLAYERS'
       );
     },
     showLeaveBtn() {
-      return (this.game.status === 'FINISHED' && this.iam) || this.viewerId;
+      return (this.iam && this.controlBtn?.leaveGame) || this.viewerId;
     },
   },
   methods: {
     async controlAction() {
       if (this.selectable) return; // выбор игрока в контексте события карты
-      if (this.showEndRoundBtn) return await this.endRound();
+
       if (this.showLeaveBtn) return await this.leaveGame();
+
+      if (this.showControlBtn) {
+        if (this.controlBtn.triggerEvent) await this.handleGameApi({ name: 'eventTrigger' });
+        else await this.endRound();
+      }
     },
     async endRound() {
-      // TO_CHANGE (свои обработчики конца раунда)
-
-      await this.handleGameApi({ name: 'endRound' });
+      await this.handleGameApi({ name: 'roundEnd' });
     },
     async leaveGame() {
       await api.action
@@ -143,7 +143,9 @@ export default {
         .catch(prettyAlert);
     },
   },
-  mounted() {},
+  mounted() {
+    console.log("mounted() {", this.playerId);
+  },
 };
 </script>
 
@@ -160,9 +162,11 @@ export default {
   border-radius: 10px;
   margin: 0px 0px 0px 5px;
   box-shadow: inset 0px 20px 20px 0px black;
+
   &.active {
     outline: 4px solid green;
   }
+
   .money {
     position: absolute;
     top: 0px;
@@ -189,12 +193,14 @@ export default {
       left: 0px;
       background-image: url(../assets/car-back-side.png);
     }
+
     &.service-deck {
       right: 0px;
       background-image: url(../assets/service-back-side.png);
     }
   }
 }
+
 .card-worker.has-action:hover .action-btn {
   cursor: pointer;
   background: green;
@@ -226,6 +232,7 @@ export default {
     background: #008000;
   }
 }
+
 .end-round-timer {
   position: absolute;
   bottom: 50px;
@@ -240,6 +247,7 @@ export default {
   color: #ff5900;
   text-shadow: 4px 4px 0 #fff;
 }
+
 .leave-game-btn {
   position: absolute;
   bottom: 0px;

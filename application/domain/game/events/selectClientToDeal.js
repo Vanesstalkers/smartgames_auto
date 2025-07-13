@@ -1,8 +1,10 @@
 () => ({
-  init: function () {
+  init() {
     const { game, player, source: deck } = this.eventContext();
 
-    deck.clientCard.set({
+    this.clientCard = deck.select({ className: 'Card', attr: { group: 'client' } });
+
+    this.clientCard.set({
       eventData: {
         playDisabled: null,
         buttonText: 'Выбрать', // текст кнопки на карте
@@ -11,37 +13,38 @@
     });
   },
   handlers: {
-    RESET: function () {
+    RESET() {
       const { game, player, source: deck, sourceId } = this.eventContext();
 
-      deck.clientCard.set({ eventData: { playDisabled: true, buttonText: null } });
-      deck.clientCard.removeEvent(this);
+      this.clientCard.set({ eventData: { playDisabled: true, buttonText: null } });
+      this.clientCard.removeEvent(this);
       deck.removeEvent(this);
 
-      game.removeAllEventListeners({ event: this });
+      this.destroy();
     },
-    TRIGGER: function ({ target }) {
+    TRIGGER({ target }) {
       const { game, player, source: deck } = this.eventContext();
+      const round = game.rounds[game.round];
 
-      if (game.selectedDealDeck) {
+      if (round.selectedDealDeck) {
         // ранее выбранный клиент
-        game.selectedDealDeck.set({ eventData: { currentDeal: null } });
-        game.selectedDealDeck.clientCard.set({
-          eventData: { buttonText: 'Выбрать' },
-        });
+        round.selectedDealDeck.set({ eventData: { currentDeal: null } });
+
+        const clientCard = round.selectedDealDeck.select({ className: 'Card', attr: { group: 'client' } });
+        clientCard.set({ eventData: { buttonText: 'Выбрать' } });
       }
-      if (game.selectedDealDeck === deck) {
-        delete game.selectedDealDeck;
+      if (round.selectedDealDeck === deck) {
+        delete round.selectedDealDeck;
       } else {
-        game.selectedDealDeck = deck;
+        round.selectedDealDeck = deck;
         deck.set({ eventData: { currentDeal: true } });
-        deck.clientCard.set({
-          eventData: { buttonText: 'Отмена' },
-        });
+
+        const clientCard = deck.select({ className: 'Card', attr: { group: 'client' } });
+        clientCard.set({ eventData: { buttonText: 'Отмена' } });
       }
       return { preventListenerRemove: true };
     },
-    OFFER_READY: function () {
+    OFFER_READY() {
       this.emit('RESET');
     },
   },
