@@ -1,5 +1,5 @@
 () => ({
-  init: function () {
+  init() {
     const { game, player } = this.eventContext();
 
     const carCards = player.decks.car.select('Card');
@@ -18,18 +18,17 @@
     }
   },
   handlers: {
-    RESET: function () {
+    RESET() {
       const { game, player, source, sourceId } = this.eventContext();
 
       player.decks.service.updateAllItems({ eventData: { playDisabled: null } });
       player.decks.car.updateAllItems({
         eventData: { activeEvents: [], cardClass: null, buttonText: null },
       });
-      source.removeEvent(this);
 
-      game.removeAllEventListeners({ event: this });
+      this.destroy();
     },
-    TRIGGER: function ({ target }) {
+    TRIGGER({ target }) {
       const { game, player } = this.eventContext();
       const {
         decks: { drop: dropDeck },
@@ -48,12 +47,12 @@
       const count = player.decks.car.itemsCount() - carLimit;
       if (count <= 0) {
         this.emit('RESET');
-        game.run('endRound', {}, player);
+        game.run('roundEnd', {}, player);
       } else {
         return { preventListenerRemove: true };
       }
     },
-    ROUND_END: function () {
+    ROUND_END() {
       const { game, player } = this.eventContext();
       const {
         decks: { drop: dropDeck },

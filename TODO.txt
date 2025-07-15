@@ -7,11 +7,16 @@
 - skipRound
 - убрать common.gameProcess из startGame (+ проверить startGame)
 - endRound -> roundEnd + roundStart + roundSteps (проверить checkPlayersReady)
+? loadGame (with query.roundStep)
 - tutorial-ы
+- auction
 ? проверить decorate()
 
 ??? eventReset в submodule.game
 ??? проверить viewer-mode
+
+- лесенка для карт противника
+- картинка проигрыша - сгоревший мотор
 
 ****************************************
 ****************************************
