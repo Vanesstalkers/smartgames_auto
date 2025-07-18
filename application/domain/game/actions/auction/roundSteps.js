@@ -32,26 +32,31 @@
     }
   };
   const initAuctionBetStep = (player) => {
-    this.currentPlayer = player;
+    const round = this.rounds[this.round];
+    round.currentPlayer = player;
     this.set({
       statusLabel: this.stepLabel('Ставки на аукционе'),
       roundStep: 'AUCTION_BET',
     });
 
-    if (player.skipRoundCheck()) {
+    if (player.eventData.skipTurn) {
+      this.logs({ msg: `Игрок {{player}} пропускает ход.`, userId: player.userId });
+      player.set({ eventData: { skipTurn: null } });
+
       // в AUCTION_BET сработает проверка playerNullBet с вызовом initAuctionBetStep({ player: nextPlayer })
       this.run('endRound');
       return;
     }
 
     player.activate({
-      publishText: 'Делайте вашу ставку',
-      setData: { eventData: { roundBtn: { label: 'Подтвердить выбор' } } },
+      publishText: 'Сделай свою ставку',
+      setData: { eventData: { controlBtn: { label: 'Подтвердить выбор' } } },
     });
     lib.timers.timerRestart(this);
   };
   const processAuctionResultsForWinner = (winner) => {
-    this.carCard.moveToTarget(winner.decks.car);
+    const round = this.rounds[this.round];
+    round.carCard.moveToTarget(winner.decks.car);
 
     winner.decks.service_played.moveAllItems({
       target: this.decks.drop_service,
@@ -60,8 +65,9 @@
     });
   };
   const initSelectClientEvent = (player) => {
-    const dealDecks = this.replacedClientDeal
-      ? [this.replacedClientDeal]
+    const { replacedClientDeal } = this.rounds[this.round];
+    const dealDecks = replacedClientDeal
+      ? [replacedClientDeal]
       : this.select({ className: 'Deck', attr: { subtype: 'deal' } });
     for (const deck of dealDecks) {
       if (
@@ -73,7 +79,8 @@
     }
   };
   const initDealOffersStep = (player) => {
-    this.currentPlayer = player;
+    const round = this.rounds[this.round];
+    round.currentPlayer = player;
     this.set({
       statusLabel: this.stepLabel('Предложение клиенту'),
       roundStep: 'OFFER_READY',
@@ -82,7 +89,7 @@
     if (player.decks.car.itemsCount() === 0) {
       this.logs(`У игрока ${player.userName} нет карт авто и он пропускает ход.`);
 
-      // в OFFER_READY сработает проверка emptyOffer с вызовом this.completedOffers.push(currentPlayer);
+      // в OFFER_READY сработает проверка emptyOffer с вызовом round.completedOffers.push(currentPlayer);
       this.run('endRound');
       return;
     }
@@ -92,12 +99,12 @@
     player.decks.car.set({ eventData: { playDisabled: null } });
     player.decks.service.set({ eventData: { playDisabled: null } });
 
-    if (this.selectedDealDeck) delete this.selectedDealDeck;
+    if (round.selectedDealDeck) delete round.selectedDealDeck;
 
     player.activate({
       publishText:
-        'Выберите клиента и сделайте ему предложение о покупке авто (рекомендуется добавлять только сервисы, меняющие характеристики авто, так как увеличить цену сделки можно будет на шаге дополнительных продаж).',
-      setData: { eventData: { roundBtn: { label: 'Подтвердить выбор' } } },
+        'Выбери клиента и сделай ему предложение о покупке авто (рекомендуется добавлять только сервисы, меняющие характеристики авто, так как увеличить цену сделки можно будет на шаге дополнительных продаж).',
+      setData: { eventData: { controlBtn: { label: 'Подтвердить выбор' } } },
     });
     lib.timers.timerRestart(this);
   };
@@ -108,14 +115,16 @@
    * @returns { {offers: Object, offersCount: number} } deal data
    */
   const processDealData = (deck) => {
+    const round = this.rounds[this.round];
+
     const offers = {};
     let offersCount = 0;
     for (const card of deck.select('Card')) {
       if (card.group === 'client') {
-        if (card.eventData.replacedClient) this.clientCardNew = card;
-        else this.clientCard = card;
-      } else if (card.group === 'feature') this.featureCard = card;
-      else if (card.group === 'credit') this.creditCard = card;
+        if (card.eventData.replacedClient) round.clientCardNew = card;
+        else round.clientCard = card;
+      } else if (card.group === 'feature') round.featureCard = card;
+      else if (card.group === 'credit') round.creditCard = card;
       else if (card.owner) {
         const key = card.owner.code + card.owner.order;
         if (!offers[key]) {
@@ -139,19 +148,22 @@
   const calcAuction = (player) => {
     const priceMods = [];
     const serviceDeck = player.select({ className: 'Deck', attr: { subtype: 'service_played' } })[0];
+
     for (const card of serviceDeck.select('Card')) {
       priceMods.push(card.price);
     }
-    const carPrice = this.carCard.price;
+
+    const { carCard } = this.rounds[this.round];
     const fullPrice = priceMods.reduce((price, mod) => {
-      if (mod.at(-1) === '%') return price + carPrice * (parseInt(mod) / 100);
+      if (mod.at(-1) === '%') return price + carCard.price * (parseInt(mod) / 100);
       return price + parseInt(mod);
     }, 0);
     return fullPrice;
   };
   // !!! попробовать переписать более универсально для всех трех auto-игр
   const selectBestOffer = (offersMap) => {
-    const { clientCard, clientCardNew, clientMoney, featureCard } = this;
+    const round = this.rounds[this.round];
+    const { clientCard, clientCardNew, clientMoney, featureCard } = round;
     const offers = [];
 
     const { stars, priceGroup } = clientCardNew || clientCard;
@@ -204,14 +216,16 @@
     }
   };
   const clearCurrentDeal = () => {
-    if (this.selectedDealDeck) {
+    const { selectedDealDeck } = this.rounds[this.round];
+
+    if (selectedDealDeck) {
       // делаем здесь, чтобы показать результаты предыдущей проверенной сделки
-      this.selectedDealDeck.set({ eventData: { currentDeal: null, referencePlayerCode: null } });
-      returnCardsToOwners(this.selectedDealDeck);
+      selectedDealDeck.set({ eventData: { currentDeal: null, referencePlayerCode: null } });
+      returnCardsToOwners(selectedDealDeck);
     }
   };
   const getPlayersOrderedByDealStars = ({ maxStars }) => {
-    const stars = this.dealStars;
+    const { dealStars: stars } = this.rounds[this.round];
     const maxStarsCode = Object.entries(stars).find(([code, stars]) => stars === maxStars)?.[0];
 
     return Object.keys(stars)
@@ -219,8 +233,9 @@
       .map((code) => ({ code, player: this.find(code) }));
   };
   const restoreCardsForDeals = ({ orderedPlayers, maxStars }) => {
-    const stars = this.dealStars;
+    const { dealStars: stars } = this.rounds[this.round];
     const serviceCards = this.decks.drop_service.select('Card');
+
     for (let i = 0; i < maxStars; i++) {
       for (const { code, player } of orderedPlayers) {
         if ((stars[code] || 0) == 0) continue;
@@ -236,11 +251,17 @@
   switch (this.roundStep) {
     case 'ROUND_START':
       {
+        // result.newRoundNumber++;
+        // result.newRoundLogEvents.push(`<a>Начало раунда №${result.newRoundNumber}.</a>`);
+
+        // this.set({ round: result.newRoundNumber }); // без этого не отработает prepareRoundObject -> calcClientMoney
+        // const round = this.prepareRoundObject();
+
         const newRoundNumber = round + 1;
         this.logs(`Начало раунда №${newRoundNumber}.`);
 
-        if (!this.currentPlayer) this.currentPlayer = players[0];
-        this.set({ round: newRoundNumber }); // иначе stepLabel в следующем set(...) не подхватит корректное значение
+        if (!round.currentPlayer) round.currentPlayer = players[0];
+        
         this.set({
           roundStep: 'AUCTION_START',
           round: newRoundNumber,
@@ -251,32 +272,35 @@
       break;
     case 'AUCTION_START':
       {
+        const round = this.rounds[this.round];
+
         if (this.auctionsLeftInRound === 0) {
           this.logs(`Этап аукционов в этом раунде завершен. Начинается этап продаж.`);
 
-          this.completedOffers = [];
-          initDealOffersStep(this.currentPlayer);
+          round.completedOffers = [];
+          initDealOffersStep(round.currentPlayer);
           return;
         }
 
-        this.clientCard = getRandomClient();
-        this.clientCard.moveToTarget(this.decks.zone_auction_client);
-        this.carCard = this.decks.car.getRandomItem();
-        this.carCard.moveToTarget(this.decks.zone_auction_car);
+        round.clientCard = getRandomClient();
+        round.clientCard.moveToTarget(this.decks.zone_auction_client);
+        round.carCard = this.decks.car.getRandomItem();
+        round.carCard.moveToTarget(this.decks.zone_auction_car);
 
-        this.logs(`Клиент "${this.clientCard.title}" продает автомобиль "${this.carCard.title}".`);
+        this.logs(`Клиент "${round.clientCard.title}" продает автомобиль "${round.carCard.title}".`);
 
         settingPlayerDecksAvailabilityForAuction();
 
         this.completedBets = [];
         this.set({ betSum: 0 });
-        initAuctionBetStep(this.currentPlayer);
+        initAuctionBetStep(round.currentPlayer);
       }
       break;
 
     case 'AUCTION_BET':
       {
-        const currentPlayer = this.currentPlayer;
+        const round = this.rounds[this.round];
+        const { currentPlayer, carCard } = round;
         const nextPlayer = currentPlayer.nextPlayer();
         let winner, loser;
 
@@ -295,7 +319,7 @@
             return;
           }
 
-          this.logs(`Игрок ${currentPlayer.userName} побеждает в аукционе за автомобиль "${this.carCard.title}".`);
+          this.logs(`Игрок ${currentPlayer.userName} побеждает в аукционе за автомобиль "${carCard.title}".`);
 
           winner = currentPlayer;
           loser = nextPlayer;
@@ -321,13 +345,13 @@
 
         const noAuctionBets = this.betSum === 0;
         if (noAuctionBets) {
-          this.carCard.moveToTarget(this.decks.drop);
+          carCard.moveToTarget(this.decks.drop);
         } else {
           processAuctionResultsForWinner(winner);
           loser.returnTableCardsToHand();
         }
 
-        this.currentPlayer = loser; // первым ставку делает проигравший в предыдущем раунде
+        round.currentPlayer = loser; // первым ставку делает проигравший в предыдущем раунде
         this.set({
           roundStep: 'AUCTION_START',
           auctionsLeftInRound: this.auctionsLeftInRound - 1,
@@ -337,13 +361,14 @@
       break;
     case 'OFFER_READY':
       {
-        const { currentPlayer } = this;
+        const round = this.rounds[this.round];
+        const { currentPlayer, selectedDealDeck } = round;
         const {
           decks: { car: carDeck, service: serviceDeck, car_played: playedCarDeck, service_played: playedServiceDeck },
         } = currentPlayer;
         let emptyOffer = playedCarDeck.itemsCount() === 0;
 
-        if (!this.selectedDealDeck) {
+        if (!selectedDealDeck) {
           if (!emptyOffer) {
             const moveConfig = {
               emitEvent: 'RESET',
@@ -354,7 +379,7 @@
             emptyOffer = true;
           }
         } else {
-          this.selectedDealDeck.set({ eventData: { currentDeal: null } });
+          selectedDealDeck.set({ eventData: { currentDeal: null } });
         }
 
         if (emptyOffer) {
@@ -366,10 +391,10 @@
             target: serviceDeck,
             setData: { visible: false },
           });
-          this.completedOffers.push(currentPlayer);
+          round.completedOffers.push(currentPlayer);
         } else {
           const moveConfig = {
-            target: this.selectedDealDeck,
+            target: selectedDealDeck,
             emitEvent: 'RESET',
             setData: {
               visible: false,
@@ -380,21 +405,21 @@
           playedServiceDeck.moveAllItems(moveConfig);
         }
 
-        if (this.completedOffers.length !== players.length) {
+        if (round.completedOffers.length !== players.length) {
           // не все игроки сделали свои предложения - предаем ход
           let player = currentPlayer.nextPlayer();
-          if (this.completedOffers.includes(player)) player = currentPlayer;
+          if (round.completedOffers.includes(player)) player = currentPlayer;
           initDealOffersStep(player);
           return;
         }
 
         this.logs(`Все игроки сделали свои предложения. Начинается определение победителей по сделкам.`);
 
-        this.roundStepWinner = null;
-        this.selectedDealDeck = null;
-        this.replacedClientDeal = null;
-        this.dealStars = {};
-        this.checkedDeals = [];
+        round.roundStepWinner = null;
+        round.selectedDealDeck = null;
+        round.replacedClientDeal = null;
+        round.dealStars = {};
+        round.checkedDeals = [];
         this.set({
           statusLabel: this.stepLabel('Оценка предложений'),
           roundStep: 'CHECK_DEAL',
@@ -404,18 +429,16 @@
       break;
     case 'CHECK_DEAL':
       {
-        const dealDeck = this.select({
-          className: 'Deck',
-          attr: { subtype: 'deal' },
-        }).find((deck) => {
-          return !this.checkedDeals.includes(deck);
+        const round = this.rounds[this.round];
+        const { checkedDeals, roundStepWinner, featureCard, selectedDealDeck, clientCard, completedOffers, dealStars: stars } = round;
+        const dealDeck = this.select({ className: 'Deck', attr: { subtype: 'deal' } }).find((deck) => {
+          return !checkedDeals.includes(deck);
         });
 
         if (!dealDeck) {
           // проверены все возможные сделки с клиентами
           clearCurrentDeal();
 
-          const stars = this.dealStars;
           const starsValues = Object.values(stars);
           const maxStars = starsValues.length > 0 ? Math.max(...starsValues) : 0;
 
@@ -440,24 +463,24 @@
             restoreCardsForDeals({ orderedPlayers, maxStars });
           }
 
-          if (this.roundStepWinner) this.currentPlayer = this.roundStepWinner.nextPlayer();
+          if (roundStepWinner) round.currentPlayer = roundStepWinner.nextPlayer();
           this.set({ roundStep: 'ROUND_START' });
           this.run('endRound');
           return;
         }
 
         clearCurrentDeal();
-        this.selectedDealDeck = dealDeck;
+        round.selectedDealDeck = dealDeck;
 
-        this.checkedDeals.push(dealDeck);
+        checkedDeals.push(dealDeck);
         dealDeck.set({
           eventData: { currentDeal: true }, // для визуализации на фронте
         });
 
-        this.clientCard = null; // *
-        this.clientCardNew = null; // *
-        this.featureCard = null; // *
-        this.creditCard = null; // *
+        delete round.clientCard; // *
+        delete round.clientCardNew; // *
+        delete round.featureCard; // *
+        delete round.creditCard; // *
         // * новые значения установятся в processDealData
         const { offers, offersCount } = processDealData(dealDeck);
 
@@ -466,30 +489,29 @@
             setData: { eventData: { playDisabled: true } },
           });
 
-          if (this.featureCard.replaceClient && !this.featureCard.played) {
-            this.featureCard.set({ played: true });
+          if (featureCard.replaceClient && !featureCard.played) {
+            featureCard.set({ played: true });
 
-            const dealDeck = this.selectedDealDeck;
-            dealDeck.set({ eventData: { currentDeal: null } });
-            this.replacedClientDeal = dealDeck;
+            selectedDealDeck.set({ eventData: { currentDeal: null } });
+            round.replacedClientDeal = selectedDealDeck;
 
             const newClient = getRandomClient();
             newClient.set({
               visible: true,
-              eventData: { replacedClient: this.clientCard.id() },
+              eventData: { replacedClient: clientCard.id() },
             });
-            this.clientCardNew = newClient;
+            round.clientCardNew = newClient;
             dealDeck.addItem(newClient);
             dealDeck.clientCard = newClient; // используется только в selectClientToDeal для настроек визуализации
 
             this.logs(
-              `Произошла замена клиента. Расчет сделки ведется исходя из бюджета "${this.clientCard.title}", но по требованиям "${newClient.title}".`
+              `Произошла замена клиента. Расчет сделки ведется исходя из бюджета "${clientCard.title}", но по требованиям "${newClient.title}".`
             );
 
             const offerValues = Object.values(offers);
             const offerPlayers = offerValues.map((offer) => offer.player);
             // в этом раунде разрешаем делать предложения новому клиенту только тем, кто сделал предложение основному клиенту
-            this.completedOffers = this.completedOffers.filter((player) => {
+            round.completedOffers = completedOffers.filter((player) => {
               return !offerPlayers.includes(player);
             });
 
@@ -515,11 +537,11 @@
             roundStep: 'CHECK_DEAL',
           });
           if (offersCount > 0) {
-            this.logs(`Клиента "${this.clientCard.title}" не заинтересовало ни одно предложение.`);
+            this.logs(`Клиента "${clientCard.title}" не заинтересовало ни одно предложение.`);
             for (const player of players) {
               player.decks.car.set({ eventData: { playDisabled: true } });
               player.decks.service.set({ eventData: { playDisabled: true } });
-              player.activate({ setData: { eventData: { roundBtn: { label: 'Пропустить' } } } });
+              player.activate({ setData: { eventData: { controlBtn: { label: 'Пропустить' } } } });
             }
             lib.timers.timerRestart(this, { time: timer.SHOW_RESULTS });
           } else {
@@ -528,35 +550,35 @@
           return;
         }
 
-        this.logs(`Клиента "${this.clientCard.title}" заинтересовал автомобиль "${carCard.title}".`);
+        this.logs(`Клиента "${clientCard.title}" заинтересовал автомобиль "${carCard.title}".`);
 
         carCard.moveToTarget(player.decks.car_played);
         for (const service of serviceCards) {
           service.moveToTarget(player.decks.service_played);
         }
 
-        this.featureCard.play({ player });
-        
-        if (this.featureCard.reference) {
-          // !!! createClientDealDeck работает только с this.clientCard, но в этом месте проблем не возникает, потому что дальше по коду case-а он не используется
-          this.clientCard = getRandomClient();
+        featureCard.play({ player });
+
+        if (featureCard.reference) {
+          // !!! createClientDealDeck работает только с round.clientCard, но в этом месте проблем не возникает, потому что дальше по коду case-а он не используется
+          round.clientCard = getRandomClient();
           const deck = this.createClientDealDeck();
           deck.set({ eventData: { referencePlayerCode: player.code } });
 
           this.logs(
-            `Игрок ${player.userName} получает возможность эксклюзивной работы с клиентом "${this.clientCard.title}".`
+            `Игрок ${player.userName} получает возможность эксклюзивной работы с клиентом "${clientCard.title}".`
           );
 
           // чтобы в этом раунде обработки сделки не проводилось
-          this.checkedDeals.push(deck);
+          checkedDeals.push(deck);
         }
 
-        this.roundStepWinner = player;
+        round.roundStepWinner = player;
         this.set({
           statusLabel: this.stepLabel('Подарок клиенту'),
           roundStep: 'PRESENT',
         });
-        if (player.findEvent({ present: true })) {
+        if (player.findEvent({ name: 'present' })) {
           this.logs(`Происходит выбор подарка клиенту.`);
           player.activate();
           lib.timers.timerRestart(this, { time: timer.PRESENT });
@@ -567,14 +589,15 @@
       break;
     case 'PRESENT':
       {
-        const { roundStepWinner: player } = this;
+        const round = this.rounds[this.round];
+        const { roundStepWinner: player } = round;
         this.logs(`Начались продажи дополнительных сервисов клиенту.`);
         player.decks.service.set({ eventData: { playDisabled: null } });
 
         player.activate({
           publishText:
-            'Вы можете сделать дополнительные продажи (не превышающее в сумме стоимость авто). При превышении бюджета клиента сделка будет отменена.',
-          setData: { eventData: { roundBtn: { label: 'Завершить сделку' } } },
+            'Ты можешь сделать дополнительные продажи (не превышающее в сумме стоимость авто). При превышении бюджета клиента сделка будет отменена.',
+          setData: { eventData: { controlBtn: { label: 'Завершить сделку' } } },
         });
         this.set({
           statusLabel: this.stepLabel('Дополнительные продажи'),
@@ -585,7 +608,7 @@
       break;
     case 'SECOND_OFFER':
       {
-        const { roundStepWinner: player, selectedDealDeck, featureCard, clientMoney, dealStars } = this;
+        const { roundStepWinner: player, selectedDealDeck, featureCard, clientMoney, dealStars, clientCard } = this.rounds[this.round];
         const carCard = player.decks.car_played.select('Card')[0];
         const serviceCards = player.decks.service_played.select('Card');
 
@@ -598,7 +621,7 @@
           const formattedPrice = new Intl.NumberFormat().format((fullPrice || 0) * 1000);
           const services = serviceCards.map(({ title }) => `"${title}"`).join(', ');
           this.logs(
-            `Клиент "${this.clientCard.title}" приобрел автомобиль "${carTitle}" и сервисы (${services}) за ${formattedPrice}₽.`
+            `Клиент "${clientCard.title}" приобрел автомобиль "${carTitle}" и сервисы (${services}) за ${formattedPrice}₽.`
           );
 
           const money = player.money + fullPrice;

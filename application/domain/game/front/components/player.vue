@@ -43,9 +43,9 @@
           helperChecked ? 'helper-checked' : '',
         ]"
       >
-        <div v-if="iam" class="static-helper helper-link helper-avatar" @click.stop="tutorialAction" />
+        <!-- <div v-if="iam" class="static-helper helper-link helper-avatar" @click.stop="tutorialAction" /> -->
         <dialog-helper
-          v-if="iam && helperVisible"
+          v-if="iam && player.staticHelper"
           style="display: block"
           :dialogStyle="{}"
           :customData="player.staticHelper"

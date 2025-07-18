@@ -33,7 +33,7 @@ export default {
     'userData.avatars.code': function () {
       // !!! перенести в generateAvatar с добавлением кнопки перехода в профиль
       prettyAlert(
-        { message: 'Новые аватары подготовлены и добавлены в галерею. Перейдите в профиль для просмотра.' },
+        { message: 'Новые аватары подготовлены и добавлены в галерею. Перейди в профиль для просмотра.' },
         { hideTime: 0 }
       );
     },
@@ -72,7 +72,7 @@ export default {
         // по дефолту F11 не выставляет document.fullscreenElement
         event.preventDefault();
         prettyAlert({
-          message: 'Для перехода в полноэкранный режим нажмите кнопку в левом верхнем углу экрана',
+          message: 'Для перехода в полноэкранный режим нажми кнопку в левом верхнем углу экрана',
         });
         // в firefox ошибка "Fullscreen request denied"
         // this.toggleFullscreen();
