@@ -150,14 +150,15 @@ export default {
 
       [code='Deck[card_zone_auction_client]'] {
         position: absolute;
-        left: calc(50% - 130px - 10px);
-        top: 50%;
+        // left: calc(50% - 130px - 10px);
+        left: calc(50% + 300px);
+        top: calc(50% - 100px);
         z-index: 1;
       }
       [code='Deck[card_zone_auction_car]'] {
         position: absolute;
-        left: calc(50%);
-        top: 50%;
+        left: calc(50% + 450px);
+        top: calc(50% - 100px);
       }
 
       .deal-zones {

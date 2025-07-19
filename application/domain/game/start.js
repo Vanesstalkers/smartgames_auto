@@ -1,15 +1,13 @@
 async () => {
-  const gameTypes = domain.game.configs.games();
-  const filledGames = {};
-  for (const [gameType, typeData] of Object.entries(gameTypes)) {
-    const { items, itemsDefault = {}, ...typeInfo } = typeData;
-    filledGames[gameType] = typeInfo;
-    filledGames[gameType].items = {};
-    for (const [gameConfig, configData] of Object.entries(items)) {
-      filledGames[gameType].items[gameConfig] = Object.assign({}, itemsDefault, configData);
-    }
+  {
+    const files = await node.fsp.readdir('./application/static/img/cards', { withFileTypes: true });
+    const cardTemplates = Object.values(files).map((_) => _.name);
+    domain.game.configs.cardTemplates = cardTemplates;
+    domain.game.configs.cardTemplates.random = ({ exclude = [] } = {}) => {
+      const templates = cardTemplates.filter((_) => !exclude.includes(_));
+      return templates[Math.floor(Math.random() * templates.length)];
+    };
   }
-  domain.game.configs.filledGames = filledGames;
 
   if (application.worker.id === 'W1') {
     db.redis.handlers.afterStart(async () => {
@@ -17,7 +15,7 @@ async () => {
         const lobbyData = await db.redis.get('lobbyData', { json: true });
         if (lobbyData) {
           const { channelName } = lobbyData;
-          const gameTypes = domain.game.configs.filledGames;
+          const gameTypes = lib.game.actions.getFilledGamesConfigs();
           const games = {};
 
           for (const [gameType, typeData] of Object.entries(gameTypes)) {
@@ -25,18 +23,10 @@ async () => {
 
             games[gameType] = typeInfo;
             games[gameType].items = {};
-            games[gameType].playerCount = [];
 
             for (const [gameConfig, configData] of Object.entries(items)) {
-              const { title, timer, playerList } = configData;
-
-              if (!games[gameType].playerCount.includes(playerList.length))
-                games[gameType].playerCount.push(playerList.length);
-              games[gameType].items[gameConfig] = {
-                title,
-                timer,
-                playerCount: playerList.length,
-              };
+              let { title, timer, teamsCount, playerCount, maxPlayersInGame, style } = configData;
+              games[gameType].items[gameConfig] = { title, timer, teamsCount, playerCount, maxPlayersInGame, style };
             }
           }
 
