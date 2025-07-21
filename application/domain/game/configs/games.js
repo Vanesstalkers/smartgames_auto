@@ -84,7 +84,7 @@
           // CARD_DROP: Math.max(5, Math.ceil(baseTimer / 5)),
         };
       },
-      auctionsPerRound: 1,
+      auctionsPerRound: 2,
       winMoneySum: 17000,
       cardsToRemove: [],
       playerHand: {
