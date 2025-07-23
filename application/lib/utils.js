@@ -100,12 +100,16 @@
   // ! рефакторить только одновременно с mergeDeep (на фронте)
   mergeDeep({ target, source, masterObj = {}, config = {}, keyPath = [] }) {
     const { reset = [], deleteNull = false, removeEmptyObject = false } = config;
+
     // обнуляем ключи в заданных объектах (для передачи обновлений клиенту и БД)
     if (reset.includes(keyPath.join('.'))) {
       for (const key of Object.keys(masterObj)) target[key] = null;
     }
 
     for (const key of Object.keys(source)) {
+      // без этого рекурсия не дойдет до нужного keyPath в проверке выше
+      if (reset.includes([...keyPath, key].join('.')) && source[key] === null) source[key] = {};
+
       if (masterObj[key] == null) {
         // masterObj[key] === null || masterObj[key] === undefined
         if (source[key] !== null) {

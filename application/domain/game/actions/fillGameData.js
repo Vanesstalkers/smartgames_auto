@@ -1,6 +1,12 @@
-(function ({ data, newGame }) {
+(function (data) {
+  const { configs } = domain.game;
+  const { Card: deckItemClass } = this.defaultClasses();
+
+  const newGame = data.newGame;
+
   if (data.store) this.store = data.store;
   this.logs(data.logs);
+
   this.deckType = data.deckType;
   this.gameType = data.gameType;
   this.gameConfig = data.gameConfig;
@@ -10,10 +16,15 @@
   this.status = data.status;
   this.statusLabel = data.statusLabel;
   this.round = data.round || 0;
-  if (data.cardEvents) this.cardEvents = data.cardEvents;
-
-  const { configs } = domain.game;
-  const { Card: deckItemClass } = this.defaultClasses();
+  this.rounds = data.rounds || {};
+  this.prepareRoundObject(this.rounds[this.round]);
+  this.roundStep = data.roundStep;
+  this.roundStepsMap = data.roundStepsMap || {};
+  this.roundActivePlayerId = data.roundActivePlayerId;
+  this.cardEvents = data.cardEvents || {};
+  this.title = data.title;
+  if (!data.templates) data.templates = { card: 'default' };
+  this.templates = data.templates || { card: domain.game.configs.cardTemplates.random() };
 
   if (data.playerMap) {
     data.playerList = [];
@@ -22,8 +33,6 @@
     data.playerList = data.settings.playerList;
   }
   for (const item of data.playerList || []) this.run('addPlayer', item);
-
-  if (newGame) this.run('initPlayerWaitEvents');
 
   if (data.deckMap) {
     data.deckList = [];
@@ -36,8 +45,8 @@
     const deck = this.addDeck(item, { deckItemClass });
 
     if (newGame) {
-      // const cardsToRemove = this.settings.cardsToRemove || [];
-      const items = lib.utils.structuredClone(configs.cards().filter(({ group }) => group === deck.subtype));
+      const cardsList = configs.cards().list;
+      const items = lib.utils.structuredClone(cardsList.filter(({ group }) => group === deck.subtype));
       for (const item of items) deck.addItem(item);
     }
   }

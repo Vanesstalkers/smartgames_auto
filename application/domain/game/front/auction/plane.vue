@@ -19,8 +19,8 @@
         :class="[
           'deal-deck',
           deck.eventData.currentDeal ? 'active-deal' : '',
-          deck.eventData.referencePlayerCode ? 'exclusive' : '',
-          deck.eventData.referencePlayerCode !== sessionPlayer.code ? 'disabled' : '',
+          deck.eventData.referencePlayerId ? 'exclusive' : '',
+          deck.eventData.referencePlayerId !== gameState.sessionPlayerId ? 'disabled' : '',
         ]"
         :style="{ width: handCardsWidth }"
         :cardCount="deck.cards.length"
@@ -32,6 +32,7 @@
           :cardId="id"
           :cardGroup="group"
           :canPlay="sessionPlayerIsActive() && group === 'client'"
+          :class="'group-' + group"
           imgExt="png"
           :order="order"
         />
@@ -135,7 +136,7 @@ export default {
         case 'credit':
           return 1;
         case 'client':
-          return this.store.card?.[id]?.eventData?.replacedClient ? 3 : 2;
+          return this.store.card?.[id]?.eventData?.replacedClient ? 2 : 3;
       }
     },
   },
@@ -150,14 +151,14 @@ export default {
 
       [code='Deck[card_zone_auction_client]'] {
         position: absolute;
-        left: calc(50% - 130px - 10px);
-        top: 50%;
+        left: calc(50% + 300px);
+        top: calc(50% - 100px);
         z-index: 1;
       }
       [code='Deck[card_zone_auction_car]'] {
         position: absolute;
-        left: calc(50%);
-        top: 50%;
+        left: calc(50% + 450px);
+        top: calc(50% - 100px);
       }
 
       .deal-zones {
@@ -183,13 +184,18 @@ export default {
             z-index: 1;
           }
 
-          &.exclusive {
+          &.exclusive .group-client {
             box-shadow: 0px 0px 20px 0px gold;
             border: 2px solid gold;
             border-radius: 4px;
           }
-          &.exclusive.disabled {
+          &.exclusive.disabled .group-client {
+            border: none;
             opacity: 0.5;
+
+            .play-btn {
+              display: none;
+            }
           }
 
           .card-event {

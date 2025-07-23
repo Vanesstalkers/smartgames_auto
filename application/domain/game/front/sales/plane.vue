@@ -72,33 +72,71 @@ export default {
       width: 100%;
       height: 100%;
 
-      &.has-client-dop {
-        [code='Deck[card_zone_credit]'] {
-          left: calc(50% + 130px + 10px + 28px);
-        }
-      }
-
       [code='Deck[card_zone_client]'] {
         position: absolute;
-        left: calc(50% - 130px - 10px);
+        left: calc(50% - 130px - 10px + 400px);
         top: calc(50% - 90px);
         z-index: 1;
       }
       [code='Deck[card_zone_feature]'] {
         position: absolute;
-        left: calc(50%);
+        left: calc(50% + 400px);
         top: calc(50% - 90px);
       }
       [code='Deck[card_zone_client_dop]'] {
         position: absolute;
-        left: calc(50% + 28px);
+        left: calc(50% + 28px + 400px);
         top: calc(50% - 90px);
         z-index: 1;
       }
       [code='Deck[card_zone_credit]'] {
         position: absolute;
-        left: calc(50% + 130px + 10px);
+        left: calc(50% + 130px + 10px + 400px);
         top: calc(50% - 90px);
+      }
+
+      &.has-client-dop {
+        [code='Deck[card_zone_credit]'] {
+          left: calc(50% + 130px + 10px + 28px + 400px);
+        }
+      }
+    }
+  }
+
+  &.mobile-view {
+    #gamePlane {
+      .game-zones {
+        width: 100%;
+        height: 100%;
+
+        &.has-client-dop {
+          [code='Deck[card_zone_credit]'] {
+            left: calc(50% + 130px + 10px + 28px);
+          }
+        }
+
+        [code='Deck[card_zone_client]'] {
+          position: absolute;
+          left: calc(50% - 130px - 10px);
+          top: calc(50% - 90px);
+          z-index: 1;
+        }
+        [code='Deck[card_zone_feature]'] {
+          position: absolute;
+          left: calc(50%);
+          top: calc(50% - 90px);
+        }
+        [code='Deck[card_zone_client_dop]'] {
+          position: absolute;
+          left: calc(50% + 28px);
+          top: calc(50% - 90px);
+          z-index: 1;
+        }
+        [code='Deck[card_zone_credit]'] {
+          position: absolute;
+          left: calc(50% + 130px + 10px);
+          top: calc(50% - 90px);
+        }
       }
     }
   }

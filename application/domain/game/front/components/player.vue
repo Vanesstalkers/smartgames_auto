@@ -31,8 +31,6 @@
         </div>
       </div>
       <div class="workers">
-        <!-- <div v-if="iam" :style="{ color: 'red', background: 'black' }">{{ player.eventData }}</div>
-        <div v-if="iam" :style="{ color: 'orange', background: 'black' }">{{ cardDecksData }}</div> -->
         <card-worker :playerId="playerId" :viewerId="viewerId" :iam="iam" :showControls="showControls" />
       </div>
       <div
@@ -43,9 +41,8 @@
           helperChecked ? 'helper-checked' : '',
         ]"
       >
-        <div v-if="iam" class="static-helper helper-link helper-avatar" @click.stop="tutorialAction" />
         <dialog-helper
-          v-if="iam && helperVisible"
+          v-if="iam && player.staticHelper"
           style="display: block"
           :dialogStyle="{}"
           :customData="player.staticHelper"
@@ -283,6 +280,10 @@ export default {
   .hand-cards {
     max-height: 250px;
     flex-direction: row;
+
+    &.at-table {
+      margin-bottom: 40px;
+    }
   }
 }
 #game.mobile-view .hand-cards-list {

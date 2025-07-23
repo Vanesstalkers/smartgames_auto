@@ -1,17 +1,11 @@
-
-+ smartMoveRandomCard и restoreCardsFromDrop
-+ objects -> _objects
-+ getObjects -> select
-+ runSuper
-+ flush.js
-- skipRound
-- убрать common.gameProcess из startGame (+ проверить startGame)
-- endRound -> roundEnd + roundStart + roundSteps (проверить checkPlayersReady)
+- loadGame (нужно отладить)
 - tutorial-ы
-? проверить decorate()
 
-??? eventReset в submodule.game
-??? проверить viewer-mode
+- лесенка для карт противника
+- картинка проигрыша - сгоревший мотор
+- playerAccessAllowed - закомментировать console.error(...) на проде
+
+!!! карты в правилах "Изменен бюджет"
 
 ****************************************
 ****************************************

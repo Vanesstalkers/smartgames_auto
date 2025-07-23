@@ -1,18 +1,21 @@
 <template>
-  <game :gamePlaneScaleMin="1" :gamePlaneScaleMax="2">
-    <template
-      #gameplane="{
-        /* game = {}, gamePlaneScale */
-      } = {}"
-    >
+  <game :defaultScaleMinVisibleWidth="1000" :planeScaleMin="1" :planeScaleMax="5">
+
+    <template #helper-guru="{ menuWrapper, menuButtonsMap } = {}">
+      <tutorial :game="game" class="scroll-off" :customMenu="customMenu({ menuWrapper, menuButtonsMap })" />
+    </template>
+
+    <template #gameplane="{
+      /* game = {}, gamePlaneScale */
+    } = {}">
       <sales-game-plane v-if="game.gameType === 'sales'" />
       <auction-game-plane v-if="game.gameType === 'auction'" />
     </template>
 
-    <template #gameinfo="{} = {}">
+    <template #gameinfo="{ } = {}">
       <div class="wrapper">
         <div class="game-status-label">
-          {{ game.statusLabel }}
+          {{ statusLabel }}
         </div>
         <div v-for="deck in deckList" :key="deck._id" class="deck" :code="deck.code">
           <div v-if="deck._id && deck.code === 'Deck[card_client]'" class="card-event">
@@ -28,23 +31,13 @@
       </div>
     </template>
 
-    <template #player="{} = {}">
-      <player
-        :playerId="gameState.sessionPlayerId"
-        :viewerId="gameState.sessionViewerId"
-        :customClass="[`scale-${state.guiScale}`]"
-        :iam="true"
-        :showControls="showPlayerControls"
-      />
+    <template #player="{ } = {}">
+      <player :playerId="gameState.sessionPlayerId" :viewerId="gameState.sessionViewerId"
+        :customClass="[`scale-${state.guiScale}`]" :iam="true" :showControls="showPlayerControls" />
     </template>
-    <template #opponents="{} = {}">
-      <player
-        v-for="(id, index) in playerIds"
-        :key="id"
-        :playerId="id"
-        :customClass="[`idx-${index}`]"
-        :showControls="false"
-      />
+    <template #opponents="{ } = {}">
+      <player v-for="(id, index) in playerIds" :key="id" :playerId="id" :customClass="[`idx-${index}`]"
+        :showControls="false" />
     </template>
   </game>
 </template>
@@ -52,13 +45,14 @@
 <script>
 import { provide, reactive } from 'vue';
 
-import SalesGamePlane from './games/sales/plane.vue';
-import AuctionGamePlane from './games/auction/plane.vue';
+import SalesGamePlane from './sales/plane.vue';
+import AuctionGamePlane from './auction/plane.vue';
 
 import { prepareGameGlobals } from '~/lib/game/front/gameGlobals.mjs';
 import Game from '~/lib/game/front/Game.vue';
 import card from '~/lib/game/front/components/card.vue';
 import player from './components/player.vue';
+import tutorial from '~/lib/helper/front/helper.vue';
 
 export default {
   components: {
@@ -67,27 +61,12 @@ export default {
     Game,
     player,
     card,
+    tutorial,
   },
   props: {},
   setup() {
     const gameGlobals = prepareGameGlobals();
-
-    Object.assign(gameGlobals, {
-      sessionPlayerIsActive() {
-        const playerMap = this.getGame().playerMap || {};
-        const activePlayers = Object.keys(playerMap).filter((id) => {
-          const player = this.getStore().player?.[id] || {};
-          return player.active && !player.activeReady;
-        });
-        return activePlayers.includes(this.gameState.sessionPlayerId);
-      },
-    });
-
-    gameGlobals.gameCustom = reactive({
-      selectedCard: '',
-    });
     provide('gameGlobals', gameGlobals);
-
     return gameGlobals;
   },
   watch: {
@@ -109,7 +88,13 @@ export default {
       return this.game.addTime;
     },
     showPlayerControls() {
-      return this.game.status === 'IN_PROCESS';
+      return this.game.status === 'IN_PROCESS' || this.game.status === 'PREPARE_START';
+    },
+    restoringGameState() {
+      return this.game.status === 'RESTORING_GAME';
+    },
+    statusLabel() {
+      return this.restoringGameState ? 'Восстановление игры' : this.game.statusLabel;
     },
     playerIds() {
       const ids = Object.keys(this.game.playerMap || {}).sort((id1, id2) => (id1 > id2 ? 1 : -1));
@@ -139,7 +124,23 @@ export default {
       return Object.keys(this.game.deckMap).map((id) => this.store.deck?.[id]) || [];
     },
   },
-  methods: {},
+  methods: {
+    customMenu({ menuWrapper, menuButtonsMap } = {}) {
+      if (!menuButtonsMap) return [];
+
+      const { cancel, restore, tutorials, helperLinks, leave } = menuButtonsMap();
+      const fillTutorials = tutorials({
+        showList: [
+          { title: 'Стартовое приветствие игры', action: { tutorial: 'game-tutorial-start' } },
+          { title: 'Управление игровым полем', action: { tutorial: 'game-tutorial-gamePlane' } },
+        ]
+      });
+
+      return menuWrapper({
+        buttons: [cancel(), restore(), fillTutorials, helperLinks(), leave()],
+      });
+    },
+  },
 };
 </script>
 <style lang="scss">
@@ -155,6 +156,7 @@ export default {
   white-space: nowrap;
   text-shadow: black 1px 0 10px;
 }
+
 #game.mobile-view .game-status-label {
   font-size: 1.5em;
 }
@@ -179,18 +181,23 @@ export default {
 
     &[code='Deck[card_client]'] {
       right: 70px;
+
       .card-event {
         background-image: url(./assets/client-back-side.png);
       }
     }
+
     &[code='Deck[card_car]'] {
       right: 0px;
+
       .card-event {
         background-image: url(./assets/car-back-side.png);
       }
     }
+
     &[code='Deck[card_drop_service]'] {
       right: 140px;
+
       .card-event {
         background-image: url(./assets/service-back-side.png);
       }

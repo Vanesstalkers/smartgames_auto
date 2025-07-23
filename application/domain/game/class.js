@@ -1,6 +1,6 @@
 (class Game extends lib.game.class() {
   constructor() {
-    super();
+    super(...arguments);
     Object.assign(this, {
       ...lib.chat['@class'].decorate(),
       ...lib.game.decorators['@hasDeck'].decorate(),
@@ -24,23 +24,21 @@
   }
 
   removeTableCards() {
-    const cardDeckDrop = this.decks.drop;
     const tableDecks = this.select({ className: 'Deck', attr: { placement: 'table' } });
     for (const deck of tableDecks) {
-      deck.moveAllItems({
-        target: cardDeckDrop,
-        setData: { visible: false },
-      });
+      deck.moveAllItems({ target: this.decks.drop, setData: { visible: false } });
     }
   }
   calcClientMoney() {
-    const { clientCard, featureCard, creditCard } = this;
-    let clientMoney = clientCard.money;
+    const { clientCard, featureCard, creditCard, clientCardNew } = this.rounds[this.round];
+    let clientMoney = clientCardNew?.money || clientCard.money;
+
     if (featureCard.money && featureCard.target === 'client') {
       clientMoney += parseInt(featureCard.money);
     }
-    clientMoney *= Math.floor(100 / parseInt(creditCard.pv));
-    this.clientMoney = clientMoney;
+    clientMoney *= Math.floor(1000 / parseInt(creditCard.pv)) / 10; // точность до 1 знака после запятой
+
+    return clientMoney;
   }
   calcOffer({ player, carCard, serviceCards, featureCard }) {
     if (!carCard) throw 'no_car';
@@ -72,8 +70,11 @@
   }
 
   showTableCards() {
-    this.decks.zone_credit.setItemVisible(this.creditCard);
-    this.decks.zone_feature.setItemVisible(this.featureCard);
+    const { creditCard, featureCard } = this.rounds[this.round];
+    const { zone_credit: creditZone, zone_feature: featureZone } = this.decks;
+
+    creditZone.setItemVisible(creditCard);
+    featureZone.setItemVisible(featureCard);
 
     for (const player of this.players()) {
       const tableZones = player.select('Deck').filter(({ placement }) => placement == 'table');
@@ -86,23 +87,25 @@
   }
 
   restorePlayersHands() {
+    const { roundStepWinner } = this.rounds[this.round];
     for (const player of this.players()) {
-      if (player === this.roundStepWinner) continue; // карты победителя сбрасываются
+      if (player === roundStepWinner) continue; // карты победителя сбрасываются
       player.returnTableCardsToHand();
     }
   }
   createClientDealDeck() {
+    const { clientCard } = this.rounds[this.round];
+    const { feature: featureDeck, credit: creditDeck } = this.decks;
     const clientDealDeck = this.addDeck(
       { type: 'card', subtype: 'deal', placement: 'table' },
       { parentDirectLink: false }
     );
 
     // порядок добавления влияет на визуализацию
-    this.decks.feature.getRandomItem().moveToTarget(clientDealDeck);
-    this.decks.credit.getRandomItem().moveToTarget(clientDealDeck);
-    this.clientCard.moveToTarget(clientDealDeck);
-    this.clientCard.set({ visible: true, eventData: { playDisabled: true } });
-    clientDealDeck.clientCard = this.clientCard;
+    featureDeck.getRandomItem().moveToTarget(clientDealDeck);
+    creditDeck.getRandomItem().moveToTarget(clientDealDeck);
+    clientCard.moveToTarget(clientDealDeck);
+    clientCard.set({ visible: true, eventData: { playDisabled: true } });
 
     return clientDealDeck;
   }
