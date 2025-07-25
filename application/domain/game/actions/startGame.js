@@ -1,5 +1,4 @@
 (function () {
-  this.set({ status: 'IN_PROCESS', roundStep: 'ROUND_START' });
-  this.run('initGameProcessEvents');
-  this.run('roundStart');
+  this.set({ roundStep: 'ROUND_START' });
+  this.run('lib.game.actions.startGame');
 });
