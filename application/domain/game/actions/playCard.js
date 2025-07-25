@@ -30,13 +30,11 @@
 
   card.set({
     eventData: {
-      playedTime: Date.now(),
-      canReturn: true,
-      cardClass: 'highlight-off',
-      buttonText: 'Вернуть', // текст кнопки на карте
+      ...{ playedTime: Date.now(), canReturn: true },
+      ...{ cardClass: 'highlight-off', buttonText: 'Вернуть' },
       restoreState: {
-        buttonText: card.eventData.buttonText,
-        cardClass: card.eventData.cardClass,
+        buttonText: card.eventData.buttonText || null,
+        cardClass: card.eventData.cardClass || null,
       },
     },
   });

@@ -80,7 +80,7 @@
   const prepareSecondOfferStep = () => {
     const { roundStepWinner: player } = round;
 
-    player.notifyUser('Добавь в сделку нужное количество сервисов (не превышающее в сумме стоимость авто)');
+    player.notifyUser('Добавь в сделку нужное количество сервисов. При превышении бюджета клиента сделка будет отменена.');
     player.activate({ setData: { eventData: { controlBtn: { label: 'Завершить сделку' } } } });
 
     result.newRoundLogEvents.push(`Начались продажи дополнительных сервисов клиенту.`);

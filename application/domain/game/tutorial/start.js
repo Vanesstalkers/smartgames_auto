@@ -29,22 +29,22 @@
         },
       },
       buttons: [
-        { text: 'Продолжай', step: 'deckCard' },
+        { text: 'Продолжай', step: 'deckClient' },
         { text: 'Я разберусь', step: 'exit' },
       ],
     },
-    deckCard: {
-      text: 'Это счетчик оставшихся в колоде карт.',
-      active: { selector: '[code="Deck[card]"]', customClass: 'rounded' },
-      buttons: [{ text: 'Дальше', step: 'deckCardDrop' }],
+    deckClient: {
+      text: 'Это счетчик карт, оставшихся в колоде клиентов.',
+      active: { selector: '[code="Deck[card_client]"]', customClass: 'rounded' },
+      buttons: [{ text: 'Дальше', step: 'deckCar' }],
     },
-    deckCardDrop: {
-      text: 'Это счетчик карт в колоде сброса.',
-      active: { selector: '[code="Deck[card_drop]"]', customClass: 'rounded' },
+    deckCar: {
+      text: 'Это счетчик карт, оставшихся в колоде автомобилей.',
+      active: { selector: '[code="Deck[card_car]"]', customClass: 'rounded' },
       buttons: [{ text: 'Дальше', step: 'players' }],
     },
     players: {
-      text: 'Это твои противники. Ты можешь увидеть сколько у них карт в руке.',
+      text: 'Это твой противник. Ты можешь увидеть сколько карт у него в руке.',
       actions: {
         before: ({ $root }) => {
           const skipStep = $root.querySelector('.players .player') ? false : true;
@@ -56,6 +56,8 @@
     },
     exit: {
       superPos: true,
+      showMenu: true,
+      active: '.helper-guru',
       text: `
         В любой момент времени ты можешь снова повторить это обучение. Для этого нажми на мою иконку (в левом верхнем углу) и выбери пункт "Покажи доступные обучения". В открывшемся списке выбери интересующие тебя подсказки.
       `,

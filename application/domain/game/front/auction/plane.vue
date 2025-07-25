@@ -159,6 +159,7 @@ export default {
         position: absolute;
         left: calc(50% + 450px);
         top: calc(50% - 100px);
+        z-index: 1;
       }
 
       .deal-zones {

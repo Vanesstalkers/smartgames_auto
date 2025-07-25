@@ -1,52 +1,29 @@
 <template>
-  <div
-    v-if="player._id || viewer._id"
-    :class="['player', ...customClass, iam ? 'iam' : '', player.active ? 'active' : '']"
-  >
+  <div v-if="player._id || viewer._id"
+    :class="['player', ...customClass, iam ? 'iam' : '', player.active ? 'active' : '']">
     <div class="inner-content">
       <div class="player-hands">
         <div class="hand-cards-list" ref="scrollbar">
           <div v-if="iam || gameState.viewerMode" class="hand-cards" :style="{ width: handCardsWidth }">
-            <card
-              v-for="card in handCards"
-              :key="card.id"
-              :cardId="card.id"
-              :cardGroup="card.group"
-              :canPlay="canPlay(card)"
-              :myCard="iam"
-              :imgExt="'png'"
-            />
+            <card v-for="card in handCards" :key="card.id" :cardId="card.id" :cardGroup="card.group"
+              :canPlay="canPlay(card)" :myCard="iam" :imgExt="'png'" />
           </div>
           <div class="hand-cards at-table" :cardCount="tableCards.length">
-            <card
-              v-for="card in tableCards"
-              :key="card.id"
-              :cardId="card.id"
-              :cardGroup="card.group"
-              :canPlay="canPlay(card)"
-              :myCard="iam"
-              :imgExt="'png'"
-            />
+            <card v-for="card in tableCards" :key="card.id" :cardId="card.id" :cardGroup="card.group"
+              :canPlay="canPlay(card)" :myCard="iam" :imgExt="'png'" />
           </div>
         </div>
       </div>
       <div class="workers">
         <card-worker :playerId="playerId" :viewerId="viewerId" :iam="iam" :showControls="showControls" />
       </div>
-      <div
-        v-if="iam"
-        :class="[
-          'player-helper',
-          player.staticHelper?.text ? 'new-tutorial' : '',
-          helperChecked ? 'helper-checked' : '',
-        ]"
-      >
-        <dialog-helper
-          v-if="iam && player.staticHelper"
-          style="display: block"
-          :dialogStyle="{}"
-          :customData="player.staticHelper"
-        />
+      <div v-if="iam" :class="[
+        'player-helper',
+        player.staticHelper?.text ? 'new-tutorial' : '',
+        helperChecked ? 'helper-checked' : '',
+      ]">
+        <dialog-helper v-if="iam && player.staticHelper" style="display: block" :dialogStyle="{}"
+          :customData="player.staticHelper" />
       </div>
     </div>
   </div>
@@ -179,17 +156,19 @@ export default {
   position: relative;
   margin-top: 10px;
 }
-.player:not(.iam) > .inner-content {
+
+.player:not(.iam)>.inner-content {
   display: flex;
   align-items: flex-end;
   flex-direction: row-reverse;
 }
-#game.mobile-view.portrait-view .player:not(.iam) > .inner-content {
+
+#game.mobile-view.portrait-view .player:not(.iam)>.inner-content {
   flex-wrap: nowrap;
   flex-direction: row;
 }
 
-.player.iam > .inner-content {
+.player.iam>.inner-content {
   display: flex;
   align-items: flex-end;
   position: absolute;
@@ -197,7 +176,8 @@ export default {
   bottom: 0px;
   height: 0px;
 }
-#game.mobile-view.portrait-view .player.iam > .inner-content > .player-hands {
+
+#game.mobile-view.portrait-view .player.iam>.inner-content>.player-hands {
   flex-wrap: nowrap;
 
   .hand-cards {
@@ -207,7 +187,8 @@ export default {
 
 .workers {
   position: relative;
-  z-index: 1; /* карточка воркера должна быть видна при размещении игровых зон из руки */
+  z-index: 1;
+  /* карточка воркера должна быть видна при размещении игровых зон из руки */
 }
 
 .player-hands {
@@ -230,6 +211,7 @@ export default {
     }
   }
 }
+
 .player-helper {
   position: absolute;
   right: 0px;
@@ -253,6 +235,7 @@ export default {
     }
   }
 }
+
 .player-helper.new-tutorial:not(.helper-checked) {
   .static-helper.helper-link {
     box-shadow: 0 0 10px 10px #f4e205;
@@ -263,11 +246,22 @@ export default {
   .hand-cards-list {
     flex-direction: row-reverse;
 
+    .hand-cards:not(.at-table) {
+      z-index: 1;
+    }
+
     .hand-cards.at-table {
       position: absolute;
       left: auto;
-      right: 20px;
       bottom: 200px;
+      right: -120px;
+
+      margin-bottom: 0px !important;
+      box-shadow: -80px 0 60px 40px black;
+
+      &[cardcount="0"] {
+        box-shadow: none;
+      }
     }
   }
 }
@@ -276,6 +270,7 @@ export default {
   justify-content: flex-start;
   height: initial;
 }
+
 #game:not(.mobile-view) .hand-cards-list {
   .hand-cards {
     max-height: 250px;
@@ -286,10 +281,12 @@ export default {
     }
   }
 }
+
 #game.mobile-view .hand-cards-list {
   overflow-y: auto;
   overflow-x: hidden;
 }
+
 #game.mobile-view.landscape-view .hand-cards-list {
   @media only screen and (max-height: 360px) {
     max-height: 300px;
@@ -300,17 +297,21 @@ export default {
   display: flex;
   flex-wrap: nowrap;
   margin-left: 80px;
+
   &[cardcount='0'] {
     margin-left: 0px;
   }
-  & > .card-event {
+
+  &>.card-event {
     margin-left: -80px;
   }
 }
+
 #game.mobile-view.portrait-view .hand-cards-list {
   .hand-cards {
     margin-top: 70px;
-    & > .card-event {
+
+    &>.card-event {
       margin-top: -70px;
     }
   }
@@ -325,6 +326,7 @@ export default {
   bottom: 0px;
   text-align: right;
 }
+
 .deck-counters b {
   font-size: 42px;
 }
