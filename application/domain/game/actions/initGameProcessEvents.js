@@ -22,7 +22,7 @@
                 if (customAction) game.run(customAction, actionData, player);
               } else {
                 const playerHand = player.find(`Deck[card_${deckType}]`);
-                const deck = this.find(`Deck[card_${deckType}]`);
+                const deck = game.find(`Deck[card_${deckType}]`);
                 deck.moveRandomItems({ count, target: playerHand });
               }
             }
