@@ -3,8 +3,15 @@
     ...{ title: 'Авто-продажи', icon: ['fas', 'cash-register'] },
     items: {
       default: {
-        title: 'Стандарт',
+        title: 'Дуэль',
       },
+      ai: {
+        title: 'Один игрок',
+        difficulty: [
+          { code: 'weak', title: 'Слабый' },
+          { code: 'strong', title: 'Сильный' }
+        ],
+      }
       // добавить два уровня сложности: с подсказками (расчет текущей суммы сделки) и без них
     },
     itemsDefault: {
@@ -72,6 +79,13 @@
       default: {
         title: 'Стандарт',
       },
+      ai: {
+        title: 'Один игрок',
+        difficulty: [
+          { code: 'weak', title: 'Слабый' },
+          { code: 'strong', title: 'Сильный' }
+        ],
+      }
       // добавить два уровня сложности: с подсказками (расчет текущей суммы сделки) и без них
     },
     itemsDefault: {

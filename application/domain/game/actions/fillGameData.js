@@ -11,6 +11,7 @@
   this.gameType = data.gameType;
   this.gameConfig = data.gameConfig;
   this.gameTimer = data.gameTimer;
+  this.difficulty = data.difficulty;
   this.addTime = data.addTime;
   this.settings = data.settings;
   this.status = data.status;

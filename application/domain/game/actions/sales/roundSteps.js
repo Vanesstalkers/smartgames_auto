@@ -80,12 +80,16 @@
   const prepareSecondOfferStep = () => {
     const { roundStepWinner: player } = round;
 
-    player.notifyUser('Добавь в сделку нужное количество сервисов. При превышении бюджета клиента сделка будет отменена.');
+    player.notifyUser(
+      'Добавь в сделку нужное количество сервисов. При превышении бюджета клиента сделка будет отменена.'
+    );
     player.activate({ setData: { eventData: { controlBtn: { label: 'Завершить сделку' } } } });
 
     result.newRoundLogEvents.push(`Начались продажи дополнительных сервисов клиенту.`);
     result.statusLabel = this.stepLabel('Дополнительные продажи');
     result.roundStep = 'SECOND_OFFER';
+
+    if (player.ai) return { ...result, forcedEndRound: true };
     return { ...result, timerRestart: timer.SECOND_OFFER };
   };
 
@@ -117,6 +121,27 @@
 
       result.statusLabel = `Раунд ${result.newRoundNumber} (Первое предложение)`;
       result.roundStep = round.featureCard.replaceClient ? 'REPLACE_CLIENT' : 'FIRST_OFFER';
+
+      for (const player of this.players({ ai: true })) {
+        const card =
+          this.difficulty === 'weak'
+            ? player.decks.car.getRandomItem()
+            : (() => {
+                const { stars, priceGroup } = round.clientCard;
+                const cars = player.decks.car
+                  .items()
+                  .filter((car) => {
+                    return (
+                      stars >= car.stars &&
+                      (priceGroup === '*' || car.priceGroup.find((group) => priceGroup.includes(group)))
+                    );
+                  })
+                  .sort((a, b) => b.price - a.price);
+                return cars[0];
+              })();
+        if (card) player.aiActions.push({ action: 'playCard', data: { cardId: card.id() } });
+      }
+
       return result;
     }
 
@@ -177,6 +202,8 @@
         result.roundStep = 'PRESENT';
         result.newRoundLogEvents.push(`Происходит выбор подарка клиенту.`);
         player.activate();
+
+        if (player.ai) return { ...result, forcedEndRound: true };
         return { ...result, timerRestart: timer.PRESENT };
       }
 
@@ -228,6 +255,11 @@
         disableSkipTurnCheck: true,
       });
       result.roundStep = 'CARD_DROP';
+
+      for (const player of players) {
+        if (player.userId === 'fake') this.run('roundEnd', {}, player);
+      }
+
       return { ...result, timerRestart: timer.SHOW_RESULTS };
     }
 

@@ -1,11 +1,16 @@
 <template>
-  <div v-if="player._id || viewer._id" :id="player._id" :class="[
-    'card-worker',
-    'card-worker-' + player.code,
-    player.active ? 'active' : '',
-    selectable ? 'selectable' : '',
-    showControlBtn || showLeaveBtn ? 'has-action' : '',
-  ]" :style="customStyle">
+  <div
+    v-if="player._id || viewer._id"
+    :id="player._id"
+    :class="[
+      'card-worker',
+      'card-worker-' + player.code,
+      player.active ? 'active' : '',
+      selectable ? 'selectable' : '',
+      showControlBtn || showLeaveBtn ? 'has-action' : '',
+    ]"
+    :style="customStyle"
+  >
     <div class="money">{{ new Intl.NumberFormat().format((player.money || 0) * 1000) }}₽</div>
     <div v-if="showTimer" class="end-round-timer">
       {{ this.localTimer }}

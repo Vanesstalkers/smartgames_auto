@@ -1,3 +1,4 @@
+!!! Not playerAccessAllowed for user "Player[1]" to handler "ROUND_END" in "dropCard" event. 
 
 - tutorial-ы
 - loadGame (нужно отладить)
