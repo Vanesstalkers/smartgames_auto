@@ -64,7 +64,7 @@
       const gameId = this.id();
       const playerId = player.id();
 
-      player.set({ ready: true, userId, userName });
+      player.set({ userId, userName });
       lib.store.broadcaster.publishAction.call(this, `gameuser-${userId}`, 'joinGame', {
         gameId,
         playerId,
@@ -73,6 +73,9 @@
       });
 
       this.logs({ msg: `Игрок {{player}} присоединился к игре.`, userId });
+
+      // инициатором события был установлен первый player в списке, который совпадает с активным игроком на старте игры
+      this.toggleEventHandlers('PLAYER_JOIN', { targetId: playerId }, player);
 
       await this.saveChanges();
     } catch (exception) {
@@ -112,7 +115,7 @@
       action = domain.game.poker.actions?.[actionName];
       if (!action) action = domain.game.actions?.[actionName];
       if (!action) action = lib.game.actions?.[actionName];
-    } 
+    }
 
     if (!action) throw new Error(`action "${actionName}" not found`);
 

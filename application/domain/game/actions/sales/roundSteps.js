@@ -255,11 +255,6 @@
         disableSkipTurnCheck: true,
       });
       result.roundStep = 'CARD_DROP';
-
-      for (const player of players) {
-        if (player.userId === 'fake') this.run('roundEnd', {}, player);
-      }
-
       return { ...result, timerRestart: timer.SHOW_RESULTS };
     }
 
@@ -297,6 +292,8 @@
         if (dropCardsPlayers.length) {
           for (const player of dropCardsPlayers) {
             player.initEvent('dropCard', { player });
+            if (player.ai) continue;
+            
             player.activate({
               notifyUser: `Выбери карты, которые хочешь сбросить. В руке должно остаться не больше ${carLimitInHand} карт авто.`,
               setData: { eventData: { playDisabled: null, controlBtn: { label: 'Сбросить' } } },
