@@ -1,18 +1,19 @@
 <template>
   <game :defaultScaleMinVisibleWidth="1000" :planeScaleMin="1" :planeScaleMax="5">
-
     <template #helper-guru="{ menuWrapper, menuButtonsMap } = {}">
       <tutorial :game="game" class="scroll-off" :customMenu="customMenu({ menuWrapper, menuButtonsMap })" />
     </template>
 
-    <template #gameplane="{
-      /* game = {}, gamePlaneScale */
-    } = {}">
+    <template
+      #gameplane="{
+        /* game = {}, gamePlaneScale */
+      } = {}"
+    >
       <sales-game-plane v-if="game.gameType === 'sales'" />
       <auction-game-plane v-if="game.gameType === 'auction'" />
     </template>
 
-    <template #gameinfo="{ } = {}">
+    <template #gameinfo="{} = {}">
       <div class="wrapper">
         <div class="game-status-label">
           {{ statusLabel }}
@@ -31,13 +32,23 @@
       </div>
     </template>
 
-    <template #player="{ } = {}">
-      <player :playerId="gameState.sessionPlayerId" :viewerId="gameState.sessionViewerId"
-        :customClass="[`scale-${state.guiScale}`]" :iam="true" :showControls="showPlayerControls" />
+    <template #player="{} = {}">
+      <player
+        :playerId="gameState.sessionPlayerId"
+        :viewerId="gameState.sessionViewerId"
+        :customClass="[`scale-${state.guiScale}`]"
+        :iam="true"
+        :showControls="showPlayerControls"
+      />
     </template>
-    <template #opponents="{ } = {}">
-      <player v-for="(id, index) in playerIds" :key="id" :playerId="id" :customClass="[`idx-${index}`]"
-        :showControls="false" />
+    <template #opponents="{} = {}">
+      <player
+        v-for="(id, index) in playerIds"
+        :key="id"
+        :playerId="id"
+        :customClass="[`idx-${index}`]"
+        :showControls="false"
+      />
     </template>
   </game>
 </template>
@@ -133,7 +144,7 @@ export default {
         showList: [
           { title: 'Стартовое приветствие игры', action: { tutorial: 'game-tutorial-start' } },
           { title: 'Управление игровым полем', action: { tutorial: 'game-tutorial-gamePlane' } },
-        ]
+        ],
       });
 
       return menuWrapper({

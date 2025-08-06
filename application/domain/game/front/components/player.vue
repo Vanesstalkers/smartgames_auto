@@ -1,29 +1,66 @@
 <template>
-  <div v-if="player._id || viewer._id"
-    :class="['player', ...customClass, iam ? 'iam' : '', player.active ? 'active' : '']">
+  <div
+    v-if="player._id || viewer._id"
+    :class="['player', ...customClass, iam ? 'iam' : '', player.active ? 'active' : '']"
+  >
     <div class="inner-content">
       <div class="player-hands">
         <div class="hand-cards-list" ref="scrollbar">
           <div v-if="iam || gameState.viewerMode" class="hand-cards" :style="{ width: handCardsWidth }">
-            <card v-for="card in handCards" :key="card.id" :cardId="card.id" :cardGroup="card.group"
-              :canPlay="canPlay(card)" :myCard="iam" :imgExt="'png'" />
+            <card
+              v-for="card in handCards"
+              :key="card.id"
+              :cardId="card.id"
+              :cardGroup="card.group"
+              :canPlay="canPlay(card)"
+              :myCard="iam"
+              :imgExt="'png'"
+            />
           </div>
           <div class="hand-cards at-table" :cardCount="tableCards.length">
-            <card v-for="card in tableCards" :key="card.id" :cardId="card.id" :cardGroup="card.group"
-              :canPlay="canPlay(card)" :myCard="iam" :imgExt="'png'" />
+            <card
+              v-for="card in tableCards"
+              :key="card.id"
+              :cardId="card.id"
+              :cardGroup="card.group"
+              :canPlay="canPlay(card)"
+              :myCard="iam"
+              :imgExt="'png'"
+            />
           </div>
         </div>
       </div>
       <div class="workers">
-        <card-worker :playerId="playerId" :viewerId="viewerId" :iam="iam" :showControls="showControls" />
+        <slot name="worker" :playerId="playerId" :viewerId="viewerId" :iam="iam">
+          <card-worker :playerId="playerId" :viewerId="viewerId" :iam="iam">
+            <template #money="{ money } = {}">
+              <div class="money">{{ new Intl.NumberFormat().format((money || 0) * 1000) + '₽' }}</div>
+            </template>
+            <template #custom>
+              <div v-if="!iam" class="car-deck card-event">
+                {{ carDeckCount }}
+              </div>
+              <div v-if="!iam" class="service-deck card-event">
+                {{ serviceDeckCount }}
+              </div>
+            </template>
+          </card-worker>
+        </slot>
       </div>
-      <div v-if="iam" :class="[
-        'player-helper',
-        player.staticHelper?.text ? 'new-tutorial' : '',
-        helperChecked ? 'helper-checked' : '',
-      ]">
-        <dialog-helper v-if="iam && player.staticHelper" style="display: block" :dialogStyle="{}"
-          :customData="player.staticHelper" />
+      <div
+        v-if="iam"
+        :class="[
+          'player-helper',
+          player.staticHelper?.text ? 'new-tutorial' : '',
+          helperChecked ? 'helper-checked' : '',
+        ]"
+      >
+        <dialog-helper
+          v-if="iam && player.staticHelper"
+          style="display: block"
+          :dialogStyle="{}"
+          :customData="player.staticHelper"
+        />
       </div>
     </div>
   </div>
@@ -49,7 +86,6 @@ export default {
     playerId: String,
     viewerId: String,
     iam: Boolean,
-    showControls: Boolean,
   },
   data() {
     return { helperVisible: false, helperChecked: false };
@@ -124,6 +160,17 @@ export default {
     mainCardDeckItemsCount() {
       return this.handCards.length;
     },
+    playerDecks() {
+      return Object.keys(this.player.deckMap || {}).map((id) => this.store.deck?.[id] || {});
+    },
+    carDeckCount() {
+      const deck = this.playerDecks.find(({ subtype }) => subtype === 'car');
+      return Object.keys(deck?.itemMap || {}).length || 0;
+    },
+    serviceDeckCount() {
+      const deck = this.playerDecks.find(({ subtype }) => subtype === 'service');
+      return Object.keys(deck?.itemMap || {}).length || 0;
+    },
   },
   methods: {
     canPlay(card) {
@@ -157,18 +204,18 @@ export default {
   margin-top: 10px;
 }
 
-.player:not(.iam)>.inner-content {
+.player:not(.iam) > .inner-content {
   display: flex;
   align-items: flex-end;
   flex-direction: row-reverse;
 }
 
-#game.mobile-view.portrait-view .player:not(.iam)>.inner-content {
+#game.mobile-view.portrait-view .player:not(.iam) > .inner-content {
   flex-wrap: nowrap;
   flex-direction: row;
 }
 
-.player.iam>.inner-content {
+.player.iam > .inner-content {
   display: flex;
   align-items: flex-end;
   position: absolute;
@@ -177,7 +224,7 @@ export default {
   height: 0px;
 }
 
-#game.mobile-view.portrait-view .player.iam>.inner-content>.player-hands {
+#game.mobile-view.portrait-view .player.iam > .inner-content > .player-hands {
   flex-wrap: nowrap;
 
   .hand-cards {
@@ -259,7 +306,7 @@ export default {
       margin-bottom: 0px !important;
       box-shadow: -80px 0 60px 40px black;
 
-      &[cardcount="0"] {
+      &[cardcount='0'] {
         box-shadow: none;
       }
     }
@@ -302,7 +349,7 @@ export default {
     margin-left: 0px;
   }
 
-  &>.card-event {
+  & > .card-event {
     margin-left: -80px;
   }
 }
@@ -311,7 +358,7 @@ export default {
   .hand-cards {
     margin-top: 70px;
 
-    &>.card-event {
+    & > .card-event {
       margin-top: -70px;
     }
   }

@@ -1,5 +1,5 @@
 <template>
-  <game :debug="false" :planeScaleMin="0.2" :planeScaleMax="1" :status="game.status">
+  <game :debug="false" :defaultScaleMinVisibleWidth="1000" :planeScaleMin="1" :planeScaleMax="5">
     <template #helper-guru="{ menuWrapper, menuButtonsMap } = {}">
       <tutorial :game="game" class="scroll-off" :customMenu="customMenu({ menuWrapper, menuButtonsMap })" />
     </template>
@@ -56,17 +56,44 @@
         :viewerId="gameState.sessionViewerId"
         :customClass="[`scale-${state.guiScale}`]"
         :iam="true"
-        :showControls="showPlayerControls"
-      />
+      >
+        <template #worker="{ playerId, viewerId, iam } = {}">
+          <card-worker :playerId="playerId" :viewerId="viewerId" :iam="iam">
+            <template #money="{ money } = {}">
+              <div class="money">{{ new Intl.NumberFormat().format(money || 0) + '₽' }}</div>
+            </template>
+            <template #custom />
+            <template v-if="showPlayerControls" #control="{ controlAction } = {}">
+              <div class="action-btn-block">
+                <div class="action-btn end-round-btn" @click="controlAction({ action: 'raise' })">
+                  {{ 'Повысить' }}
+                </div>
+                <div class="action-btn end-round-btn" @click="controlAction({ action: 'call' })">
+                  {{ 'Уравнять' }}
+                </div>
+                <div class="action-btn end-round-btn" @click="controlAction({ action: 'fold' })">
+                  {{ 'Пропустить' }}
+                </div>
+                <div class="action-btn end-round-btn" @click="controlAction({ action: 'reset' })">
+                  {{ 'Сбросить' }}
+                </div>
+              </div>
+            </template>
+          </card-worker>
+        </template>
+      </player>
     </template>
     <template #opponents="{} = {}">
-      <player
-        v-for="(id, index) in playerIds"
-        :key="id"
-        :playerId="id"
-        :customClass="[`idx-${index}`]"
-        :showControls="false"
-      />
+      <player v-for="(id, index) in playerIds" :key="id" :playerId="id" :customClass="[`idx-${index}`]">
+        <template #worker="{} = {}">
+          <card-worker :playerId="id" :viewerId="gameState.sessionViewerId" :iam="false">
+            <template #money="{ money } = {}">
+              <div class="money">{{ new Intl.NumberFormat().format(money || 0) + '₽' }}</div>
+            </template>
+            <template #custom />
+          </card-worker>
+        </template>
+      </player>
     </template>
   </game>
 </template>
@@ -82,6 +109,7 @@ import chat from '~/lib/chat/front/chat.vue';
 import card from '~/lib/game/front/components/card.vue';
 
 import player from '~/domain/game/front/components/player.vue';
+import cardWorker from '~/domain/game/front/components/cardWorker.vue';
 
 export default {
   components: {
@@ -90,10 +118,12 @@ export default {
     chat,
     card,
     player,
+    cardWorker,
   },
   props: {},
   setup() {
     const gameGlobals = prepareGameGlobals({
+      defaultDeviceOffset: 50, // сдвиг gamePlane влево от центра
       gameCustomArgs: {
         ...gameCustomArgs,
       },
@@ -199,178 +229,33 @@ export default {
         buttons: [cancel(), restore(), fillTutorials, helperLinks(), leave()],
       });
     },
-    gamePlaneContentControlStyle(gameId) {
-      const transformOrigin = this.gameCustom.gamePlaneTransformOrigin[gameId] ?? 'center center';
-
-      const rotation =
-        gameId === this.focusedGameId()
-          ? this.gameCustom.gamePlaneRotation
-          : this.gameCustom.gamePlaneRotations[gameId];
-
-      const transform = [
-        //
-        `rotate(${rotation}deg)`,
-      ].join(' ');
-      return { transform, transformOrigin };
-    },
-    gamePlaneStyle(gameId) {
-      const { x, y } = this.getGamePlaneOffsets()[gameId];
-      return { transform: `translate(${x}px, ${y}px)` };
-    },
-    sortedActiveCards(arr) {
-      return arr
-        .map((id) => this.store.card?.[id] || {})
-        .sort((a, b) => (a.played > b.played ? 1 : -1)) // сортируем по времени сыгрывания
-        .sort((a, b) => (a.played ? 0 : 1)); // переносим не сыгранные в конец
-    },
-    async takeDice() {
-      // return;
-      await this.handleGameApi({ name: 'takeDice', data: { count: 3 } });
-    },
-    async takeCard() {
-      // return;
-      await this.handleGameApi({ name: 'takeCard', data: { count: 5 } });
-    },
-    possibleAddPlanePositions(game) {
-      if (!this.sessionPlayerIsActive()) return [];
-      const availablePorts = this.sessionPlayer().eventData.availablePorts || [];
-      const positions = availablePorts
-        .filter(({ gameId }) => gameId === game.gameId)
-        .map(
-          ({
-            gameId,
-            joinPlaneId,
-            joinPortId,
-            joinPortDirect,
-            targetPortId,
-            targetPortDirect,
-            position,
-            linkedPlanes,
-          }) => {
-            return {
-              code: joinPortId + joinPortDirect + targetPortId + targetPortDirect,
-              ...{ gameId, joinPlaneId, joinPortId, joinPortDirect, targetPortId, targetPortDirect },
-              style: {
-                left: position.left + 'px',
-                top: position.top + 'px',
-                width: position.right - position.left + 'px',
-                height: position.bottom - position.top + 'px',
-                rotation: position.rotation,
-              },
-              linkedPlanes,
-            };
-          }
-        );
-
-      return positions;
-    },
-    async previewPlaneOnField(event, previewPosition) {
-      const { code, gameId, joinPlaneId, style: previewStyle, linkedPlanes } = previewPosition;
-
-      function prepareStyle(style) {
-        switch (style.rotation) {
-          case 1:
-            style.left = parseInt(style.left) + parseInt(style.width);
-            break;
-          case 2:
-            style.left = parseInt(style.left) + parseInt(style.width);
-            style.top = parseInt(style.top) + parseInt(style.height);
-            break;
-          case 3:
-            style.top = parseInt(style.top) + parseInt(style.height);
-            break;
-        }
-        delete style.width;
-        delete style.height;
-      }
-
-      const style = { ...previewStyle };
-      prepareStyle(style);
-
-      this.hidePreviewPlanes();
-      if (!this.gameCustom.selectedFakePlanes[gameId]) this.$set(this.gameCustom.selectedFakePlanes, gameId, {});
-      this.$set(this.gameCustom.selectedFakePlanes[gameId], joinPlaneId, style);
-
-      for (const plane of linkedPlanes) {
-        const { joinPlaneId, position } = plane;
-        const style = {
-          left: position.left + 'px',
-          top: position.top + 'px',
-          width: position.right - position.left + 'px',
-          height: position.bottom - position.top + 'px',
-          rotation: position.rotation,
-        };
-        prepareStyle(style);
-        this.$set(this.gameCustom.selectedFakePlanes[gameId], joinPlaneId, style);
-      }
-
-      this.gameState.cardWorkerAction = {
-        show: true,
-        label: 'Сделать выбор',
-        style: { background: '#ffa500' },
-        sendApiData: {
-          path: 'game.api.action',
-          args: [
-            {
-              name: 'putPlaneOnField',
-              data: {
-                joinPortId: event.target.attributes.joinPortId.value,
-                targetPortId: event.target.attributes.targetPortId.value,
-                joinPortDirect: event.target.attributes.joinPortDirect.value,
-                targetPortDirect: event.target.attributes.targetPortDirect.value,
-              },
-            },
-          ],
-        },
-      };
-
-      this.selectedFakePlanePosition = code;
-    },
-    zIndexDecrease(event) {
-      clearTimeout(this.zIndexDecreaseChangeTimeout);
-
-      this.zIndexDecreaseChangeTimeout = setTimeout(() => {
-        event.target.classList.add('low-zindex');
-      }, 1000);
-    },
-    zIndexRestore(event) {
-      clearTimeout(this.zIndexDecreaseChangeTimeout);
-      event.target.classList.remove('low-zindex');
-    },
-    async selectGame(gameId, { selectable }) {
-      this.gameCustom.gamePlaneRotations = {
-        ...this.gameCustom.gamePlaneRotations,
-        [this.focusedGameId()]: this.gameCustom.gamePlaneRotation,
-      };
-
-      const rotation = this.gameCustom.gamePlaneRotations[gameId] || 0;
-      this.resetMouseEventsConfig({ rotation });
-      this.gameCustom.gamePlaneRotation = rotation;
-
-      this.$set(this.gameCustom, 'selectedGameId', gameId);
-      this.resetPlanePosition();
-
-      if (selectable) {
-        await this.handleGameApi({
-          name: 'eventTrigger',
-          data: {
-            eventData: {
-              targetId: gameId,
-              targetPlayerId: this.$parent.playerId,
-            },
-          },
-        });
-      }
-    },
   },
 };
 </script>
 <style lang="scss">
-#gamePlane {
-  transform-origin: left top !important;
+@import '@/mixins.scss';
 
-  .gp-content {
-    position: absolute;
+#gamePlane {
+  .game-zones {
+    width: 100%;
+    height: 100%;
+
+    [code='Deck[card_zone_flop]'] {
+      position: absolute;
+      left: calc(50% - 60px - 10px - 120px);
+      top: calc(50% - 90px);
+      z-index: 1;
+    }
+    [code='Deck[card_zone_turn]'] {
+      position: absolute;
+      left: calc(50% - 60px);
+      top: calc(50% - 90px);
+    }
+    [code='Deck[card_zone_river]'] {
+      position: absolute;
+      left: calc(50% + 60px + 10px);
+      top: calc(50% - 90px);
+    }
   }
 }
 
@@ -610,6 +495,16 @@ export default {
 
   .game-status-label {
     font-size: 1.5em;
+  }
+}
+
+.action-btn-block {
+  @include flex($wrap: wrap, $align: flex-end);
+  width: 100%;
+  height: 120px;
+
+  > .action-btn {
+    position: relative;
   }
 }
 </style>
