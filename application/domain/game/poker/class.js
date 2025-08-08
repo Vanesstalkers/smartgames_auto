@@ -3,6 +3,14 @@
     super(...arguments);
   }
 
+  broadcastDataBeforeHandler(data, config = {}) {
+    super.broadcastDataBeforeHandler(data, config);
+    if (data.rounds) {
+      data.roundData = data.rounds[data.round]; // ???
+      delete data.rounds;
+    }
+  }
+
   restart() {
     this.set({ status: 'IN_PROCESS', statusLabel: `Раунд ${this.round}`, restorationMode: null });
     this.run('initGameProcessEvents');

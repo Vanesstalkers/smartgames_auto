@@ -62,6 +62,9 @@
             <template #money="{ money } = {}">
               <div class="money">{{ new Intl.NumberFormat().format(money || 0) + '₽' }}</div>
             </template>
+            <template #timer="{ timer, showTimer } = {}">
+              <div v-if="showTimer" class="end-round-timer">{{ timer }}</div>
+            </template>
             <template #custom />
             <template v-if="showPlayerControls" #control="{ controlAction } = {}">
               <div class="action-btn-block">
@@ -71,7 +74,7 @@
                 <div class="action-btn end-round-btn" @click="controlAction({ action: 'call' })">
                   {{ 'Уравнять' }}
                 </div>
-                <div class="action-btn end-round-btn" @click="controlAction({ action: 'fold' })">
+                <div class="action-btn end-round-btn" @click="controlAction({ action: 'check' })">
                   {{ 'Пропустить' }}
                 </div>
                 <div class="action-btn end-round-btn" @click="controlAction({ action: 'reset' })">
@@ -89,6 +92,9 @@
           <card-worker :playerId="id" :viewerId="gameState.sessionViewerId" :iam="false">
             <template #money="{ money } = {}">
               <div class="money">{{ new Intl.NumberFormat().format(money || 0) + '₽' }}</div>
+            </template>
+            <template #timer="{ timer, showTimer } = {}">
+              <div v-if="showTimer" class="end-round-timer">{{ timer }}</div>
             </template>
             <template #custom />
           </card-worker>
@@ -505,6 +511,21 @@ export default {
 
   > .action-btn {
     position: relative;
+  }
+}
+
+#game[type='poker'] {
+  .iam {
+    .end-round-timer {
+      bottom: auto;
+      top: 28px;
+      margin: auto;
+      height: 30px;
+      line-height: 30px;
+      font-size: 30px;
+      width: 100%;
+      text-shadow: none;
+    }
   }
 }
 </style>

@@ -1,9 +1,5 @@
 (function () {
-  const {
-    rounds,
-    round: roundNumber,
-    decks,
-  } = this;
+  const { rounds, round: roundNumber, decks } = this;
   const round = rounds[roundNumber];
   const players = this.players();
   const result = { newRoundLogEvents: [], newRoundNumber: roundNumber };
@@ -24,11 +20,10 @@
       } = decks;
       const { zone_flop: flopZone, zone_turn: turnZone, zone_river: riverZone } = decks;
 
+      round.step = 'preflop';
+
       round.clientCard = clientDeck.getRandomItem();
       round.clientCard.moveToTarget(flopZone);
-
-      flopZone.setItemVisible(round.clientCard);
-
       round.featureCard = featureDeck.getRandomItem();
       round.featureCard.moveToTarget(turnZone);
       round.creditCard = creditDeck.getRandomItem();
@@ -49,6 +44,7 @@
         notifyUser: 'Сделай свою ставку',
         setData: { eventData: { controlBtn: { triggerEvent: true } } },
       });
+      round.currentPlayer.initEvent(domain.game.poker.events.makeBet());
 
       result.statusLabel = `Раунд ${result.newRoundNumber} (Префлоп)`;
       result.roundStep = 'BET';
@@ -57,14 +53,42 @@
     }
 
     case 'BET': {
-      const { currentPlayer, carCard } = round;
+      const { zone_flop: flopZone, zone_turn: turnZone, zone_river: riverZone } = decks;
+      const { currentPlayer, bets } = round;
       const nextPlayer = currentPlayer.nextPlayer();
       round.currentPlayer = nextPlayer;
+
+      result.roundStep = 'BET';
+
+      if (players.every((_) => bets[_.id()]?.ready)) {
+        switch (round.step) {
+          case 'preflop':
+            flopZone.setItemVisible(round.clientCard);
+            round.step = 'flop';
+            break;
+          case 'flop':
+            turnZone.setItemVisible(round.featureCard);
+            round.step = 'turn';
+            break;
+          case 'turn':
+            riverZone.setItemVisible(round.creditCard);
+            round.step = 'river';
+            break;
+          case 'river':
+            result.roundStep = 'ROUND_END';
+            break;
+        }
+
+        for (const player of players) bets[player.id()].ready = false;
+
+        return { ...result, forcedEndRound: true };
+      }
 
       nextPlayer.activate({
         notifyUser: 'Сделай свою ставку',
         setData: { eventData: { controlBtn: { triggerEvent: true } } },
       });
+      round.currentPlayer.initEvent(domain.game.poker.events.makeBet());
 
       result.statusLabel = `Раунд ${result.newRoundNumber} (ставка игрока ${nextPlayer.userName})`;
       result.roundStep = 'BET';
