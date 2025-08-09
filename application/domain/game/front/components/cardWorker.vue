@@ -175,6 +175,7 @@ export default {
     font-weight: bold;
     color: #f4e205;
     padding-top: 4px;
+    &.over { color: #ff3b3b; }
   }
 
   .card-event {

@@ -60,15 +60,57 @@
         <template #worker="{ playerId, viewerId, iam } = {}">
           <card-worker :playerId="playerId" :viewerId="viewerId" :iam="iam">
             <template #money="{ money } = {}">
-              <div class="money">{{ new Intl.NumberFormat().format(money || 0) + '₽' }}</div>
+              <div class="money" :class="{ over: overLimitHover }">
+                {{ new Intl.NumberFormat().format(Math.max(0, (money || 0) - (selectingBet ? displayTotalAmount : 0))) + '₽' }}
+              </div>
             </template>
             <template #timer="{ timer, showTimer } = {}">
               <div v-if="showTimer" class="end-round-timer">{{ timer }}</div>
             </template>
-            <template #custom />
+            <template #custom>
+              <div
+                class="chips-panel"
+                v-if="chipsList.length"
+                :class="[{ 'select-mode': selectingBet }]"
+                :style="{ top: `-${chipsPanelTopOffset}px` }"
+              >
+                <div v-for="chip in chipsList" :key="chip.code" class="chip-col" :style="{ width: chip.size + 'px' }">
+                  <div class="chip-stack" :style="{ height: chip.stackHeight + 'px', width: chip.size + 'px' }">
+                    <img
+                      v-for="n in chip.count"
+                      :key="n"
+                      class="chip-img abs"
+                      :src="chip.src"
+                      :alt="chip.label"
+                      :style="{
+                        width: chip.size + 'px',
+                        height: chip.size + 'px',
+                        bottom: (n - 1) * chip.overlapStep + 'px',
+                        zIndex: n,
+                        transform: n === chip.count ? 'none' : `rotate(${rotationAngle(chip.code, n)}deg)`,
+                      }"
+                      :class="[selectingBet && highlightChip(chip.code, n, chip.count) ? 'highlight' : '']"
+                      @mouseenter="selectingBet && setHover(chip.code, n)"
+                      @mousemove="selectingBet && setHover(chip.code, n)"
+                      @mouseleave="selectingBet && clearHover(chip.code)"
+                      @click="selectingBet && confirmRaise(chip.code)"
+                    />
+                  </div>
+                  <div class="chip-count">
+                    {{
+                      'x' +
+                      (selectingBet
+                        ? selectedByChip[chip.code] ??
+                          (hoverIndex(chip.code) ? chip.count - hoverIndex(chip.code) + 1 : chip.count)
+                        : chip.count)
+                    }}
+                  </div>
+                </div>
+              </div>
+            </template>
             <template v-if="showPlayerControls" #control="{ controlAction } = {}">
-              <div class="action-btn-block">
-                <div class="action-btn end-round-btn" @click="controlAction({ action: 'raise' })">
+              <div class="action-btn-block" v-if="!selectingBet">
+                <div class="action-btn end-round-btn" @click="startRaise(controlAction)">
                   {{ 'Повысить' }}
                 </div>
                 <div class="action-btn end-round-btn" @click="controlAction({ action: 'call' })">
@@ -79,6 +121,14 @@
                 </div>
                 <div class="action-btn end-round-btn" @click="controlAction({ action: 'reset' })">
                   {{ 'Сбросить' }}
+                </div>
+              </div>
+              <div class="action-btn-block select-mode-btns" v-else>
+                <div class="action-btn end-round-btn cancel-btn" @click="cancelRaise()">
+                  {{ 'Отменить' }}
+                </div>
+                <div class="action-btn end-round-btn bet-btn" @click="placeRaise()">
+                  {{ `Сделать ставку ${new Intl.NumberFormat().format(displayTotalAmount)}₽` }}
                 </div>
               </div>
             </template>
@@ -117,6 +167,12 @@ import card from '~/lib/game/front/components/card.vue';
 import player from '~/domain/game/front/components/player.vue';
 import cardWorker from '~/domain/game/front/components/cardWorker.vue';
 
+// локальные изображения фишек
+import chip5 from './assets/chip-5.png';
+import chip25 from './assets/chip-25.png';
+import chip50 from './assets/chip-50.png';
+import chip100 from './assets/chip-100.png';
+
 export default {
   components: {
     game,
@@ -127,6 +183,24 @@ export default {
     cardWorker,
   },
   props: {},
+  data() {
+    return {
+      // тестовые константы количества фишек по цветам
+      chipsCounts: { red: 30, green: 15, blue: 3, black: 2 },
+      // номиналы фишек
+      chipDenoms: { red: 5, green: 25, blue: 50, black: 100 },
+      // изображения фишек из локальной папки ./assets
+      chipImgs: { red: chip5, green: chip25, blue: chip50, black: chip100 },
+      chipSize: 24,
+      chipRotations: {},
+      chipOffsets: {},
+      selectingBet: false,
+      hoverByChip: {}, // { code: countHovered }
+      pendingControlAction: null,
+      // выбор по столбцам: { red: 0, green: 0, ... }
+      selectedByChip: {},
+    };
+  },
   setup() {
     const gameGlobals = prepareGameGlobals({
       defaultDeviceOffset: 50, // сдвиг gamePlane влево от центра
@@ -218,8 +292,164 @@ export default {
     deckList() {
       return Object.keys(this.game.deckMap).map((id) => this.store.deck?.[id]) || [];
     },
+    chipsList() {
+      const order = ['red', 'green', 'blue', 'black'];
+      return order.map((code) => ({
+        code,
+        label: this.chipDenoms[code] + '',
+        count: this.chipsCounts[code] || 0,
+        src: this.chipImgs[code],
+        size: this.chipSize,
+        overlapStep: Math.max(1, Math.round(this.chipSize * 0.1)),
+        stackHeight:
+          (this.chipsCounts[code] || 0) > 0
+            ? (this.chipsCounts[code] - 1) * Math.max(1, Math.round(this.chipSize * 0.5)) + this.chipSize
+            : 0,
+      }));
+    },
+    maxStackHeight() {
+      const list = this.chipsList;
+      if (!list.length) return 0;
+      return Math.max(...list.map((c) => c.stackHeight));
+    },
+    chipsPanelTopOffset() {
+      // высота самой высокой стопки + небольшой отступ
+      return this.maxStackHeight + 18;
+    },
+    selectedTotalAmount() {
+      const denomMap = { red: 5, green: 25, blue: 50, black: 100 };
+      return (
+        Object.entries(this.selectedByChip).reduce((sum, [code, count]) => {
+          return sum + (denomMap[code] || 0) * (count || 0);
+        }, 0) * 1000
+      ); // у вас деньги отображаются *1000
+    },
+    // отображаемая сумма учитывает текущее наведение, если есть
+    displayTotalAmount() {
+      let sumUnits = 0;
+      for (const chip of this.chipsList) {
+        const fixed = this.selectedByChip[chip.code];
+        const requestedHover = this.requestedHoverCount(chip.code, chip.count);
+        const count = this.selectingBet ? fixed ?? this.allowedCountFor(chip.code, requestedHover) : 0;
+        sumUnits += this.getDenom(chip.code) * (count || 0);
+      }
+      return sumUnits;
+    },
+    // деньги игрока (в базовых единицах, без *1000)
+    playerMoneyUnits() {
+      const playerId = this.gameState?.sessionPlayerId;
+      const player = this.store.player?.[playerId] || {};
+      return Number(player.money) || 0;
+    },
+    fixedSelectedAmountUnits() {
+      return Object.entries(this.selectedByChip).reduce(
+        (sum, [code, count]) => sum + this.getDenom(code) * (count || 0),
+        0
+      );
+    },
+    remainingMoneyUnits() {
+      const remain = (this.playerMoneyUnits / 20) - this.fixedSelectedAmountUnits;
+      return remain > 0 ? remain : 0;
+    },
+    overLimitHover() {
+      // true, если запроса hover + фикс превышают деньги игрока
+      let requestedUnits = this.fixedSelectedAmountUnits;
+      for (const chip of this.chipsList) {
+        if (this.selectedByChip[chip.code] != null) continue;
+        const req = this.requestedHoverCount(chip.code, chip.count);
+        const allowed = this.allowedCountFor(chip.code, req);
+        // если ограничили — значит пытаемся превысить
+        if (req > allowed) return true;
+        requestedUnits += this.getDenom(chip.code) * (allowed || 0);
+        if (requestedUnits > this.playerMoneyUnits) return true;
+      }
+      return false;
+    },
   },
   methods: {
+    getDenom(code) {
+      const map = { red: 5, green: 25, blue: 50, black: 100 };
+      return map[code] || 0;
+    },
+    requestedHoverCount(code, total) {
+      const topIndex = this.hoverIndex(code);
+      return topIndex ? total - topIndex + 1 : 0;
+    },
+    allowedCountFor(code, requestedCount) {
+      const denom = this.getDenom(code);
+      if (!denom) return 0;
+      const maxByCash = Math.floor(this.remainingMoneyUnits / denom);
+      return Math.max(0, Math.min(requestedCount || 0, maxByCash));
+    },
+    rotationAngle(code, n) {
+      // нижнюю фишку не вращаем
+      if (n === 1) return 0;
+      const key = `${code}-${n}`;
+      if (!(key in this.chipRotations)) {
+        const range = 180; // стабильный разброс: ±12° (можно поменять)
+        const deg = (Math.random() * range - range / 2).toFixed(1);
+        this.chipRotations[key] = +deg;
+      }
+      return this.chipRotations[key];
+    },
+    chipOffset() {
+      return 0;
+    },
+    // управление режимом Raise через выбор фишек
+    startRaise(controlAction) {
+      this.selectingBet = true;
+      this.pendingControlAction = controlAction;
+      // сброс возможного старого ховера
+      this.hoverByChip = {};
+    },
+    setHover(code, n) {
+      // n — индекс снизу; для выбора сверху считаем верхней = chip.count
+      this.$set ? this.$set(this.hoverByChip, code, n) : (this.hoverByChip = { ...this.hoverByChip, [code]: n });
+    },
+    clearHover(code) {
+      const { [code]: _, ...rest } = this.hoverByChip;
+      this.hoverByChip = rest;
+    },
+    hoverIndex(code) {
+      return this.hoverByChip[code] || 0;
+    },
+    confirmRaise(code) {
+      // фиксируем количество по столбцу при клике
+      const chip = this.chipsList.find((c) => c.code === code) || { count: 0 };
+      const requested = this.requestedHoverCount(code, chip.count);
+      const count = this.allowedCountFor(code, requested);
+      // если уже был фикс, включаем режим «перемещением»: будем использовать hover как текущий выбор
+      if (this.selectedByChip[code] != null) {
+        // снимаем фикс, теперь подсветка/сумма будет от ховера
+        const { [code]: _, ...rest } = this.selectedByChip;
+        this.selectedByChip = rest;
+      } else {
+        this.selectedByChip = { ...this.selectedByChip, [code]: count };
+      }
+    },
+    highlightChip(code, n, total) {
+      // подсветка должна сохраняться после клика — используем зафиксированный выбор, если он есть
+      const fixed = this.selectedByChip[code];
+      if (fixed != null) return n > total - fixed; // верхние fixed элементов
+      const requested = this.requestedHoverCount(code, total);
+      const hoveredCount = this.allowedCountFor(code, requested);
+      return n > total - hoveredCount;
+    },
+    cancelRaise() {
+      this.selectingBet = false;
+      this.hoverByChip = {};
+      this.selectedByChip = {};
+      this.pendingControlAction = null;
+    },
+    placeRaise() {
+      if (!this.pendingControlAction) return;
+      const amount = this.selectedTotalAmount / 1000; // привести к базовым единицам
+      this.pendingControlAction({ action: 'raise', amount, selected: { ...this.selectedByChip } });
+      this.selectingBet = false;
+      this.hoverByChip = {};
+      this.selectedByChip = {};
+      this.pendingControlAction = null;
+    },
     customMenu({ menuWrapper, menuButtonsMap } = {}) {
       if (!menuButtonsMap) return [];
 
@@ -525,6 +755,99 @@ export default {
       font-size: 30px;
       width: 100%;
       text-shadow: none;
+    }
+  }
+}
+
+/* В режиме выбора делаем 2 кнопки «склеенными» у низа карточки */
+.select-mode-btns {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: stretch;
+  gap: 0;
+  > .action-btn {
+    position: relative;
+    margin: 0;
+  }
+  .bet-btn {
+    order: 1;
+  }
+  .cancel-btn {
+    order: 2;
+    background: #666 !important;
+  }
+}
+
+/* нижняя кнопка с закруглением во всех случаях */
+.action-btn-block:not(.select-mode-btns) > .action-btn:last-child {
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+.select-mode-btns > .cancel-btn {
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+.chips-panel {
+  position: absolute;
+  top: -70px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px 8px;
+  z-index: 2;
+
+  .chip-col {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .chip-stack {
+    position: relative;
+    background: transparent;
+    border-radius: 0;
+    width: 100%;
+    filter: none;
+    pointer-events: none;
+  }
+
+  .chip-img.abs {
+    position: absolute;
+    left: 0;
+  }
+
+  .chip-count {
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-weight: 700;
+    font-size: 12px;
+    color: #f4e205; /* желтоватый, как на макете */
+    white-space: nowrap;
+    z-index: 3;
+  }
+
+  &.select-mode {
+    .chip-stack {
+      pointer-events: auto;
+    }
+    .chip-img.abs {
+      cursor: pointer;
+      pointer-events: auto;
+      transition:
+        filter 120ms ease,
+        transform 120ms ease;
+      filter: brightness(0.5) grayscale(0.3); // по умолчанию затемнены
+    }
+    .chip-img.abs.highlight {
+      filter: none; // подсветка выбранных
     }
   }
 }
