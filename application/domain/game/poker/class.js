@@ -6,7 +6,8 @@
   broadcastDataBeforeHandler(data, config = {}) {
     super.broadcastDataBeforeHandler(data, config);
     if (data.rounds) {
-      data.roundData = data.rounds[data.round]; // ???
+      data.roundData = data.rounds[this.round];
+      if (data.roundData._data) delete data.roundData._data;
       delete data.rounds;
     }
   }

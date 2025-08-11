@@ -61,7 +61,11 @@
           <card-worker :playerId="playerId" :viewerId="viewerId" :iam="iam">
             <template #money="{ money } = {}">
               <div class="money" :class="{ over: overLimitHover }">
-                {{ new Intl.NumberFormat().format(Math.max(0, (money || 0) - (selectingBet ? displayTotalAmount : 0))) + '₽' }}
+                {{
+                  new Intl.NumberFormat().format(Math.max(0, (money || 0) - (selectingBet ? displayTotalAmount : 0))) +
+                  '₽'
+                }}
+                {{ roundData.maxBet }}
               </div>
             </template>
             <template #timer="{ timer, showTimer } = {}">
@@ -185,8 +189,6 @@ export default {
   props: {},
   data() {
     return {
-      // тестовые константы количества фишек по цветам
-      chipsCounts: { red: 30, green: 15, blue: 3, black: 2 },
       // номиналы фишек
       chipDenoms: { red: 5, green: 25, blue: 50, black: 100 },
       // изображения фишек из локальной папки ./assets
@@ -238,6 +240,11 @@ export default {
     },
     userData() {
       return this.sessionUserData();
+    },
+    roundData() {
+      const roundData = this.game.roundData;
+      roundData.maxBet = Object.values(roundData.bets || {}).reduce((max, bet) => Math.max(max, bet.amount || 0), 0);
+      return roundData;
     },
     playerIds() {
       const ids = Object.keys(this.game.playerMap || {}).sort((id1, id2) => (id1 > id2 ? 1 : -1));
@@ -291,6 +298,48 @@ export default {
     },
     deckList() {
       return Object.keys(this.game.deckMap).map((id) => this.store.deck?.[id]) || [];
+    },
+    // Вычисляем количество фишек на основе денег игрока
+    chipsCounts() {
+      const playerMoney = this.playerMoneyUnits;
+      const denoms = this.chipDenoms;
+      const chips = { red: 0, green: 0, blue: 0, black: 0 };
+      
+      if (playerMoney <= 0) {
+        // Даже если денег нет, даем минимальное количество красных фишек
+        chips.red = 5;
+        return chips;
+      }
+      
+      // АЛГОРИТМ 4: "Адаптивное распределение"
+      // Количество фишек зависит от размера банка
+      const bankSize = playerMoney;
+      let remainingMoney = playerMoney;
+      
+      if (bankSize < 100) {
+        // Маленький банк - только красные и зеленые
+        chips.red = Math.min(Math.floor(remainingMoney / denoms.red), 15);
+        remainingMoney -= chips.red * denoms.red;
+        chips.green = Math.min(Math.floor(remainingMoney / denoms.green), 8);
+      } else if (bankSize < 500) {
+        // Средний банк - добавляем синие
+        chips.red = Math.min(Math.floor(remainingMoney * 0.4 / denoms.red), 12);
+        remainingMoney -= chips.red * denoms.red;
+        chips.green = Math.min(Math.floor(remainingMoney * 0.4 / denoms.green), 8);
+        remainingMoney -= chips.green * denoms.green;
+        chips.blue = Math.min(Math.floor(remainingMoney / denoms.blue), 6);
+      } else {
+        // Большой банк - все номиналы
+        chips.red = Math.min(Math.floor(remainingMoney * 0.25 / denoms.red), 10);
+        remainingMoney -= chips.red * denoms.red;
+        chips.green = Math.min(Math.floor(remainingMoney * 0.25 / denoms.green), 8);
+        remainingMoney -= chips.green * denoms.green;
+        chips.blue = Math.min(Math.floor(remainingMoney * 0.25 / denoms.blue), 6);
+        remainingMoney -= chips.blue * denoms.blue;
+        chips.black = Math.min(Math.floor(remainingMoney / denoms.black), 4);
+      }
+      
+      return chips;
     },
     chipsList() {
       const order = ['red', 'green', 'blue', 'black'];
@@ -348,7 +397,7 @@ export default {
       );
     },
     remainingMoneyUnits() {
-      const remain = (this.playerMoneyUnits / 20) - this.fixedSelectedAmountUnits;
+      const remain = this.playerMoneyUnits / 20 - this.fixedSelectedAmountUnits;
       return remain > 0 ? remain : 0;
     },
     overLimitHover() {
