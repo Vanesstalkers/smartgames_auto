@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "allowJs": true,
+    "checkJs": true,
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strictFunctionTypes": false,
+    "noImplicitReturns": false,
+    "noFallthroughCasesInSwitch": false,
+    "noUncheckedIndexedAccess": false,
+    "noImplicitOverride": false,
+    "noPropertyAccessFromIndexSignature": false,
+    "exactOptionalPropertyTypes": false,
+    "baseUrl": ".",
+    "paths": {
+      "*": ["*", "application/*", "types/*"],
+      "~/*": ["*"],
+      "@/*": ["*"],
+      "@game/*": ["application/lib/game/*"],
+      "@store/*": ["application/lib/store/*"],
+      "@game/class.js": ["application/lib/game/class.js"],
+      "@store/class.js": ["application/lib/store/class.js"]
+    },
+    "typeRoots": ["./types", "./node_modules/@types"]
+  },
+  "include": [
+    "application/**/*",
+    "types/**/*",
+    "application/lib/game/types.d.ts",
+    "server.js"
+  ],
+  "exclude": [
+    "node_modules",
+    "front",
+    "landing"
+  ]
+}

@@ -9,6 +9,10 @@ import * as _metasql from 'metasql';
 import { Database } from 'metasql';
 
 import { Database as MongoDB } from '../application/db/mongo/types';
+import { GameModule } from '../application/lib/game/types';
+import { DomainGameModule } from '../application/domain/game/types';
+import { StoreClassFactory } from '../application/lib/store/types';
+import { UserModule } from '../application/lib/user/types';
 
 declare global {
   namespace metarhia {
@@ -17,9 +21,23 @@ declare global {
 
   namespace api { }
 
-  namespace lib { }
+  namespace lib {
+    const game: GameModule;
+    const store: {
+      class: StoreClassFactory;
+      broadcaster: {
+        addChannel: (options: { name: string; instance: any }) => void;
+        publishAction: (channelName: string, actionName: string, actionData: any) => void;
+        publishData: (channelName: string, data: any) => void;
+        removeChannel: (options: { name: string }) => void;
+      };
+    };
+    const user: UserModule;
+  };
 
-  namespace domain { }
+  namespace domain {
+    const game: DomainGameModule;
+  }
 
   namespace db {
     const pg: Database;
