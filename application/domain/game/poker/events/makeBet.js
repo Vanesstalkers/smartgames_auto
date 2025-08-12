@@ -12,16 +12,23 @@
 
       this.destroy();
     },
-    TRIGGER({ action }) {
+    TRIGGER({ action, amount }) {
       const { game, player } = this.eventContext();
       const round = game.rounds[game.round];
+      const playerBet = round.bets[player.id()];
 
       switch (action) {
         case 'raise':
+          playerBet.amount = amount;
+          player.set({ money: player.money - amount });
+          break;
         case 'call':
+          playerBet.amount = amount;
+          player.set({ money: player.money - amount });
         case 'check':
         case 'reset':
-          round.bets[player.id()].ready = true;
+          playerBet.ready = true;
+          break;
       }
 
       this.emit('RESET');
