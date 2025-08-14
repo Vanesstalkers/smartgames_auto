@@ -46,7 +46,8 @@
     const deck = this.addDeck(item, { deckItemClass });
 
     if (newGame) {
-      const cardsList = configs.cards().list;
+      const cardsToRemove = this.settings.cardsToRemove || [];
+      const cardsList = configs.cards().list.filter((card) => !cardsToRemove.includes(card.name));
       const items = lib.utils.structuredClone(cardsList.filter(({ group }) => group === deck.subtype));
       for (const item of items) deck.addItem(item);
     }

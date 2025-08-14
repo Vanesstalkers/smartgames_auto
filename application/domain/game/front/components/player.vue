@@ -350,7 +350,8 @@ export default {
   }
 
   & > .card-event {
-    margin-left: -80px;
+    // margin-left: -80px;
+    margin-left: -40px;
   }
 }
 

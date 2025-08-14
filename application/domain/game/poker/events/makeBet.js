@@ -12,16 +12,36 @@
 
       this.destroy();
     },
-    TRIGGER({ action }) {
+    TRIGGER({ action, amount }) {
       const { game, player } = this.eventContext();
       const round = game.rounds[game.round];
+      const playerBet = round.bets[player.id()];
 
       switch (action) {
         case 'raise':
+          playerBet.amount = amount;
+          player.set({ money: player.money - amount });
+          break;
         case 'call':
+          // !!!! не работает + нужно блокировать кнопку на фронте
+          playerBet.amount = amount;
+          player.set({ money: player.money - amount });
+          playerBet.ready = true;
+          break;
         case 'check':
+          playerBet.ready = true;
+          break;
         case 'reset':
-          round.bets[player.id()].ready = true;
+          playerBet.ready = true;
+          playerBet.reset = true;
+
+          const remainingPlayersInRound = game.players().filter((player) => {
+            const { reset } = round.bets[player.id()] || {};
+            return !reset;
+          });
+          if (remainingPlayersInRound.length === 1) round.roundStepWinner = remainingPlayersInRound[0];
+
+          break;
       }
 
       this.emit('RESET');

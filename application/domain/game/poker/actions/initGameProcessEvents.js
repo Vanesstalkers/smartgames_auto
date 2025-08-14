@@ -12,7 +12,7 @@
         const players = game.players();
 
         for (const player of players) {
-          player.set({ money: 10000 });
+          player.set({ money: 1000 });
         }
       },
     },
