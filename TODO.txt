@@ -8,6 +8,7 @@ this.data.readyPlayers.length < 2 // !!!! тут конфиг игры
 ****************************************
 ****************************************
 
+!!!! убрать в меню для аукциона "один игрок"
 !!! Not playerAccessAllowed for user "Player[1]" to handler "ROUND_END" in "dropCard" event. 
 
 - tutorial-ы

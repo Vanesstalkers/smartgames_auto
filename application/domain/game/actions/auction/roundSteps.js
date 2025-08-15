@@ -134,46 +134,6 @@
     return fullPrice;
   };
 
-  // !!! попробовать переписать более универсально для всех трех auto-игр
-  const selectBestOffer = (offersMap) => {
-    const { clientCard, clientMoney, featureCard } = round;
-    const offers = [];
-
-    const { stars, priceGroup } = clientCard;
-
-    for (const { player, carCard, serviceCards } of Object.values(offersMap)) {
-      let offer;
-      try {
-        offer = this.calcOffer({ player, carCard, serviceCards, featureCard });
-        offer.carCard = carCard;
-        offer.serviceCards = serviceCards;
-      } catch (err) {
-        if (err === 'no_car') continue;
-        else throw err;
-      }
-
-      if (
-        offer.fullPrice <= clientMoney &&
-        offer.stars >= stars &&
-        (priceGroup === '*' || offer.priceGroup.find((group) => priceGroup.includes(group)))
-      ) {
-        offers.push(offer);
-      }
-    }
-
-    const bestOffer = { price: clientMoney, stars: 0 };
-    for (const { player, ...offer } of offers) {
-      if (bestOffer.stars < offer.stars || (bestOffer.stars == offer.stars && bestOffer.price > offer.fullPrice)) {
-        bestOffer.carCard = offer.carCard;
-        bestOffer.serviceCards = offer.serviceCards;
-        bestOffer.price = offer.fullPrice;
-        bestOffer.player = player;
-        bestOffer.stars = offer.stars;
-      }
-    }
-    return bestOffer;
-  };
-
   const setDeckCardsVisible = (deck, { setData }) => {
     for (const card of deck.select('Card')) {
       card.set(setData);
@@ -467,7 +427,9 @@
       }
 
       round.clientMoney = this.calcClientMoney();
-      const { player, carCard, serviceCards } = selectBestOffer(offers);
+      const {
+        bestOffer: { player, carCard, serviceCards },
+      } = this.selectBestOffer(offers);
 
       if (!player) {
         result.statusLabel = this.stepLabel('Оценка предложений');
@@ -533,8 +495,7 @@
       player.decks.service.set({ eventData: { playDisabled: null } });
 
       player.activate({
-        notifyUser:
-          'Ты можешь сделать дополнительные продажи. При превышении бюджета клиента сделка будет отменена.',
+        notifyUser: 'Ты можешь сделать дополнительные продажи. При превышении бюджета клиента сделка будет отменена.',
         setData: { eventData: { controlBtn: { label: 'Завершить сделку' } } },
       });
 

@@ -132,6 +132,12 @@
 
     { group: 'service', name: 'gearbox', title: 'Коробка автомат', price: '+20%', stars: 1, equip: ['gearbox'] },
     { group: 'service', name: 'gearbox', title: 'Коробка автомат', price: '+20%', stars: 1, equip: ['gearbox'] },
+    { group: 'service', name: 'gearbox', title: 'Коробка автомат', price: '+20%', stars: 1, equip: ['gearbox'] },
+    { group: 'service', name: 'gearbox', title: 'Коробка автомат', price: '+20%', stars: 1, equip: ['gearbox'] },
+    { group: 'service', name: 'gearbox', title: 'Коробка автомат', price: '+20%', stars: 1, equip: ['gearbox'] },
+    { group: 'service', name: 'gearbox', title: 'Коробка автомат', price: '+20%', stars: 1, equip: ['gearbox'] },
+    { group: 'service', name: 'gearbox', title: 'Коробка автомат', price: '+20%', stars: 1, equip: ['gearbox'] },
+    { group: 'service', name: 'gearbox', title: 'Коробка автомат', price: '+20%', stars: 1, equip: ['gearbox'] },
     { group: 'service', name: 'ins20', title: 'Страховка авто', price: '+20%' },
     { group: 'service', name: 'ins20', title: 'Страховка авто', price: '+20%' },
     { group: 'service', name: 'ins30', title: 'Страховка жизни', price: '+30%' },
@@ -155,6 +161,38 @@
       ...{ price: '+400', stars: 1, equip: ['massage'] },
     },
     {
+      ...{ group: 'service', name: 'massage', title: 'Сиденья с функцией массажа' },
+      ...{ price: '+400', stars: 1, equip: ['massage'] },
+    },
+    {
+      ...{ group: 'service', name: 'massage', title: 'Сиденья с функцией массажа' },
+      ...{ price: '+400', stars: 1, equip: ['massage'] },
+    },
+    {
+      ...{ group: 'service', name: 'massage', title: 'Сиденья с функцией массажа' },
+      ...{ price: '+400', stars: 1, equip: ['massage'] },
+    },
+    {
+      ...{ group: 'service', name: 'massage', title: 'Сиденья с функцией массажа' },
+      ...{ price: '+400', stars: 1, equip: ['massage'] },
+    },
+    {
+      ...{ group: 'service', name: 'massage', title: 'Сиденья с функцией массажа' },
+      ...{ price: '+400', stars: 1, equip: ['massage'] },
+    },
+    {
+      ...{ group: 'service', name: 'massage', title: 'Сиденья с функцией массажа' },
+      ...{ price: '+400', stars: 1, equip: ['massage'] },
+    },
+    {
+      ...{ group: 'service', name: 'massage', title: 'Сиденья с функцией массажа' },
+      ...{ price: '+400', stars: 1, equip: ['massage'] },
+    },
+    {
+      ...{ group: 'service', name: 'massage', title: 'Сиденья с функцией массажа' },
+      ...{ price: '+400', stars: 1, equip: ['massage'] },
+    },
+    {
       ...{ group: 'service', name: 'climat', title: 'Климат-контроль' },
       ...{ price: '+20%', priceGroup: ['family'], equip: ['climat'] },
     },
@@ -162,6 +200,12 @@
       ...{ group: 'service', name: 'climat', title: 'Климат-контроль' },
       ...{ price: '+20%', priceGroup: ['family'], equip: ['climat'] },
     },
+    { group: 'service', name: 'leather', title: 'Кожаный салон', price: '+10%', stars: 1, equip: ['leather'] },
+    { group: 'service', name: 'leather', title: 'Кожаный салон', price: '+10%', stars: 1, equip: ['leather'] },
+    { group: 'service', name: 'leather', title: 'Кожаный салон', price: '+10%', stars: 1, equip: ['leather'] },
+    { group: 'service', name: 'leather', title: 'Кожаный салон', price: '+10%', stars: 1, equip: ['leather'] },
+    { group: 'service', name: 'leather', title: 'Кожаный салон', price: '+10%', stars: 1, equip: ['leather'] },
+    { group: 'service', name: 'leather', title: 'Кожаный салон', price: '+10%', stars: 1, equip: ['leather'] },
     { group: 'service', name: 'leather', title: 'Кожаный салон', price: '+10%', stars: 1, equip: ['leather'] },
     { group: 'service', name: 'leather', title: 'Кожаный салон', price: '+10%', stars: 1, equip: ['leather'] },
     // ! карточки местами не менять - их позиция влияет на алгоритм распределения в fillStartHandWithServices

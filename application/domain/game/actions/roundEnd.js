@@ -1,6 +1,5 @@
 (function ({ timerOverdue = false } = {}, initPlayer) {
   this.updateTimerOverdueCounter(timerOverdue);
-
   
   if (initPlayer) initPlayer.deactivate();
 

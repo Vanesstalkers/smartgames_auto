@@ -102,6 +102,13 @@ export default {
       return this.sessionPlayerIsActive() && this.player.eventData.selectable;
     },
     showControlBtn() {
+      console.info('showControlBtn() {', {
+        iam: this.iam,
+        sessionPlayerIsActive: this.sessionPlayerIsActive(),
+        label: this.controlBtn?.label,
+        triggerEvent: this.controlBtn?.triggerEvent,
+        leaveGame: this.controlBtn?.leaveGame,
+      });
       return (
         this.iam &&
         this.sessionPlayerIsActive() &&
@@ -124,7 +131,7 @@ export default {
   methods: {
     async controlAction(eventData = {}) {
       prettyAlertClear?.();
-
+      console.info('async controlAction(eventData = {}) {', eventData, this.showControlBtn);
       if (this.selectable) return; // выбор игрока в контексте события карты
 
       if (this.showLeaveBtn) return await this.leaveGame();
@@ -175,7 +182,9 @@ export default {
     font-weight: bold;
     color: #f4e205;
     padding-top: 4px;
-    &.over { color: #ff3b3b; }
+    &.over {
+      color: #ff3b3b;
+    }
   }
 
   .card-event {
