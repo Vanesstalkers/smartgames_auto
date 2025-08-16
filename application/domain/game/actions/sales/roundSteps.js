@@ -15,53 +15,6 @@
   const players = this.players();
   const result = { newRoundLogEvents: [], newRoundNumber: roundNumber };
 
-  const calcOfferForPlayer = (player) => {
-    const { featureCard } = round;
-    const [carCard] = player.decks.car_played.select('Card');
-    const serviceCards = player.decks.service_played.select('Card');
-
-    return this.calcOffer({ player, carCard, serviceCards, featureCard });
-  };
-
-  // !!! попробовать переписать более универсально для всех трех auto-игр
-  const selectBestOffer = () => {
-    const { clientCard, clientMoney } = round;
-    const offers = [];
-    let offersCount = 0;
-
-    const { stars, priceGroup } = clientCard;
-
-    for (const player of players) {
-      let offer;
-      try {
-        offer = calcOfferForPlayer(player);
-        offersCount++;
-      } catch (err) {
-        if (err === 'no_car') continue;
-        else throw err;
-      }
-
-      if (
-        offer.fullPrice < clientMoney &&
-        offer.stars >= stars &&
-        (priceGroup === '*' || offer.priceGroup.find((group) => priceGroup.includes(group)))
-      ) {
-        offers.push(offer);
-      }
-    }
-
-    const bestOffer = { price: clientMoney, stars: 0 };
-    for (const { player, ...offer } of offers) {
-      if (bestOffer.stars < offer.stars || (bestOffer.stars == offer.stars && bestOffer.price > offer.fullPrice)) {
-        bestOffer.carTitle = offer.carTitle;
-        bestOffer.price = offer.fullPrice;
-        bestOffer.player = player;
-        bestOffer.stars = offer.stars;
-      }
-    }
-    return { bestOffer, offersCount };
-  };
-
   const addNewRoundCardsToPlayers = () => {
     const dropCardsPlayers = [];
     for (const player of players) {
@@ -142,6 +95,9 @@
         if (card) player.aiActions.push({ action: 'playCard', data: { cardId: card.id() } });
       }
 
+      const notAIPlayers = this.getActivePlayers().filter((p) => !p.ai);
+      if (notAIPlayers.length === 0) result.forcedEndRound = true;
+
       return result;
     }
 
@@ -169,10 +125,20 @@
     case 'FIRST_OFFER': {
       this.showTableCards();
 
-      const {
-        bestOffer: { player, carTitle },
-        offersCount,
-      } = selectBestOffer();
+      const offersMap = {};
+      for (const player of players) {
+        const carCard = player.decks.car_played.getFirstItem();
+        if (!carCard) continue;
+
+        offersMap[carCard.id()] = {
+          player,
+          carCard,
+          serviceCards: player.decks.service_played.items(),
+        };
+      }
+
+      const { bestOffer, offersCount } = this.selectBestOffer(offersMap);
+      const { player, carCard } = bestOffer;
 
       if (!player) {
         if (offersCount > 0) {
@@ -186,7 +152,7 @@
       }
 
       round.roundStepWinner = player;
-      result.newRoundLogEvents.push(`Клиента заинтересовал автомобиль "${carTitle}".`);
+      result.newRoundLogEvents.push(`Клиента заинтересовал автомобиль "${carCard.title}".`);
 
       // у всех карт, выложенных на стол, убираем возможность возврата карты в руку делать через блокировку deck нельзя, потому что позже в нее будут добавляться дополнительные карты
       for (const deck of player.select({ className: 'Deck', attr: { placement: 'table' } })) {
@@ -224,10 +190,15 @@
     }
 
     case 'SECOND_OFFER': {
-      const { roundStepWinner: player } = round;
+      const { featureCard, roundStepWinner: player } = round;
 
-      // рассчитываем предложение клиенту заново (с учетом добавленных сервисов)
-      const { fullPrice, carTitle } = calcOfferForPlayer(player);
+      const { fullPrice, carTitle } = this.calcOffer({
+        player,
+        carCard: player.decks.car_played.getFirstItem(),
+        serviceCards: player.decks.service_played.items(),
+        featureCard,
+      });
+
       if (fullPrice <= round.clientMoney) {
         result.newRoundLogEvents.push(
           `Клиент приобрел автомобиль "${carTitle}" и сервисы за ${new Intl.NumberFormat().format(
@@ -290,17 +261,23 @@
 
         const { dropCardsPlayers } = addNewRoundCardsToPlayers();
         if (dropCardsPlayers.length) {
+          let onlyAIPlayers = true;
+
           for (const player of dropCardsPlayers) {
             player.initEvent('dropCard', { player });
+
             if (player.ai) continue;
-            
+            onlyAIPlayers = false;
+
             player.activate({
               notifyUser: `Выбери карты, которые хочешь сбросить. В руке должно остаться не больше ${carLimitInHand} карт авто.`,
               setData: { eventData: { playDisabled: null, controlBtn: { label: 'Сбросить' } } },
             });
           }
 
-          return { ...result, timerRestart: timer.CARD_DROP };
+          result.forcedEndRound = onlyAIPlayers ? true : false;
+          result.timerRestart = onlyAIPlayers ? null : timer.CARD_DROP;
+          return result;
         }
       }
 

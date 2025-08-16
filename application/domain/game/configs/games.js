@@ -24,7 +24,7 @@
           CARD_DROP: Math.max(5, Math.ceil(baseTimer / 5)),
         };
       },
-      winMoneySum: 15000,
+      winMoneySum: 20000,
       cardsToRemove: [],
       playerHand: {
         car: {
@@ -177,18 +177,19 @@
           deckList: [
             { type: 'card', subtype: 'car' },
             { type: 'card', subtype: 'service' },
+            { type: 'card', subtype: 'hand' },
+            { type: 'card', subtype: 'show_hand', placement: 'table', access: 'all' },
           ],
         },
       },
 
       playerList: [],
       deckList: [
-        { type: 'card', subtype: 'car', placement: 'main' },
-        { type: 'card', subtype: 'service', placement: 'main' },
-        { type: 'card', subtype: 'client', placement: 'main' },
-        { type: 'card', subtype: 'credit', placement: 'main' },
-        { type: 'card', subtype: 'feature', placement: 'main' },
-        { type: 'card', subtype: 'drop', placement: 'drop' },
+        { type: 'card', subtype: 'car', placement: 'main', hasDrop: true },
+        { type: 'card', subtype: 'service', placement: 'main', hasDrop: true },
+        { type: 'card', subtype: 'client', placement: 'main', hasDrop: true },
+        { type: 'card', subtype: 'credit', placement: 'main', hasDrop: true },
+        { type: 'card', subtype: 'feature', placement: 'main', hasDrop: true },
         { type: 'card', subtype: 'zone_flop', placement: 'table' },
         { type: 'card', subtype: 'zone_turn', placement: 'table' },
         { type: 'card', subtype: 'zone_river', placement: 'table' },

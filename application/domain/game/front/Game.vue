@@ -155,6 +155,8 @@ export default {
 };
 </script>
 <style lang="scss">
+@import './css/game.css';
+
 .card-event.played {
   filter: none !important;
 }
@@ -170,49 +172,5 @@ export default {
 
 #game.mobile-view .game-status-label {
   font-size: 1.5em;
-}
-
-#gameInfo {
-  .deck {
-    position: absolute;
-    top: 35px;
-    cursor: default;
-
-    .card-event {
-      width: 60px;
-      height: 90px;
-      border: none;
-      font-size: 36px;
-      display: flex;
-      justify-content: center;
-      align-content: center;
-      color: #ff5900;
-      text-shadow: 1px 1px 0 #fff;
-    }
-
-    &[code='Deck[card_client]'] {
-      right: 70px;
-
-      .card-event {
-        background-image: url(./assets/client-back-side.png);
-      }
-    }
-
-    &[code='Deck[card_car]'] {
-      right: 0px;
-
-      .card-event {
-        background-image: url(./assets/car-back-side.png);
-      }
-    }
-
-    &[code='Deck[card_drop_service]'] {
-      right: 140px;
-
-      .card-event {
-        background-image: url(./assets/service-back-side.png);
-      }
-    }
-  }
 }
 </style>

@@ -6,47 +6,10 @@
   broadcastDataBeforeHandler(data, config = {}) {
     super.broadcastDataBeforeHandler(data, config);
     if (data.rounds) {
-      data.roundData = data.rounds[data.round]; // ???
+      data.roundData = data.rounds[this.round];
+      if (data.roundData._data) delete data.roundData._data;
       delete data.rounds;
     }
-  }
-
-  restart() {
-    this.set({ status: 'IN_PROCESS', statusLabel: `Раунд ${this.round}`, restorationMode: null });
-    this.run('initGameProcessEvents');
-
-    if (this.gameConfig === 'competition') {
-      for (const game of this.getAllGames()) {
-        game.set({ status: 'IN_PROCESS', statusLabel: `Раунд ${game.round}`, roundReady: true });
-        game.run('initGameProcessEvents'); // из "лишних" событий ADD_PLANE отключится при первом же вызове
-      }
-
-      const games = this.roundPool.current({ fixState: true }); // в конце раунда будет вызов с loadFixedState
-      for (const game of games) {
-        lib.timers.timerRestart(game, game.lastRoundTimerConfig);
-        game.playRoundStartCards({ enabled: true });
-        game.set({ roundReady: false });
-      }
-
-      return;
-    }
-
-    const allGamesMerged = this.allGamesMerged();
-    const roundActiveGame = allGamesMerged ? this.roundActiveGame() : null;
-
-    const games = this.getAllGames();
-    for (const game of games) {
-      game.set({ status: 'IN_PROCESS', statusLabel: `Раунд ${game.round}` });
-      game.run('initGameProcessEvents'); // из "лишних" событий ADD_PLANE отключится при первом же вызове
-
-      if (roundActiveGame && game !== roundActiveGame && !game.disabled) continue;
-
-      lib.timers.timerRestart(game, game.lastRoundTimerConfig);
-
-      if (!allGamesMerged) game.playRoundStartCards({ enabled: true });
-    }
-
-    if (allGamesMerged) this.playRoundStartCards(); // у superGame нет кастомного метода playRoundStartCards, так что можно не укаызвать { enabled: true }
   }
 
   getFreePlayerSlot() {
