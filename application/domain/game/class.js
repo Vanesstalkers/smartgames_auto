@@ -26,7 +26,7 @@
   removeTableCards() {
     const tableDecks = this.select({ className: 'Deck', attr: { placement: 'table' } });
     for (const deck of tableDecks) {
-      deck.moveAllItems({ target: this.decks.drop, setData: { visible: false } });
+      deck.moveAllItems({ toDrop: true, setData: { visible: false } });
     }
   }
   calcClientMoney() {

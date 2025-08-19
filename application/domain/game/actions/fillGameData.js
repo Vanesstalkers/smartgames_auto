@@ -12,6 +12,8 @@
   this.gameConfig = data.gameConfig;
   this.gameTimer = data.gameTimer;
   this.difficulty = data.difficulty;
+  this.maxPlayersInGame = data.maxPlayersInGame;
+  this.minPlayersToStart = data.minPlayersToStart;
   this.addTime = data.addTime;
   this.settings = data.settings;
   this.status = data.status;
@@ -46,9 +48,16 @@
     const deck = this.addDeck(item, { deckItemClass });
 
     if (newGame) {
-      const cardsList = configs.cards().list;
+      const cardsToRemove = this.settings.cardsToRemove || [];
+      const cardsList = configs.cards().list.filter((card) => !cardsToRemove.includes(card.name));
       const items = lib.utils.structuredClone(cardsList.filter(({ group }) => group === deck.subtype));
-      for (const item of items) deck.addItem(item);
+      for (const item of items) deck.addItem({ ...item, subtype: deck.subtype });
+
+      if (item.hasDrop) {
+        const dropDeckData = { ...item, subtype: item.subtype + '_drop', placement: 'drop', parentDeckId: deck.id() };
+        const dropDeck = this.addDeck(dropDeckData, { deckItemClass });
+        deck.set({ dropDeckId: dropDeck.id() });
+      }
     }
   }
 

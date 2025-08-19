@@ -175,7 +175,9 @@ export default {
     font-weight: bold;
     color: #f4e205;
     padding-top: 4px;
-    &.over { color: #ff3b3b; }
+    &.over {
+      color: #ff3b3b;
+    }
   }
 
   .card-event {
@@ -189,16 +191,6 @@ export default {
     display: flex;
     justify-content: center;
     align-content: center;
-
-    &.car-deck {
-      left: 0px;
-      background-image: url(../assets/car-back-side.png);
-    }
-
-    &.service-deck {
-      right: 0px;
-      background-image: url(../assets/service-back-side.png);
-    }
   }
 }
 
@@ -226,8 +218,6 @@ export default {
   background: #008000de;
   color: white;
   font-size: 16px;
-  // border-bottom-left-radius: 8px;
-  // border-bottom-right-radius: 8px;
 
   &:hover {
     background: #008000;

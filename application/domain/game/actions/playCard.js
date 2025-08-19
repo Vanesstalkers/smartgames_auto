@@ -12,21 +12,7 @@
     return;
   }
 
-  if (card.group === 'car') {
-    card.moveToTarget(player.decks.car_played);
-  }
-  if (card.group === 'service') {
-    card.moveToTarget(player.decks.service_played);
-
-    if (
-      this.roundStep === 'SECOND_OFFER' ||
-      // !!!! переделать в логику с разными файлами для разных игр
-      this.roundStep === 'AUCTION_BET'
-    ) {
-      // все карты на столе уже visible = true
-      card.set({ visible: true });
-    }
-  }
+  card.moveToTarget(player.decks.played);
 
   card.set({
     eventData: {
