@@ -4,6 +4,13 @@
 
   if (remainPlayersOverall <= 0) return this.run('endGame');
 
+  const round = this.rounds[this.round];
+  const playerBet = round.bets[player.id()];
+  if (playerBet) {
+    playerBet.ready = true;
+    playerBet.out = true;
+  }
+
   if (player === this.roundActivePlayer()) this.run('roundEnd');
 
   player.markDelete();
