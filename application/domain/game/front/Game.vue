@@ -131,7 +131,15 @@ export default {
       return Math.floor(baseSum * timerMod * configMod);
     },
     deckList() {
-      return Object.keys(this.game.deckMap).map((id) => this.store.deck?.[id]) || [];
+      const decks = Object.keys(this.game.deckMap).map((id) => this.store.deck?.[id]) || [];
+      return decks.filter(({ code }) =>
+        [
+          'Deck[card_client]',
+          'Deck[card_car]',
+          this.game.gameType === 'auction' ? 'Deck[card_service]' : '',
+          this.game.gameType === 'auction' ? 'Deck[card_service_drop]' : '',
+        ].includes(code)
+      );
     },
   },
   methods: {

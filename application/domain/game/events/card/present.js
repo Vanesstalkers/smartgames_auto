@@ -75,7 +75,7 @@
 
       this.presentNotGiven = false;
       card.set({ eventData: { activeEvents: [], cardClass: null, buttonText: null } });
-      card.moveToTarget(game.decks.drop);
+      card.moveToTarget(game.decks.service_drop);
 
       this.emit('RESET');
 

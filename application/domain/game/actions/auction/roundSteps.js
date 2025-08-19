@@ -51,14 +51,8 @@
 
   const processAuctionResultsForWinner = (winner) => {
     const { carCard } = round;
-
     carCard.moveToTarget(winner.decks.car);
-
-    winner.decks.service_played.moveAllItems({
-      target: decks.drop_service,
-      emitEvent: 'RESET',
-      setData: { visible: false },
-    });
+    winner.decks.played.moveAllItems({ toDrop: true, emitEvent: 'RESET', setData: { visible: false } });
   };
 
   const initDealOffersStep = (player) => {
@@ -120,11 +114,9 @@
   const calcAuction = (player) => {
     const { carCard } = round;
     const priceMods = [];
-    const [serviceDeck] = player.select({ className: 'Deck', attr: { subtype: 'service_played' } });
 
-    for (const card of serviceDeck.select('Card')) {
-      priceMods.push(card.price);
-    }
+    const serviceCards = player.decks.played.items().filter((c) => c.subtype === 'service');
+    for (const card of serviceCards) priceMods.push(card.price);
 
     const fullPrice = priceMods.reduce((price, mod) => {
       if (mod.at(-1) === '%') return price + carCard.price * (parseInt(mod) / 100);
@@ -132,46 +124,6 @@
     }, 0);
 
     return fullPrice;
-  };
-
-  // !!! попробовать переписать более универсально для всех трех auto-игр
-  const selectBestOffer = (offersMap) => {
-    const { clientCard, clientMoney, featureCard } = round;
-    const offers = [];
-
-    const { stars, priceGroup } = clientCard;
-
-    for (const { player, carCard, serviceCards } of Object.values(offersMap)) {
-      let offer;
-      try {
-        offer = this.calcOffer({ player, carCard, serviceCards, featureCard });
-        offer.carCard = carCard;
-        offer.serviceCards = serviceCards;
-      } catch (err) {
-        if (err === 'no_car') continue;
-        else throw err;
-      }
-
-      if (
-        offer.fullPrice <= clientMoney &&
-        offer.stars >= stars &&
-        (priceGroup === '*' || offer.priceGroup.find((group) => priceGroup.includes(group)))
-      ) {
-        offers.push(offer);
-      }
-    }
-
-    const bestOffer = { price: clientMoney, stars: 0 };
-    for (const { player, ...offer } of offers) {
-      if (bestOffer.stars < offer.stars || (bestOffer.stars == offer.stars && bestOffer.price > offer.fullPrice)) {
-        bestOffer.carCard = offer.carCard;
-        bestOffer.serviceCards = offer.serviceCards;
-        bestOffer.price = offer.fullPrice;
-        bestOffer.player = player;
-        bestOffer.stars = offer.stars;
-      }
-    }
-    return bestOffer;
   };
 
   const setDeckCardsVisible = (deck, { setData }) => {
@@ -212,7 +164,7 @@
 
   const restoreCardsForDeals = ({ orderedPlayers, maxStars }) => {
     const { dealStars: stars } = round;
-    const serviceCards = decks.drop_service.select('Card');
+    const serviceCards = decks.service_drop.select('Card');
     serviceCards.sort((a, b) => (a.eventData.playedTime || 0) - (b.eventData.playedTime || 0));
 
     for (let i = 0; i < maxStars; i++) {
@@ -275,8 +227,8 @@
       if (betSum > round.betSum) {
         round.betSum = betSum; // нельзя переносить в initAuctionBetStep, иначе будет ложный вызов noAuctionBets
 
-        const playedCards = currentPlayer.decks.service_played.select('Card');
-        for (const card of playedCards) card.set({ eventData: { playDisabled: true } });
+        const serviceCards = currentPlayer.decks.played.items().filter((c) => c.subtype === 'service');
+        for (const card of serviceCards) card.set({ eventData: { playDisabled: true } });
 
         // ! будет работать только для 2-х игроков
         if (!round.completedBets.includes(nextPlayer)) {
@@ -311,7 +263,7 @@
 
       const noAuctionBets = round.betSum === 0;
       if (noAuctionBets) {
-        carCard.moveToTarget(decks.drop);
+        carCard.moveToTarget(decks.car_drop);
       } else {
         processAuctionResultsForWinner(winner);
         loser.returnTableCardsToHand();
@@ -326,17 +278,17 @@
 
     case 'OFFER_READY': {
       const { currentPlayer, selectedDealDeck } = round;
-      const {
-        decks: { car: carDeck, service: serviceDeck, car_played: playedCarDeck, service_played: playedServiceDeck },
-      } = currentPlayer;
-      let emptyOffer = playedCarDeck.itemsCount() === 0;
+      const { decks: playerDecks } = currentPlayer;
+      const playedDeck = playerDecks.played;
+
+      let emptyOffer = playedDeck.items().find((c) => c.subtype === 'car') === undefined;
 
       if (!selectedDealDeck) {
         if (!emptyOffer) {
-          const moveConfig = { setData: { visible: false } };
+          const moveConfig = { toDeck: true, setData: { visible: false } };
 
-          carDeck.moveAllItems({ ...moveConfig, target: playedCarDeck });
-          serviceDeck.moveAllItems({ ...moveConfig, target: playedServiceDeck });
+          playerDecks.car.moveAllItems(moveConfig);
+          playerDecks.service.moveAllItems(moveConfig);
 
           emptyOffer = true;
         }
@@ -349,15 +301,14 @@
           `Так как игрок ${currentPlayer.userName} не сделал ни одного предложения, то он заканчивает участие на данном этапе.`
         );
 
-        playedServiceDeck.moveAllItems({ target: serviceDeck, setData: { visible: false } });
+        playedDeck.moveAllItems({ toDeck: true, setData: { visible: false } });
         round.completedOffers.push(currentPlayer);
       } else {
-        const moveConfig = {
-          ...{ target: selectedDealDeck, emitEvent: 'RESET' },
+        playedDeck.moveAllItems({
+          target: selectedDealDeck,
+          emitEvent: 'RESET',
           setData: { visible: false, owner: { code: currentPlayer.code, order: Date.now() } },
-        };
-        playedCarDeck.moveAllItems(moveConfig);
-        playedServiceDeck.moveAllItems(moveConfig);
+        });
       }
 
       if (round.completedOffers.length !== players.length) {
@@ -467,7 +418,9 @@
       }
 
       round.clientMoney = this.calcClientMoney();
-      const { player, carCard, serviceCards } = selectBestOffer(offers);
+      const {
+        bestOffer: { player, carCard, serviceCards },
+      } = this.selectBestOffer(offers);
 
       if (!player) {
         result.statusLabel = this.stepLabel('Оценка предложений');
@@ -489,10 +442,8 @@
 
       result.newRoundLogEvents.push(`Клиента "${round.clientCard.title}" заинтересовал автомобиль "${carCard.title}".`);
 
-      carCard.moveToTarget(player.decks.car_played);
-      for (const service of serviceCards) {
-        service.moveToTarget(player.decks.service_played);
-      }
+      carCard.moveToTarget(player.decks.played);
+      for (const service of serviceCards) service.moveToTarget(player.decks.played);
 
       round.featureCard.play({ player });
 
@@ -533,8 +484,7 @@
       player.decks.service.set({ eventData: { playDisabled: null } });
 
       player.activate({
-        notifyUser:
-          'Ты можешь сделать дополнительные продажи. При превышении бюджета клиента сделка будет отменена.',
+        notifyUser: 'Ты можешь сделать дополнительные продажи. При превышении бюджета клиента сделка будет отменена.',
         setData: { eventData: { controlBtn: { label: 'Завершить сделку' } } },
       });
 
@@ -553,8 +503,8 @@
         dealStars,
         clientCard,
       } = this.rounds[this.round];
-      const [carCard] = player.decks.car_played.select('Card');
-      const serviceCards = player.decks.service_played.select('Card');
+      const carCard = player.decks.played.items().find((c) => c.subtype === 'car');
+      const serviceCards = player.decks.played.items().filter((c) => c.subtype === 'service');
 
       // рассчитываем предложение клиенту заново (с учетом добавленных сервисов)
       const { fullPrice, carTitle, stars } = this.calcOffer({ carCard, serviceCards, featureCard });
@@ -572,14 +522,12 @@
         player.set({ money });
         dealStars[player.code] = (dealStars[player.code] || 0) + stars;
 
-        player.decks.car_played.moveAllItems({ target: decks.drop });
-        player.decks.service_played.moveAllItems({ target: decks.drop });
+        player.decks.played.moveAllItems({ toDrop: true });
 
         this.deleteDeck(selectedDealDeck);
       } else {
         result.newRoundLogEvents.push(`Клиент отказался от сделки из-за превышения допустимой стоимости сервисов.`);
-        player.decks.car_played.moveAllItems({ target: player.decks.car });
-        player.decks.service_played.moveAllItems({ target: player.decks.service });
+        player.decks.played.moveAllItems({ toDeck: true });
       }
 
       result.statusLabel = this.stepLabel('Оценка предложений');

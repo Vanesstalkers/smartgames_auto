@@ -173,6 +173,20 @@ import chip25 from './assets/chip-25.png';
 import chip50 from './assets/chip-50.png';
 import chip100 from './assets/chip-100.png';
 
+// Константы
+const DECK_CODES = [
+  'Deck[card_client]',
+  'Deck[card_feature]',
+  'Deck[card_credit]',
+  'Deck[card_car]',
+  'Deck[card_service]',
+  'Deck[card_client_drop]',
+  'Deck[card_feature_drop]',
+  'Deck[card_credit_drop]',
+  'Deck[card_car_drop]',
+  'Deck[card_service_drop]',
+];
+
 export default {
   components: {
     game,

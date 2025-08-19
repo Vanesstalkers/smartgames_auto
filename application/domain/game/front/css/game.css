@@ -1,0 +1,124 @@
+#gameInfo {
+  .deck {
+    position: absolute;
+    top: 35px;
+    cursor: default;
+
+    .card-event {
+      width: 60px;
+      height: 90px;
+      border: none;
+      font-size: 36px;
+      display: flex;
+      justify-content: center;
+      align-content: center;
+      color: #ff5900;
+      text-shadow: 1px 1px 0 #fff;
+    }
+
+    &.drop {
+      filter: grayscale(0.7);
+      transform: scale(0.5);
+      margin-right: -24px;
+      margin-top: 40px;
+      cursor: default;
+      .card-event {
+        color: #ccc;
+      }
+    }
+
+    &[code='Deck[card_client]'],
+    &[code='Deck[card_client_drop]'] {
+      .card-event {
+        background-image: url(../assets/client-back-side.png);
+      }
+    }
+
+    &[code='Deck[card_feature]'],
+    &[code='Deck[card_feature_drop]'] {
+      .card-event {
+        background-image: url(../assets/feature-back-side.png);
+      }
+    }
+
+    &[code='Deck[card_credit]'],
+    &[code='Deck[card_credit_drop]'] {
+      .card-event {
+        background-image: url(../assets/credit-back-side.png);
+      }
+    }
+
+    &[code='Deck[card_car]'],
+    &[code='Deck[card_car_drop]'] {
+      .card-event {
+        background-image: url(../assets/car-back-side.png);
+      }
+    }
+
+    &[code='Deck[card_service]'],
+    &[code='Deck[card_service_drop]'] {
+      .card-event {
+        background-image: url(../assets/service-back-side.png);
+      }
+    }
+  }
+}
+
+#game[type='sales'],
+#game[type='auction'] {
+  #gameInfo {
+    .deck {
+      &[code='Deck[card_service]'],
+      &[code='Deck[card_service_drop]'] {
+        right: 140px;
+      }
+      &[code='Deck[card_car]'],
+      &[code='Deck[card_car_drop]'] {
+        right: 70px;
+      }
+      &[code='Deck[card_client]'],
+      &[code='Deck[card_client_drop]'] {
+        right: 0px;
+      }
+    }
+  }
+}
+#game[type='poker'] {
+  #gameInfo {
+    .deck {
+      &[code='Deck[card_car]'],
+      &[code='Deck[card_car_drop]'] {
+        right: 280px;
+      }
+      &[code='Deck[card_service]'],
+      &[code='Deck[card_service_drop]'] {
+        right: 210px;
+      }
+      &[code='Deck[card_client]'],
+      &[code='Deck[card_client_drop]'] {
+        right: 140px;
+      }
+      &[code='Deck[card_credit]'],
+      &[code='Deck[card_credit_drop]'] {
+        right: 70px;
+      }
+      &[code='Deck[card_feature]'],
+      &[code='Deck[card_feature_drop]'] {
+        right: 0px;
+      }
+    }
+  }
+}
+
+.card-worker {
+  .card-event {
+    &.car-deck {
+      left: 0px;
+      background-image: url(../assets/car-back-side.png);
+    }
+    &.service-deck {
+      right: 0px;
+      background-image: url(../assets/service-back-side.png);
+    }
+  }
+}
