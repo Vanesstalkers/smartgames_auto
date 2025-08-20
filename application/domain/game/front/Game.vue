@@ -1,8 +1,6 @@
 <template>
   <game :defaultScaleMinVisibleWidth="1000" :planeScaleMin="1" :planeScaleMax="5">
-    <template #helper-guru="{ menuWrapper, menuButtonsMap } = {}">
-      <tutorial :game="game" class="scroll-off" :customMenu="customMenu({ menuWrapper, menuButtonsMap })" />
-    </template>
+    <template #helper-guru="{ menuWrapper, menuButtonsMap } = {}" />
 
     <template
       #gameplane="{
@@ -142,23 +140,7 @@ export default {
       );
     },
   },
-  methods: {
-    customMenu({ menuWrapper, menuButtonsMap } = {}) {
-      if (!menuButtonsMap) return [];
-
-      const { cancel, restore, tutorials, helperLinks, leave } = menuButtonsMap();
-      const fillTutorials = tutorials({
-        showList: [
-          { title: 'Стартовое приветствие игры', action: { tutorial: 'game-tutorial-start' } },
-          { title: 'Управление игровым полем', action: { tutorial: 'game-tutorial-gamePlane' } },
-        ],
-      });
-
-      return menuWrapper({
-        buttons: [cancel(), restore(), fillTutorials, helperLinks(), leave()],
-      });
-    },
-  },
+  methods: {},
 };
 </script>
 <style lang="scss">
