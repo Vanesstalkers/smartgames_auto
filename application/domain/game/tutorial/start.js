@@ -1,33 +1,11 @@
 ({
   steps: {
-    hello: {
+    start: {
       initialStep: true,
       superPos: true,
       text: `
-        Поздравляю, ты начал многопользовательскую партию игры с колодой АВТОБИЗНЕС. Пока ты ждешь подключения других игроков, я готов рассказать об интерфейсе игры.
-      `,
-      actions: {
-        before: ({ $root }) => {
-          const skipStep = $root.querySelector('.players .player') ? false : true;
-          return { skipStep };
-        },
-      },
-      buttons: [
-        { text: 'Продолжай', step: 'helloSingle' },
-        { text: 'Я разберусь', step: 'exit' },
-      ],
-    },
-    helloSingle: {
-      text: `
         Поздравляю, ты начал однопользовательскую партию игры с колодой АВТОБИЗНЕС. Я готов рассказать об интерфейсе игры.
       `,
-      superPos: true,
-      actions: {
-        before: ({ $root }) => {
-          const skipStep = $root.querySelector('.players .player') ? true : false;
-          return { skipStep };
-        },
-      },
       buttons: [
         { text: 'Продолжай', step: 'deckClient' },
         { text: 'Я разберусь', step: 'exit' },
@@ -52,6 +30,11 @@
         },
       },
       active: { selector: '.players .player .workers' },
+      buttons: [{ text: 'Дальше', step: 'readyBtn' }],
+    },
+    readyBtn: {
+      text: 'Чтобы начать игру нажми на кнопку "Готов".',
+      active: { selector: '.end-round-btn' },
       buttons: [{ text: 'Спасибо', step: 'exit' }],
     },
     exit: {
@@ -59,7 +42,7 @@
       showMenu: true,
       active: '.helper-guru',
       text: `
-        В любой момент времени ты можешь снова повторить это обучение. Для этого нажми на мою иконку (в левом верхнем углу) и выбери пункт "Покажи доступные обучения". В открывшемся списке выбери интересующие тебя подсказки.
+        В любой момент времени ты можешь снова повторить это обучение. Для&nbsp;этого нажми на мою иконку (в левом верхнем углу) и выбери пункт "Покажи доступные обучения". В открывшемся списке выбери интересующие тебя подсказки.
       `,
       buttons: [{ text: 'Понятно', action: 'exit' }],
     },

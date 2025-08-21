@@ -12,7 +12,7 @@
 
 !!! Not playerAccessAllowed for user "Player[1]" to handler "ROUND_END" in "dropCard" event. 
 
-- tutorial-ы
+- tutorial-ы (!!! добавить helper-а при наведении с подтяшиванием текста из конфига)
 - loadGame (нужно отладить)
 
 - лесенка для карт противника
