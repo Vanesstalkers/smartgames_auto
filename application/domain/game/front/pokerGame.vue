@@ -1,6 +1,8 @@
 <template>
   <game :debug="false" :defaultScaleMinVisibleWidth="1000" :planeScaleMin="1" :planeScaleMax="5">
-    <template #helper-guru="{ menuWrapper, menuButtonsMap } = {}" />
+    <template #helper-guru="{ menuWrapper, menuButtonsMap } = {}">
+      <tutorial :game="game" class="scroll-off" :customMenu="customMenu({ menuWrapper, menuButtonsMap })" />
+    </template>
 
     <template #chat="{ isVisible, hasUnreadMessages } = {}">
       <chat
@@ -631,6 +633,21 @@ export default {
     },
   },
   methods: {
+    customMenu({ menuWrapper, menuButtonsMap } = {}) {
+      if (!menuButtonsMap) return [];
+
+      const { cancel, restore, tutorials, helperLinks, leave } = menuButtonsMap();
+      const fillTutorials = tutorials({
+        showList: [
+          { title: 'Стартовое приветствие игры', action: { tutorial: 'game-poker-tutorial-start' } },
+          { title: 'Управление игровым полем', action: { tutorial: 'game-tutorial-gamePlane' } },
+        ],
+      });
+
+      return menuWrapper({
+        buttons: [cancel(), restore(), fillTutorials, helperLinks({ inGame: true }), leave()],
+      });
+    },
     getDenom(code) {
       const map = { red: 5, green: 25, blue: 50, black: 100 };
       return map[code] || 0;

@@ -48,6 +48,7 @@
         playerId,
         deckType: this.deckType,
         gameType: this.gameType,
+        gameStartTutorialName: 'game-poker-tutorial-start',
       });
 
       this.logs({ msg: `Игрок {{player}} присоединился к игре.`, userId });
