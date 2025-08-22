@@ -428,21 +428,7 @@ export default {
     },
     chipsList() {
       const order = ['red', 'green', 'blue', 'black'];
-      console.log(
-        'test',
-        order.map((code) => ({
-          code,
-          label: this.chipDenoms[code] + '',
-          count: this.chipsCounts[code] || 0,
-          src: this.chipImgs[code],
-          size: this.chipSize,
-          overlapStep: Math.max(1, Math.round(this.chipSize * 0.1)),
-          stackHeight:
-            (this.chipsCounts[code] || 0) > 0
-              ? (this.chipsCounts[code] - 1) * Math.max(1, Math.round(this.chipSize * 0.5)) + this.chipSize
-              : 0,
-        }))
-      );
+
       return order.map((code) => ({
         code,
         label: this.chipDenoms[code] + '',
@@ -493,7 +479,7 @@ export default {
           },
         }));
       });
-      console.log('chips=', chips);
+
       return chips;
     },
     // Вычисляем количество заблокированных фишек на основе maxBet
@@ -587,8 +573,6 @@ export default {
         const requestedHover = this.requestedHoverCount(chip.code, availableChips);
         const count = this.selectingBet ? fixed ?? this.allowedCountFor(chip.code, requestedHover) : 0;
         sumUnits += this.getDenom(chip.code) * (count || 0);
-
-        console.log({ sumUnits, blockedChipsSum: this.blockedChipsSum, fixed });
       }
       return sumUnits + this.blockedChipsSum;
     },
