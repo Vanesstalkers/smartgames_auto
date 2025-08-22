@@ -124,6 +124,8 @@
 }
 
 .card-event {
+  border-radius: 10px;
+
   &.tutorial-active {
     &:after {
       content: '';
@@ -174,6 +176,34 @@
       width: 24px;
       height: 85px;
       box-shadow: 0 0px 6px 10px #f4e205 !important;
+    }
+  }
+}
+.has-tutorial-example {
+  box-shadow: none !important;
+
+  > .tutorial-example {
+    display: none;
+
+    .hidden {
+      display: none;
+      position: absolute;
+      left: 0px;
+      top: 0px;
+    }
+  }
+
+  &.tutorial-active {
+    box-shadow: none;
+
+    > .tutorial-example {
+      display: block;
+      &.flex {
+        display: flex;
+      }
+    }
+    > :not(.tutorial-example) {
+      display: none;
     }
   }
 }
