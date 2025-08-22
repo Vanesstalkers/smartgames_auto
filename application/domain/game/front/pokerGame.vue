@@ -16,7 +16,7 @@
     </template>
 
     <template #gameplane="{} = {}">
-      <div :class="['game-zones']">
+      <div :class="['game-zones', 'has-tutorial-example']">
         <div v-if="showPlayerControls" class="game-info">
           {{ `В банке: ${roundData.betSum}₽` }}
           <br />
@@ -32,6 +32,41 @@
             :canPlay="false"
             imgExt="png"
           />
+        </div>
+        <div class="tutorial-example">
+          <div class="game-info">
+            В банке:1 230₽ <br />
+            Текущая ставка: 100₽
+          </div>
+          <div code="Deck[card_zone_client]">
+            <div
+              class="card-event"
+              :style="{ backgroundImage: `url(${state.serverOrigin}/img/cards/default/client/businessman.png)` }"
+            >
+              <div class="card-info-btn"></div>
+              <!---->
+            </div>
+          </div>
+          <div code="Deck[card_zone_feature]">
+            <div
+              class="card-event"
+              :style="{ backgroundImage: `url(${state.serverOrigin}/img/cards/default/feature/back-side.png)` }"
+            />
+            <div
+              class="card-event hidden show-feature show-credit"
+              :style="{ backgroundImage: `url(${state.serverOrigin}/img/cards/default/feature/contact.png)` }"
+            />
+          </div>
+          <div code="Deck[card_zone_credit]">
+            <div
+              class="card-event"
+              :style="{ backgroundImage: `url(${state.serverOrigin}/img/cards/default/credit/back-side.png)` }"
+            />
+            <div
+              class="card-event hidden show-credit"
+              :style="{ backgroundImage: `url(${state.serverOrigin}/img/cards/default/credit/credit_30_drive.png)` }"
+            />
+          </div>
         </div>
       </div>
     </template>
@@ -843,21 +878,24 @@ export default {
       color: #f4e205;
     }
 
-    [code='Deck[card_zone_flop]'] {
+    [code='Deck[card_zone_client]'] {
       position: absolute;
       left: calc(50% - 60px - 10px - 120px);
       top: calc(50% - 90px);
       z-index: 1;
+      border-radius: 10px;
     }
-    [code='Deck[card_zone_turn]'] {
+    [code='Deck[card_zone_feature]'] {
       position: absolute;
       left: calc(50% - 60px);
       top: calc(50% - 90px);
+      border-radius: 10px;
     }
-    [code='Deck[card_zone_river]'] {
+    [code='Deck[card_zone_credit]'] {
       position: absolute;
       left: calc(50% + 60px + 10px);
       top: calc(50% - 90px);
+      border-radius: 10px;
     }
   }
 }
@@ -1299,6 +1337,19 @@ export default {
 .hand-cards {
   & > .card-event {
     margin-left: -40px;
+  }
+}
+
+.has-tutorial-example {
+  &.show-feature {
+    .hidden.show-feature {
+      display: block;
+    }
+  }
+  &.show-credit {
+    .hidden.show-credit {
+      display: block;
+    }
   }
 }
 </style>

@@ -111,11 +111,11 @@
       round.currentPlayer = round.bigBlindPlayer.nextPlayer();
 
       round.clientCard = decks.client.getRandomItem();
-      round.clientCard.moveToTarget(decks.zone_flop, { setVisible: true });
+      round.clientCard.moveToTarget(decks.zone_client, { setVisible: true });
       round.featureCard = decks.feature.getRandomItem();
-      round.featureCard.moveToTarget(decks.zone_turn);
+      round.featureCard.moveToTarget(decks.zone_feature);
       round.creditCard = decks.credit.getRandomItem();
-      round.creditCard.moveToTarget(decks.zone_river);
+      round.creditCard.moveToTarget(decks.zone_credit);
 
       round.currentPlayer.activate({
         notifyUser: 'Сделай свою ставку',
@@ -128,7 +128,7 @@
       return result;
     }
     case 'BET': {
-      const { zone_flop: flopZone, zone_turn: turnZone, zone_river: riverZone } = decks;
+      const { zone_client: clientZone, zone_feature: featureZone, zone_credit: creditZone } = decks;
 
       const remainingPlayersInRound = players.filter((p) => !round.bets[p.id()]?.out);
       if (remainingPlayersInRound.length === 1) {
@@ -143,19 +143,13 @@
       });
       if (allPlayersReady) {
         switch (round.step) {
-          // case 'preflop':
-          //   flopZone.setItemVisible(round.clientCard);
-          //   round.step = 'flop';
-          //   round.currentPlayer = round.smallBlindPlayer.prevPlayer(); // следующую ставку сделает smallBlindPlayer
-          //   break;
-
           case 'flop':
-            turnZone.setItemVisible(round.featureCard);
+            featureZone.setItemVisible(round.featureCard);
             round.step = 'turn';
           break;
 
           case 'turn':
-            riverZone.setItemVisible(round.creditCard);
+            creditZone.setItemVisible(round.creditCard);
             round.step = 'river';
           break;
 

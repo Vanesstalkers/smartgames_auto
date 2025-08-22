@@ -5,7 +5,7 @@
   >
     <div class="inner-content">
       <div class="player-hands">
-        <div class="hand-cards-list" ref="scrollbar">
+        <div class="hand-cards-list has-tutorial-example" ref="scrollbar">
           <div v-if="iam || gameState.viewerMode" class="hand-cards" :style="{ width: handCardsWidth }">
             <card
               v-for="card in handCards"
@@ -26,6 +26,48 @@
               :canPlay="canPlay(card)"
               :myCard="iam"
               :imgExt="'png'"
+            />
+          </div>
+          <div class="hand-cards tutorial-example flex" style="width: auto">
+            <div
+              name="tank_300"
+              class="card-event"
+              :style="{ backgroundImage: `url(${state.serverOrigin}/img/cards/default/car/tank_300.png)` }"
+            />
+            <div
+              name="exeed_lx"
+              class="card-event"
+              :style="{ backgroundImage: `url(${state.serverOrigin}/img/cards/default/car/exeed_lx.png)` }"
+            />
+            <div
+              name="evolute_ipro"
+              class="card-event"
+              :style="{ backgroundImage: `url(${state.serverOrigin}/img/cards/default/car/evolute_ipro.png)` }"
+            />
+            <div
+              name="lada_niva_travel"
+              class="card-event"
+              :style="{ backgroundImage: `url(${state.serverOrigin}/img/cards/default/car/lada_niva_travel.png)` }"
+            />
+            <div
+              name="leather"
+              class="card-event"
+              :style="{ backgroundImage: `url(${state.serverOrigin}/img/cards/default/service/leather.png)` }"
+            />
+            <div
+              name="climat"
+              class="card-event"
+              :style="{ backgroundImage: `url(${state.serverOrigin}/img/cards/default/service/climat.png)` }"
+            />
+            <div
+              name="tires"
+              class="card-event"
+              :style="{ backgroundImage: `url(${state.serverOrigin}/img/cards/default/service/tires.png)` }"
+            />
+            <div
+              name="anticor"
+              class="card-event"
+              :style="{ backgroundImage: `url(${state.serverOrigin}/img/cards/default/service/anticor.png)` }"
             />
           </div>
         </div>
@@ -254,6 +296,7 @@ export default {
     flex-direction: row;
 
     &.tutorial-active {
+      padding-right: 40px;
       box-shadow: 0 0 10px 10px #f4e205 !important;
     }
   }
