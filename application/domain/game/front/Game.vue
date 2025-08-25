@@ -123,7 +123,7 @@ export default {
 
     fullPrice() {
       const { gameTimer, gameConfig } = this.game;
-      const baseSum = 1000; // TO_CHANGE (меняем на свою сумму дохода за игру)
+      const baseSum = 1000;
       const timerMod = 30000 / gameTimer;
       const configMod = { blitz: 0.5, standart: 0.75, hardcore: 1 }[gameConfig];
       return Math.floor(baseSum * timerMod * configMod);
