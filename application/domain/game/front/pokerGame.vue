@@ -219,6 +219,21 @@ import chip100 from './assets/chip-100.png';
 import chipSB from './assets/small-blind.png';
 import chipBB from './assets/big-blind.png';
 
+// Константы
+const DECK_CODES = [
+  // TO_CHANGE
+  /* 'Deck[card_client]',
+  'Deck[card_feature]',
+  'Deck[card_credit]',
+  'Deck[card_car]',
+  'Deck[card_service]',
+  'Deck[card_client_drop]',
+  'Deck[card_feature_drop]',
+  'Deck[card_credit_drop]',
+  'Deck[card_car_drop]',
+  'Deck[card_service_drop]', */
+];
+
 export default {
   components: {
     game,
@@ -873,8 +888,7 @@ export default {
   cursor: default;
 }
 
-.deck[code='Deck[card_drop]'],
-.deck[code='SuperDeck[card_drop]'] {
+.deck[code='Deck[card_drop]'] {
   position: absolute;
   filter: grayscale(1);
   transform: scale(0.5);
@@ -887,8 +901,7 @@ export default {
   }
 }
 
-.deck[code='Deck[card_active]'],
-.deck[code='SuperDeck[card_active]'] {
+.deck[code='Deck[card_active]'] {
   position: absolute;
   top: 140px;
   right: 0px;
@@ -906,35 +919,6 @@ export default {
 .deck-active {
   display: flex;
   flex-direction: column;
-}
-
-.deck[code='SuperDeck[card]'],
-.deck[code='SuperDeck[card_active]'],
-.deck[code='SuperDeck[card_drop]'] {
-  display: none;
-}
-
-.decks.show-super {
-  .deck[code='SuperDeck[card]'],
-  .deck[code='SuperDeck[card_active]'],
-  .deck[code='SuperDeck[card_drop]'] {
-    display: block;
-  }
-
-  .deck[code='SuperDeck[card]'] {
-    position: absolute;
-    top: 35px;
-    right: 30px;
-    cursor: default;
-  }
-
-  .deck[code='Deck[card]'] {
-    right: 130px;
-  }
-
-  .deck[code='Deck[card_drop]'] {
-    right: 90px;
-  }
 }
 
 .game-status-label {
