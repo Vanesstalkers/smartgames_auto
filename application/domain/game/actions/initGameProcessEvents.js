@@ -11,9 +11,11 @@
         const startDecks = Object.entries(playerHand || {});
         const players = game.players();
 
+        if (game.restorationMode) return;
+
         for (let idx = 0; idx < players.length; idx++) {
           const player = players[idx];
-      
+
           if (startDecks.length) {
             for (const [deckType, { start: count }] of startDecks) {
               if (typeof count === 'object') {

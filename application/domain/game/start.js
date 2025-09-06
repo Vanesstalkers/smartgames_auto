@@ -39,7 +39,7 @@ async () => {
             title: 'TO_CHANGE',
             icon: ['fas', 'microchip'],
             active: true,
-            url: process.env.NODE_ENV === 'development' ? 'http://localhost:TO_CHANGE' : url,
+            url: process.env.NODE_ENV === 'development' ? 'http://localhost:TO_CHANGE' : url, // такой же как в package.json serve
             serverUrl:
               process.env.NODE_ENV === 'development' ? `http://localhost:${config.server.balancer}` : `${url}/api`,
             games,
