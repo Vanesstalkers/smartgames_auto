@@ -878,24 +878,21 @@ export default {
       color: #f4e205;
     }
 
-    [code='Deck[card_zone_client]'] {
+    [code='Deck[card_zone_flop]'] {
       position: absolute;
       left: calc(50% - 60px - 10px - 120px);
       top: calc(50% - 90px);
       z-index: 1;
-      border-radius: 10px;
     }
-    [code='Deck[card_zone_feature]'] {
+    [code='Deck[card_zone_turn]'] {
       position: absolute;
       left: calc(50% - 60px);
       top: calc(50% - 90px);
-      border-radius: 10px;
     }
-    [code='Deck[card_zone_credit]'] {
+    [code='Deck[card_zone_river]'] {
       position: absolute;
       left: calc(50% + 60px + 10px);
       top: calc(50% - 90px);
-      border-radius: 10px;
     }
   }
 }
@@ -925,8 +922,7 @@ export default {
   cursor: default;
 }
 
-.deck[code='Deck[card_drop]'],
-.deck[code='SuperDeck[card_drop]'] {
+.deck[code='Deck[card_drop]'] {
   position: absolute;
   filter: grayscale(1);
   transform: scale(0.5);
@@ -939,8 +935,7 @@ export default {
   }
 }
 
-.deck[code='Deck[card_active]'],
-.deck[code='SuperDeck[card_active]'] {
+.deck[code='Deck[card_active]'] {
   position: absolute;
   top: 140px;
   right: 0px;
@@ -958,35 +953,6 @@ export default {
 .deck-active {
   display: flex;
   flex-direction: column;
-}
-
-.deck[code='SuperDeck[card]'],
-.deck[code='SuperDeck[card_active]'],
-.deck[code='SuperDeck[card_drop]'] {
-  display: none;
-}
-
-.decks.show-super {
-  .deck[code='SuperDeck[card]'],
-  .deck[code='SuperDeck[card_active]'],
-  .deck[code='SuperDeck[card_drop]'] {
-    display: block;
-  }
-
-  .deck[code='SuperDeck[card]'] {
-    position: absolute;
-    top: 35px;
-    right: 30px;
-    cursor: default;
-  }
-
-  .deck[code='Deck[card]'] {
-    right: 130px;
-  }
-
-  .deck[code='Deck[card_drop]'] {
-    right: 90px;
-  }
 }
 
 .game-status-label {

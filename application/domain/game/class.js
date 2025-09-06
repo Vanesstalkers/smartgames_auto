@@ -29,6 +29,14 @@
       deck.moveAllItems({ toDrop: true, setData: { visible: false } });
     }
   }
+
+  restorePlayersHands() {
+    const { roundStepWinner } = this.rounds[this.round];
+    for (const player of this.players()) {
+      if (player === roundStepWinner) continue; // карты победителя сбрасываются
+      player.returnTableCardsToHand();
+    }
+  }
   calcClientMoney() {
     const { clientCard, featureCard, creditCard, clientCardNew } = this.rounds[this.round];
     let clientMoney = clientCardNew?.money || clientCard.money;

@@ -5,7 +5,7 @@
     tutorial: 'game-tutorial-clientCard',
     simple: false,
     type: 'game',
-    pos: { top: true, left: true },
+    pos: { top: true, right: true },
   },
   creditCard: {
     selector: '#gamePlane [code="Deck[card_zone_credit]"] .card-event.visible',
