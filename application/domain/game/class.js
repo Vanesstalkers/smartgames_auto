@@ -79,7 +79,6 @@
   selectBestOffer(offersMap) {
     const { clientCard, clientMoney, featureCard } = this.rounds[this.round];
     const offers = [];
-    let offersCount = 0;
 
     const { stars, priceGroup } = clientCard;
 
@@ -89,7 +88,6 @@
         offer = this.calcOffer({ player, carCard, serviceCards, featureCard });
         offer.carCard = carCard;
         offer.serviceCards = serviceCards;
-        offersCount++;
       } catch (err) {
         if (err === 'no_car') continue;
         else throw err;
@@ -114,7 +112,7 @@
         bestOffer.stars = offer.stars;
       }
     }
-    return { bestOffer, offersCount };
+    return { bestOffer, relevantOffers: offers};
   }
 
   showTableCards() {

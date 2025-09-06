@@ -85,7 +85,7 @@
   const processDealData = (deck) => {
     const offers = {};
     let offersCount = 0;
-    for (const card of deck.select('Card')) {
+    for (const card of deck.items()) {
       if (card.group === 'client') {
         if (card.eventData.replacedClient) round.clientCardNew = card;
         else round.clientCard = card;
@@ -127,15 +127,14 @@
   };
 
   const setDeckCardsVisible = (deck, { setData }) => {
-    for (const card of deck.select('Card')) {
+    for (const card of deck.items()) {
       card.set(setData);
       deck.setItemVisible(card);
     }
   };
 
   const returnCardsToOwners = (deck) => {
-    const cards = deck.select('Card');
-    for (const card of cards) {
+    for (const card of deck.items()) {
       if (!card.owner) continue;
       const player = this.find(card.owner.code);
       card.set({ eventData: { playDisabled: null } });
@@ -164,7 +163,7 @@
 
   const restoreCardsForDeals = ({ orderedPlayers, maxStars }) => {
     const { dealStars: stars } = round;
-    const serviceCards = decks.service_drop.select('Card');
+    const serviceCards = decks.service_drop.items();
     serviceCards.sort((a, b) => (a.eventData.playedTime || 0) - (b.eventData.playedTime || 0));
 
     for (let i = 0; i < maxStars; i++) {

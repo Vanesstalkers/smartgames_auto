@@ -38,7 +38,7 @@
             В банке:1 230₽ <br />
             Текущая ставка: 100₽
           </div>
-          <div code="Deck[card_zone_client]">
+          <div code="Deck[card_zone_flop]">
             <div
               class="card-event"
               :style="{ backgroundImage: `url(${state.serverOrigin}/img/cards/default/client/businessman.png)` }"
@@ -47,7 +47,7 @@
               <!---->
             </div>
           </div>
-          <div code="Deck[card_zone_feature]">
+          <div code="Deck[card_zone_turn]">
             <div
               class="card-event"
               :style="{ backgroundImage: `url(${state.serverOrigin}/img/cards/default/feature/back-side.png)` }"
@@ -57,7 +57,7 @@
               :style="{ backgroundImage: `url(${state.serverOrigin}/img/cards/default/feature/contact.png)` }"
             />
           </div>
-          <div code="Deck[card_zone_credit]">
+          <div code="Deck[card_zone_river]">
             <div
               class="card-event"
               :style="{ backgroundImage: `url(${state.serverOrigin}/img/cards/default/credit/back-side.png)` }"

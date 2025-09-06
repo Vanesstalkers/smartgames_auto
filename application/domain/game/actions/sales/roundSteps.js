@@ -137,11 +137,11 @@
         };
       }
 
-      const { bestOffer, offersCount } = this.selectBestOffer(offersMap);
+      const { bestOffer, relevantOffers } = this.selectBestOffer(offersMap);
       const { player, carCard } = bestOffer;
 
       if (!player) {
-        if (offersCount > 0) {
+        if (relevantOffers.length > 0) {
           result.newRoundLogEvents.push(`Клиента не устроило ни одно из предложений.`);
           result.statusLabel = this.stepLabel('Результаты раунда');
           result.roundStep = 'SHOW_RESULTS';
@@ -156,7 +156,7 @@
 
       // у всех карт, выложенных на стол, убираем возможность возврата карты в руку делать через блокировку deck нельзя, потому что позже в нее будут добавляться дополнительные карты
       for (const deck of player.select({ className: 'Deck', attr: { placement: 'table' } })) {
-        for (const card of deck.select('Card')) {
+        for (const card of deck.items()) {
           card.set({ eventData: { playDisabled: true } });
         }
       }

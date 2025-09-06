@@ -34,7 +34,7 @@
         - ценовая категория (<a>количество звезд</a>)
         - бюджет (<a>цена автомобиля и сервисов</a>)
       `,
-      active: ['#gamePlane .game-zones', "[code='Deck[card_zone_client]']"],
+      active: ['#gamePlane .game-zones', "[code='Deck[card_zone_flop]']"],
       buttons: [{ text: 'Дальше', step: 'feature' }],
     },
     feature: {
@@ -43,7 +43,7 @@
       `,
       active: [
         { selector: '#gamePlane .game-zones', customClass: 'show-feature' },
-        { selector: '[code="Deck[card_zone_feature]"]' },
+        { selector: '[code="Deck[card_zone_turn]"]' },
       ],
       buttons: [{ text: 'Дальше', step: 'credit' }],
     },
@@ -53,7 +53,7 @@
       `,
       active: [
         { selector: '#gamePlane .game-zones', customClass: 'show-credit' },
-        { selector: '[code="Deck[card_zone_credit]"]' },
+        { selector: '[code="Deck[card_zone_river]"]' },
       ],
       buttons: [{ text: 'Дальше', step: 'decks' }],
     },

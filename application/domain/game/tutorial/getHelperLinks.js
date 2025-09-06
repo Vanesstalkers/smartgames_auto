@@ -1,14 +1,14 @@
 () => ({
   ...lib.game.tutorial.getHelperLinks(),
   clientCard: {
-    selector: '#gamePlane [code="Deck[card_zone_client]"] .card-event.visible',
+    selector: '#gamePlane [code="Deck[card_zone_flop]"] .card-event.visible',
     tutorial: 'game-tutorial-clientCard',
     simple: false,
     type: 'game',
     pos: { top: true, right: true },
   },
   creditCard: {
-    selector: '#gamePlane [code="Deck[card_zone_credit]"] .card-event.visible',
+    selector: '#gamePlane [code="Deck[card_zone_river]"] .card-event.visible',
     tutorial: 'game-tutorial-creditCard',
     simple: false,
     type: 'game',

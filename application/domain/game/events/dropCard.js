@@ -3,8 +3,7 @@
   init() {
     const { game, player } = this.eventContext();
 
-    const carCards = player.decks.car.select('Card');
-    for (const card of carCards) {
+    for (const card of player.decks.car.items()) {
       card.set({
         eventData: {
           activeEvents: [this],
@@ -13,8 +12,8 @@
         },
       });
     }
-    const serviceCards = player.decks.service.select('Card');
-    for (const card of serviceCards) {
+
+    for (const card of player.decks.service.items()) {
       card.set({ eventData: { playDisabled: true } });
     }
   },

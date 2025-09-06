@@ -5,7 +5,7 @@
       text: `
         Окончательный бюджет клиента определяется размером выданного кредита. Расчет делается исходя из того, что <a>сумма на карте клиента являются первоначальным взносом для кредита</a>.
       `,
-      active: { selector: '#gamePlane [code="Deck[card_zone_credit]"] .card-event', customClass: 'tutorial-credit' },
+      active: { selector: '#gamePlane [code="Deck[card_zone_river]"] .card-event', customClass: 'tutorial-credit' },
       buttons: [{ text: 'Продолжай', step: 'example' }],
     },
     example: {
@@ -17,7 +17,7 @@
         при ПВ 25% - увеличивается в 4 раза
         при ПВ 20% - увеличивается в 5 раз
       `,
-      active: { selector: '#gamePlane [code="Deck[card_zone_credit]"] .card-event', customClass: 'tutorial-credit' },
+      active: { selector: '#gamePlane [code="Deck[card_zone_river]"] .card-event', customClass: 'tutorial-credit' },
       buttons: [{ text: 'Продолжай', step: 'feature' }],
     },
     feature: {
@@ -25,7 +25,7 @@
       text: `
         Также в первоначальный взнос добавляются деньги с карт особенностей клиента, <a>если на них есть соответствущая отметка</a>.
       `,
-      active: { selector: '#gamePlane [code="Deck[card_zone_feature]"] .card-event' },
+      active: { selector: '#gamePlane [code="Deck[card_zone_turn]"] .card-event' },
       buttons: [{ text: 'Спасибо', action: 'exit' }],
     },
   },
