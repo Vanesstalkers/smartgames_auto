@@ -3,27 +3,27 @@
   list: [
     {
       ...{ group: 'car', name: 'geely_coolray', title: 'Geely Coolray' },
-      ...{ stars: 2, price: 2800, priceGroup: ['woman'], equip: ['gearbox', 'climat', 'leather'] },
+      ...{ stars: 2, price: 3000, priceGroup: ['woman'], equip: ['gearbox', 'climat', 'leather'] },
     },
     {
       ...{ group: 'car', name: 'lada_niva_travel', title: 'Lada Niva Travel' },
-      ...{ stars: 1, price: 1200, priceGroup: ['suv'], equip: ['tires'] },
-    },
-    {
-      ...{ group: 'car', name: 'baic_u5_plus', title: 'BAIC U5 Plus' },
-      ...{ stars: 1, price: 2100, priceGroup: ['cheap'], equip: ['leather'] },
-    },
-    {
-      ...{ group: 'car', name: 'lada_vesta', title: 'Lada Vesta' },
-      ...{ stars: 1, price: 1300, priceGroup: ['cheap'], equip: [] },
-    },
-    {
-      ...{ group: 'car', name: 'uaz_hunter', title: 'UAZ Hunter' },
       ...{ stars: 1, price: 1400, priceGroup: ['suv'], equip: ['tires'] },
     },
     {
+      ...{ group: 'car', name: 'baic_u5_plus', title: 'BAIC U5 Plus' },
+      ...{ stars: 1, price: 2200, priceGroup: ['cheap'], equip: ['leather'] },
+    },
+    {
+      ...{ group: 'car', name: 'lada_vesta', title: 'Lada Vesta' },
+      ...{ stars: 1, price: 1500, priceGroup: ['cheap'], equip: [] },
+    },
+    {
+      ...{ group: 'car', name: 'uaz_hunter', title: 'UAZ Hunter' },
+      ...{ stars: 1, price: 1650, priceGroup: ['suv'], equip: ['tires'] },
+    },
+    {
       ...{ group: 'car', name: 'uaz_patriot', title: 'UAZ Patriot' },
-      ...{ stars: 1, price: 1600, priceGroup: ['suv'], equip: ['tires'] },
+      ...{ stars: 1, price: 1850, priceGroup: ['suv'], equip: ['tires'] },
     },
     {
       ...{ group: 'car', name: 'changan_alsvin', title: 'Changan Alsvin' },
@@ -31,43 +31,43 @@
     },
     {
       ...{ group: 'car', name: 'lada_vesta_cross_sw', title: 'Lada Vesta Cross SW' },
-      ...{ stars: 1, price: 1900, priceGroup: ['family'], equip: ['tires'] },
+      ...{ stars: 1, price: 2000, priceGroup: ['family'], equip: ['tires'] },
     },
     {
       ...{ group: 'car', name: 'haval_jolion', title: 'Haval Jolion' },
-      ...{ stars: 1, price: 2000, priceGroup: ['family'], equip: ['climat'] },
-    },
-    {
-      ...{ group: 'car', name: 'moskvich_3', title: 'Moskvich 3' },
       ...{ stars: 1, price: 2100, priceGroup: ['family'], equip: ['climat'] },
     },
     {
-      ...{ group: 'car', name: 'baic_x35', title: 'BAIC X35' },
-      ...{ stars: 1, price: 2200, priceGroup: ['cheap'], equip: [] },
+      ...{ group: 'car', name: 'moskvich_3', title: 'Moskvich 3' },
+      ...{ stars: 1, price: 1900, priceGroup: ['family'], equip: ['climat'] },
     },
     {
-      ...{ group: 'car', name: 'kaiyi_e5', title: 'Kaiyi E5' },
-      ...{ stars: 1, price: 2300, priceGroup: ['cheap'], equip: [] },
+      ...{ group: 'car', name: 'chery_tiggo4_new', title: 'Chery Tiggo4 New' },
+      ...{ stars: 2, price: 2700, priceGroup: ['family'], equip: ['gearbox', 'leather', 'climat'] },
+    },
+    {
+      ...{ group: 'car', name: 'exeed_rx', title: 'Exeed RX' },
+      ...{ stars: 3, price: 5000, priceGroup: ['family'], equip: ['gearbox', 'leather', 'climat'] },
     },
     {
       ...{ group: 'car', name: 'changan_cs35_plus', title: 'Changan CS35 Plus' },
-      ...{ stars: 2, price: 2400, priceGroup: ['woman'], equip: ['gearbox', 'climat'] },
+      ...{ stars: 1, price: 2300, priceGroup: ['woman'], equip: ['gearbox', 'climat'] },
     },
     {
       ...{ group: 'car', name: 'evolute_ipro', title: 'Evolute i-PRO' },
-      ...{ stars: 2, price: 2400, priceGroup: ['cheap'], equip: ['gearbox', 'climat'] },
+      ...{ stars: 2, price: 2500, priceGroup: ['cheap'], equip: ['gearbox', 'climat'] },
     },
     {
       ...{ group: 'car', name: 'faw_bestune_t77', title: 'FAW Bestune T77' },
-      ...{ stars: 2, price: 2500, priceGroup: ['family'], equip: ['leather', 'climat'] },
+      ...{ stars: 2, price: 2800, priceGroup: ['family'], equip: ['leather', 'climat'] },
     },
     {
       ...{ group: 'car', name: 'moskvich_6', title: 'Moskvich 6' },
       ...{ stars: 2, price: 2600, priceGroup: ['cheap'], equip: ['gearbox', 'leather'] },
     },
     {
-      ...{ group: 'car', name: 'gac_gs5', title: 'GAC GS5' },
-      ...{ stars: 2, price: 2700, priceGroup: ['family'], equip: ['climat'] },
+      ...{ group: 'car', name: 'gac_gs3', title: 'GAC GS3' },
+      ...{ stars: 2, price: 2900, priceGroup: ['woman'], equip: ['gearbox'] },
     },
     {
       ...{ group: 'car', name: 'evolute_ijoy', title: 'Evolute i-JOY' },
@@ -75,11 +75,11 @@
     },
     {
       ...{ group: 'car', name: 'jetour_dashing', title: 'Jetour Dashing' },
-      ...{ stars: 2, price: 3000, priceGroup: ['woman'], equip: ['massage'] },
+      ...{ stars: 3, price: 3800, priceGroup: ['woman'], equip: ['massage', 'gearbox', 'leather', 'climat'] },
     },
     {
       ...{ group: 'car', name: 'exeed_lx', title: 'Exeed LX' },
-      ...{ stars: 3, price: 3600, priceGroup: ['family'], equip: ['gearbox', 'leather', 'climat'] },
+      ...{ stars: 2, price: 3200, priceGroup: ['family'], equip: ['gearbox', 'leather', 'climat'] },
     },
     {
       ...{ group: 'car', name: 'omoda_c5', title: 'Omoda C5' },
@@ -87,10 +87,10 @@
     },
     {
       ...{ group: 'car', name: 'gac_gs8', title: 'GAC GS8' },
-      ...{ stars: 3, price: 3800, priceGroup: ['suv'], equip: ['gearbox', 'leather', 'climat'] },
+      ...{ stars: 3, price: 4700, priceGroup: ['suv'], equip: ['gearbox', 'leather', 'climat'] },
     },
     {
-      ...{ group: 'car', name: 'exeed_txl', title: 'Exeed TXL' },
+      ...{ group: 'car', name: 'geely_monjaro', title: 'Geely Monjaro' },
       ...{ stars: 3, price: 4000, priceGroup: ['family'], equip: ['gearbox', 'leather', 'climat'] },
     },
     {
@@ -99,19 +99,19 @@
     },
     {
       ...{ group: 'car', name: 'baic_bj40', title: 'BAIC BJ40' },
-      ...{ stars: 3, price: 4400, priceGroup: ['suv'], equip: ['climat'] },
+      ...{ stars: 2, price: 3400, priceGroup: ['suv'], equip: ['climat'] },
     },
     {
-      ...{ group: 'car', name: 'byd_frigate_07', title: 'BYD Frigate 07' },
-      ...{ stars: 3, price: 4700, priceGroup: ['family'], equip: ['gearbox', 'leather', 'climat', 'massage'] },
-    },
-    {
-      ...{ group: 'car', name: 'skywell_et5', title: 'Skywell ET5' },
-      ...{ stars: 3, price: 5000, priceGroup: ['family'], equip: ['gearbox', 'leather', 'climat'] },
+      ...{ group: 'car', name: 'changan_uni_k', title: 'Changan UNI-K' },
+      ...{ stars: 3, price: 4500, priceGroup: ['family'], equip: ['gearbox', 'leather', 'climat'] },
     },
     {
       ...{ group: 'car', name: 'voyah_free', title: 'Voyah Free' },
-      ...{ stars: 4, price: 5500, priceGroup: ['vip'], equip: ['wheels', 'gearbox', 'leather', 'climat'] },
+      ...{ stars: 4, price: 5500, priceGroup: ['vip'], equip: ['massage', 'gearbox', 'leather', 'climat'] },
+    },
+    {
+      ...{ group: 'car', name: 'tank_500', title: 'Tank 500' },
+      ...{ stars: 4, price: 7000, priceGroup: ['suv'], equip: ['massage', 'gearbox', 'leather', 'climat'] },
     },
     {
       ...{ group: 'car', name: 'byd_han', title: 'BYD Han' },
@@ -122,12 +122,12 @@
       ...{ stars: 4, price: 6500, priceGroup: ['vip'], equip: ['massage', 'gearbox', 'leather', 'climat'] },
     },
     {
-      ...{ group: 'car', name: 'hongqi_h9', title: 'Hongqi H9' },
-      ...{ stars: 4, price: 7000, priceGroup: ['vip'], equip: ['massage', 'wheels', 'gearbox', 'leather', 'climat'] },
+      ...{ group: 'car', name: 'lixiang_l7', title: 'LiXiang L7' },
+      ...{ stars: 4, price: 7500, priceGroup: ['vip'], equip: ['massage', 'wheels', 'gearbox', 'leather', 'climat'] },
     },
     {
       ...{ group: 'car', name: 'zeekr_001', title: 'Zeekr 001' },
-      ...{ stars: 4, price: 7500, priceGroup: ['vip'], equip: ['wheels', 'gearbox', 'leather', 'climat'] },
+      ...{ stars: 4, price: 8000, priceGroup: ['vip'], equip: ['wheels', 'gearbox', 'leather', 'climat'] },
     },
 
     { group: 'service', name: 'gearbox', title: 'Коробка автомат', price: '+20%', stars: 1, equip: ['gearbox'] },
