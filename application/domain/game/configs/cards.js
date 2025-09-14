@@ -1,17 +1,8 @@
-() => ({
-  path: (card) => `${card.group}/${card.name}.png`,
-  list: [
-    {
-      ...{ group: 'car', name: 'geely_coolray', title: 'Geely Coolray' },
-      ...{ stars: 2, price: 3000, priceGroup: ['woman'], equip: ['gearbox', 'climat', 'leather'] },
-    },
+({ api, selectGroup, template } = {}) => {
+  const list = [
     {
       ...{ group: 'car', name: 'lada_niva_travel', title: 'Lada Niva Travel' },
       ...{ stars: 1, price: 1400, priceGroup: ['suv'], equip: ['tires'] },
-    },
-    {
-      ...{ group: 'car', name: 'baic_u5_plus', title: 'BAIC U5 Plus' },
-      ...{ stars: 1, price: 2200, priceGroup: ['cheap'], equip: ['leather'] },
     },
     {
       ...{ group: 'car', name: 'lada_vesta', title: 'Lada Vesta' },
@@ -22,12 +13,16 @@
       ...{ stars: 1, price: 1650, priceGroup: ['suv'], equip: ['tires'] },
     },
     {
+      ...{ group: 'car', name: 'changan_alsvin', title: 'Changan Alsvin' },
+      ...{ stars: 1, price: 1800, priceGroup: ['cheap'], equip: ['gearbox'] },
+    },
+    {
       ...{ group: 'car', name: 'uaz_patriot', title: 'UAZ Patriot' },
       ...{ stars: 1, price: 1850, priceGroup: ['suv'], equip: ['tires'] },
     },
     {
-      ...{ group: 'car', name: 'changan_alsvin', title: 'Changan Alsvin' },
-      ...{ stars: 1, price: 1800, priceGroup: ['cheap'], equip: ['gearbox'] },
+      ...{ group: 'car', name: 'moskvich_3', title: 'Moskvich 3' },
+      ...{ stars: 1, price: 1900, priceGroup: ['family'], equip: ['climat'] },
     },
     {
       ...{ group: 'car', name: 'lada_vesta_cross_sw', title: 'Lada Vesta Cross SW' },
@@ -38,16 +33,8 @@
       ...{ stars: 1, price: 2100, priceGroup: ['family'], equip: ['climat'] },
     },
     {
-      ...{ group: 'car', name: 'moskvich_3', title: 'Moskvich 3' },
-      ...{ stars: 1, price: 1900, priceGroup: ['family'], equip: ['climat'] },
-    },
-    {
-      ...{ group: 'car', name: 'chery_tiggo4_new', title: 'Chery Tiggo4 New' },
-      ...{ stars: 2, price: 2700, priceGroup: ['family'], equip: ['gearbox', 'leather', 'climat'] },
-    },
-    {
-      ...{ group: 'car', name: 'exeed_rx', title: 'Exeed RX' },
-      ...{ stars: 3, price: 5000, priceGroup: ['family'], equip: ['gearbox', 'leather', 'climat'] },
+      ...{ group: 'car', name: 'baic_u5_plus', title: 'BAIC U5 Plus' },
+      ...{ stars: 1, price: 2200, priceGroup: ['cheap'], equip: ['leather'] },
     },
     {
       ...{ group: 'car', name: 'changan_cs35_plus', title: 'Changan CS35 Plus' },
@@ -58,12 +45,16 @@
       ...{ stars: 2, price: 2500, priceGroup: ['cheap'], equip: ['gearbox', 'climat'] },
     },
     {
-      ...{ group: 'car', name: 'faw_bestune_t77', title: 'FAW Bestune T77' },
-      ...{ stars: 2, price: 2800, priceGroup: ['family'], equip: ['leather', 'climat'] },
-    },
-    {
       ...{ group: 'car', name: 'moskvich_6', title: 'Moskvich 6' },
       ...{ stars: 2, price: 2600, priceGroup: ['cheap'], equip: ['gearbox', 'leather'] },
+    },
+    {
+      ...{ group: 'car', name: 'chery_tiggo4_new', title: 'Chery Tiggo4 New' },
+      ...{ stars: 2, price: 2700, priceGroup: ['family'], equip: ['gearbox', 'leather', 'climat'] },
+    },
+    {
+      ...{ group: 'car', name: 'faw_bestune_t77', title: 'FAW Bestune T77' },
+      ...{ stars: 2, price: 2800, priceGroup: ['family'], equip: ['leather', 'climat'] },
     },
     {
       ...{ group: 'car', name: 'gac_gs3', title: 'GAC GS3' },
@@ -74,8 +65,8 @@
       ...{ stars: 2, price: 2900, priceGroup: ['family'], equip: ['gearbox', 'leather', 'climat'] },
     },
     {
-      ...{ group: 'car', name: 'jetour_dashing', title: 'Jetour Dashing' },
-      ...{ stars: 3, price: 3800, priceGroup: ['woman'], equip: ['massage', 'gearbox', 'leather', 'climat'] },
+      ...{ group: 'car', name: 'geely_coolray', title: 'Geely Coolray' },
+      ...{ stars: 2, price: 3000, priceGroup: ['woman'], equip: ['gearbox', 'climat', 'leather'] },
     },
     {
       ...{ group: 'car', name: 'exeed_lx', title: 'Exeed LX' },
@@ -83,11 +74,15 @@
     },
     {
       ...{ group: 'car', name: 'omoda_c5', title: 'Omoda C5' },
-      ...{ stars: 3, price: 3300, priceGroup: ['woman'], equip: ['gearbox', 'climat'] },
+      ...{ stars: 2, price: 3300, priceGroup: ['woman'], equip: ['gearbox', 'climat'] },
     },
     {
-      ...{ group: 'car', name: 'gac_gs8', title: 'GAC GS8' },
-      ...{ stars: 3, price: 4700, priceGroup: ['suv'], equip: ['gearbox', 'leather', 'climat'] },
+      ...{ group: 'car', name: 'baic_bj40', title: 'BAIC BJ40' },
+      ...{ stars: 2, price: 3400, priceGroup: ['suv'], equip: ['climat'] },
+    },
+    {
+      ...{ group: 'car', name: 'jetour_dashing', title: 'Jetour Dashing' },
+      ...{ stars: 3, price: 3800, priceGroup: ['woman'], equip: ['massage', 'gearbox', 'leather', 'climat'] },
     },
     {
       ...{ group: 'car', name: 'geely_monjaro', title: 'Geely Monjaro' },
@@ -98,20 +93,20 @@
       ...{ stars: 3, price: 4200, priceGroup: ['suv'], equip: ['gearbox', 'leather', 'climat'] },
     },
     {
-      ...{ group: 'car', name: 'baic_bj40', title: 'BAIC BJ40' },
-      ...{ stars: 2, price: 3400, priceGroup: ['suv'], equip: ['climat'] },
-    },
-    {
       ...{ group: 'car', name: 'changan_uni_k', title: 'Changan UNI-K' },
       ...{ stars: 3, price: 4500, priceGroup: ['family'], equip: ['gearbox', 'leather', 'climat'] },
     },
     {
-      ...{ group: 'car', name: 'voyah_free', title: 'Voyah Free' },
-      ...{ stars: 4, price: 5500, priceGroup: ['vip'], equip: ['massage', 'gearbox', 'leather', 'climat'] },
+      ...{ group: 'car', name: 'gac_gs8', title: 'GAC GS8' },
+      ...{ stars: 3, price: 4700, priceGroup: ['suv'], equip: ['gearbox', 'leather', 'climat'] },
     },
     {
-      ...{ group: 'car', name: 'tank_500', title: 'Tank 500' },
-      ...{ stars: 4, price: 7000, priceGroup: ['suv'], equip: ['massage', 'gearbox', 'leather', 'climat'] },
+      ...{ group: 'car', name: 'exeed_rx', title: 'Exeed RX' },
+      ...{ stars: 3, price: 5000, priceGroup: ['family'], equip: ['gearbox', 'leather', 'climat'] },
+    },
+    {
+      ...{ group: 'car', name: 'voyah_free', title: 'Voyah Free' },
+      ...{ stars: 4, price: 5500, priceGroup: ['vip'], equip: ['massage', 'gearbox', 'leather', 'climat'] },
     },
     {
       ...{ group: 'car', name: 'byd_han', title: 'BYD Han' },
@@ -120,6 +115,10 @@
     {
       ...{ group: 'car', name: 'byd_tang', title: 'BYD Tang' },
       ...{ stars: 4, price: 6500, priceGroup: ['vip'], equip: ['massage', 'gearbox', 'leather', 'climat'] },
+    },
+    {
+      ...{ group: 'car', name: 'tank_500', title: 'Tank 500' },
+      ...{ stars: 4, price: 7000, priceGroup: ['suv'], equip: ['massage', 'gearbox', 'leather', 'climat'] },
     },
     {
       ...{ group: 'car', name: 'lixiang_l7', title: 'LiXiang L7' },
@@ -192,7 +191,14 @@
       ...{ group: 'client', name: 'outdoors', title: 'Любители отдыха' },
       ...{ money: 1050, stars: 1, priceGroup: ['cheap', 'suv'] },
     },
-    { group: 'client', name: 'military', title: 'Военнослужащий', money: 900, stars: 1, priceGroup: ['cheap', 'suv'] },
+    {
+      group: 'client',
+      name: 'military',
+      title: 'Военнослужащий',
+      money: 900,
+      stars: 1,
+      priceGroup: ['cheap', 'suv'],
+    },
     { group: 'client', name: 'state', title: 'Бюджетники', money: 850, stars: 1, priceGroup: ['cheap'] },
     { group: 'client', name: 'pensioner', title: 'Пенсионер', money: 800, stars: 1, priceGroup: '*' },
     { group: 'client', name: 'topmanager', title: 'Топ-менеджер', money: 3300, stars: 4, priceGroup: ['vip'] },
@@ -265,5 +271,18 @@
     { group: 'credit', name: 'credit_30_ros', title: 'Взял кредит', pv: '30%' },
     { group: 'credit', name: 'credit_40_ros', title: 'Взял кредит', pv: '40%' },
     { group: 'credit', name: 'credit_50_ros', title: 'Взял кредит', pv: '50%' },
-  ],
-});
+  ];
+
+  const result = list
+    .filter((card) => !selectGroup || card.group === selectGroup)
+    .map((card) =>
+      api
+        ? {
+            price: selectGroup === 'car' ? parseInt(card.price) : undefined,
+            path: `${template}/${card.group}/${card.name}.png`,
+          }
+        : card
+    );
+
+  return result;
+};
