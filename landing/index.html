@@ -1,11 +1,9 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <title>Набор бизнес-карт "Автобизнес"</title>
-    <link
-      rel="stylesheet"
-      href="//cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css" />
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css" />
     <style>
       body {
         font-size: 18px;
@@ -26,9 +24,7 @@
         padding-bottom: 10%;
       }
     </style>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.7.2/css/lightgallery.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.7.2/css/lightgallery.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lightgallery/2.7.2/lightgallery.min.js"></script>
   </head>
   <body>
@@ -36,11 +32,11 @@
     <script src="//unpkg.com/docsify-edit-on-github@1.0.1/index.js"></script>
     <script>
       window.$docsify = {
-        themeColor: "#f4e205",
+        themeColor: '#f4e205',
         // repo: "Vanesstalkers/smartgames_auto",
-        name: "Автобизнес",
+        name: 'Автобизнес',
         // logo: '/assets/logo-studio.png',
-        homepage: "introduction.md",
+        homepage: 'introduction.md',
         auto2top: true,
         coverpage: true,
         executeScript: true,
@@ -53,7 +49,7 @@
         mergeNavbar: true,
         // maxLevel: 4,
         subMaxLevel: 3,
-        ga: "UA-112753287-1",
+        ga: 'UA-112753287-1',
         //   plugins: [
         //     EditOnGithubPlugin.create('https://github.com/adrianbj/TracyDebugger/tree/master/docs/')
         //   ],
@@ -66,8 +62,8 @@
         //   noData: "Ничего не найдено",
         // },
         pagination: {
-          previousText: "Назад",
-          nextText: "Вперед",
+          previousText: 'Назад',
+          nextText: 'Вперед',
         },
         plugins: [
           function gallery(hook, vm) {
@@ -85,7 +81,7 @@
               return html;
             });
             hook.doneEach(async function () {
-              const lgContainers = document.getElementsByClassName("inline-gallery-container");
+              const lgContainers = document.getElementsByClassName('inline-gallery-container');
               for (const lgContainer of lgContainers) {
                 if (!lgContainer) return;
                 const type = lgContainer.getAttribute('type');
@@ -94,7 +90,12 @@
                 const method = 'POST';
                 const headers = { 'Content-Type': 'application/json' };
                 const body = JSON.stringify({ path: 'game.api.cards', args: [{ selectGroup: type }] });
-                const images = await fetch(serverOrigin + '/api/action/public', { method, headers, mode: 'cors', body }).then((res) =>
+                const images = await fetch(serverOrigin + '/api/action/public', {
+                  method,
+                  headers,
+                  mode: 'cors',
+                  body,
+                }).then((res) =>
                   res.text().then((packet) => {
                     const {
                       result: { cards },
@@ -115,12 +116,14 @@
                   showMaximizeIcon: true,
                   // Append caption inside the slide item
                   // to apply some animation for the captions (Optional)
-                  appendSubHtmlTo: ".lg-item",
+                  appendSubHtmlTo: '.lg-item',
                   // Delay slide transition to complete captions animations
                   // before navigating to different slides (Optional)
                   // You can find caption animation demo on the captions demo page
                   slideDelay: 400,
-                  dynamicEl: images.map(name => ({ src: `${serverOrigin}/img/cards/${name}` })),
+                  dynamicEl: images.map((name) => ({
+                    src: `${serverOrigin}/img/cards/${typeof name === 'string' ? name : name.path}`,
+                  })),
                 });
 
                 // Since we are using dynamic mode, we need to programmatically open lightGallery
@@ -130,11 +133,11 @@
           },
           function pageFooter(hook, vm) {
             var footer = [
-              "<hr/>",
-              "<footer>",
+              '<hr/>',
+              '<footer>',
               '<span>Игровая платформа: <a href="https://smartgames.studio/#/" target="_blank">www.smartgames.studio</a> </span><div>SmartGames.Studio &copy; 2024</div>',
-              "</footer>",
-            ].join("");
+              '</footer>',
+            ].join('');
 
             hook.afterEach(function (html) {
               return html + footer;

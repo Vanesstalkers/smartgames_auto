@@ -1,4 +1,4 @@
-({ api, selectGroup, template } = {}) => {
+({ apiRequest, selectGroup, template } = {}) => {
   const list = [
     {
       ...{ group: 'car', name: 'lada_niva_travel', title: 'Lada Niva Travel' },
@@ -276,12 +276,14 @@
   const result = list
     .filter((card) => !selectGroup || card.group === selectGroup)
     .map((card) =>
-      api
-        ? {
-            price: selectGroup === 'car' ? parseInt(card.price) : undefined,
-            path: `${template}/${card.group}/${card.name}.png`,
-          }
-        : card
+      (apiRequest ?
+        {
+          price: selectGroup === 'car' ? parseInt(card.price) : undefined,
+          stars: selectGroup === 'car' ? card.stars : undefined,
+          priceGroup: selectGroup === 'car' ? card.priceGroup : undefined,
+          path: `${template}/${card.group}/${card.name}.png`,
+        } :
+        card)
     );
 
   return result;

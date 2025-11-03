@@ -15,15 +15,13 @@
       // добавить два уровня сложности: с подсказками (расчет текущей суммы сделки) и без них
     },
     itemsDefault: {
-      timer: (baseTimer) => {
-        return {
-          DEFAULT: baseTimer,
-          SECOND_OFFER: Math.ceil(baseTimer / 2),
-          PRESENT: Math.ceil(baseTimer / 3),
-          SHOW_RESULTS: Math.max(5, Math.ceil(baseTimer / 5)),
-          CARD_DROP: Math.max(5, Math.ceil(baseTimer / 5)),
-        };
-      },
+      timer: (baseTimer) => ({
+        DEFAULT: baseTimer,
+        SECOND_OFFER: Math.ceil(baseTimer / 2),
+        PRESENT: Math.ceil(baseTimer / 3),
+        SHOW_RESULTS: Math.max(5, Math.ceil(baseTimer / 5)),
+        CARD_DROP: Math.max(5, Math.ceil(baseTimer / 5)),
+      }),
       winMoneySum: 20000,
       cardsToRemove: [],
       playerHand: {
@@ -80,15 +78,13 @@
       // добавить два уровня сложности: с подсказками (расчет текущей суммы сделки) и без них
     },
     itemsDefault: {
-      timer: (baseTimer) => {
-        return {
-          DEFAULT: baseTimer,
-          SECOND_OFFER: Math.ceil(baseTimer / 2),
-          PRESENT: Math.ceil(baseTimer / 3),
-          SHOW_RESULTS: Math.max(5, Math.ceil(baseTimer / 5)),
-          // CARD_DROP: Math.max(5, Math.ceil(baseTimer / 5)),
-        };
-      },
+      timer: (baseTimer) => ({
+        DEFAULT: baseTimer,
+        SECOND_OFFER: Math.ceil(baseTimer / 2),
+        PRESENT: Math.ceil(baseTimer / 3),
+        SHOW_RESULTS: Math.max(5, Math.ceil(baseTimer / 5)),
+        // CARD_DROP: Math.max(5, Math.ceil(baseTimer / 5)),
+      }),
       auctionsPerRound: 4,
       winMoneySum: 15000,
       cardsToRemove: [],
@@ -143,12 +139,10 @@
       },
     },
     itemsDefault: {
-      timer: (baseTimer) => {
-        return {
-          DEFAULT: baseTimer,
-          SHOW_RESULTS: Math.max(15, Math.ceil(baseTimer / 2)),
-        };
-      },
+      timer: (baseTimer) => ({
+        DEFAULT: baseTimer,
+        SHOW_RESULTS: Math.max(15, Math.ceil(baseTimer / 2)),
+      }),
       cardsToRemove: [
         'for_work',
         'for_present',

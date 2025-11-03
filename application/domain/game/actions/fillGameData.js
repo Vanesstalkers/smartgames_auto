@@ -1,4 +1,4 @@
-(function (data) {
+(function(data) {
   const { configs } = domain.game;
   const { Card: deckItemClass } = this.defaultClasses();
 
