@@ -174,6 +174,7 @@
         { type: 'card', subtype: 'client', placement: 'main', hasDrop: true },
         { type: 'card', subtype: 'credit', placement: 'main', hasDrop: true },
         { type: 'card', subtype: 'feature', placement: 'main', hasDrop: true },
+        { type: 'card', subtype: 'zone_client', placement: 'table' },
         { type: 'card', subtype: 'zone_flop', placement: 'table' },
         { type: 'card', subtype: 'zone_turn', placement: 'table' },
         { type: 'card', subtype: 'zone_river', placement: 'table' },

@@ -110,12 +110,12 @@
     round.bigBlindPlayer.bet(bigBlindSum);
     round.currentPlayer = round.bigBlindPlayer.nextPlayer();
 
-    round.clientCard = decks.client.getRandomItem();
-    round.clientCard.moveToTarget(decks.zone_flop, { setVisible: true });
-    round.featureCard = decks.feature.getRandomItem();
-    round.featureCard.moveToTarget(decks.zone_turn);
-    round.creditCard = decks.credit.getRandomItem();
-    round.creditCard.moveToTarget(decks.zone_river);
+    round.flopCard = decks.service.getRandomItem();
+    round.flopCard.moveToTarget(decks.zone_flop);
+    round.turnCard = decks.service.getRandomItem();
+    round.turnCard.moveToTarget(decks.zone_turn);
+    round.riverCard = decks.service.getRandomItem();
+    round.riverCard.moveToTarget(decks.zone_river);
 
     round.currentPlayer.activate({
       notifyUser: 'Сделай свою ставку',

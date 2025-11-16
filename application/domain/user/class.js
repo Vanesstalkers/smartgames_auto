@@ -1,6 +1,6 @@
 () =>
   class AutoGameUser extends lib.game.userClass() {
-    async gameFinished({ gameId, gameType, playerEndGameStatus, fullPrice, roundCount }) {
+    async gameFinished({ gameType, playerEndGameStatus, fullPrice, roundCount }) {
       const {
         helper: { getTutorial },
         utils: { structuredClone: clone },
