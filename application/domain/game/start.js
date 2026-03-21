@@ -15,7 +15,7 @@ async () => {
   if (application.worker.id === 'W1') {
     db.redis.handlers.afterStart(async () => {
       async function connectToLobby() {
-        const lobbyData = await db.redis.get('smartgamesLobby', { json: true });
+        const lobbyData = await db.redis.get('smartgamesPortalLobby', { json: true });
         if (lobbyData) {
           const { channelName } = lobbyData;
           const gameTypes = lib.game.actions.getFilledGamesConfigs();
