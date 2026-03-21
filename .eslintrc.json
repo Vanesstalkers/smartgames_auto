@@ -6,7 +6,7 @@
   },
   "extends": "eslint:recommended",
   "parserOptions": {
-    "ecmaVersion": 2020
+    "ecmaVersion": "latest"
   },
   "globals": {
     "BigInt": true,
@@ -156,5 +156,25 @@
     "prefer-spread": ["error"],
     "rest-spread-spacing": ["error", "never"],
     "template-curly-spacing": ["error", "never"]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["*.mjs"],
+      "parserOptions": {
+        "sourceType": "module"
+      },
+      "rules": {
+        "strict": "off"
+      }
+    },
+    {
+      "files": ["front/src/**/*.js"],
+      "parserOptions": {
+        "sourceType": "module"
+      },
+      "rules": {
+        "strict": "off"
+      }
+    }
+  ]
 }

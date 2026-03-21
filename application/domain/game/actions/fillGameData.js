@@ -7,7 +7,7 @@
   if (data.store) this.store = data.store;
   this.logs(data.logs);
 
-  this.deckType = data.deckType;
+  this.gameCode = data.gameCode;
   this.gameType = data.gameType;
   this.gameConfig = data.gameConfig;
   this.gameTimer = data.gameTimer;

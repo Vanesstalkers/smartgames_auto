@@ -1,11 +1,11 @@
-(function ({ winningPlayer, canceledByUser } = {}) {
-  this.run('lib.endGame', { winningPlayer, canceledByUser, customFinalize: true });
+(function ({ winningPlayer, canceledByUser, message } = {}) {
+  this.run('lib.endGame', { winningPlayer, canceledByUser, customFinalize: true, message });
 
   this.broadcastAction('gameFinished', {
     gameId: this.id(),
-    gameType: this.deckType,
+    gameCode: this.gameCode,
     playerEndGameStatus: this.playerEndGameStatus,
-    fullPrice: winningPlayer?.money,
+    gameAward: this.run('getGameAward'),
     roundCount: this.round,
   });
 

@@ -12,7 +12,7 @@
       "lib",
       "db",
       "domain",
-      "config",
+      // "config",
       "metarhia"
     ]
   }

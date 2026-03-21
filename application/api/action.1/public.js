@@ -14,6 +14,8 @@
       if (!Array.isArray(args)) args = [args];
       return await method(context, ...args);
     } catch (err) {
+      if (typeof err === 'string') return new Error(`Method (path="${path}") error`, { code: err });
+
       console.error(err);
       try {
         context.client.emit('action/emit', {
@@ -39,6 +41,8 @@
           throw transportError;
         }
       }
+
+      return err;
     }
   },
 });

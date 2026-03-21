@@ -18,15 +18,15 @@ Vue.config.productionTip = false;
 
 const init = async () => {
   if (!window.name) window.name = Date.now() + Math.random();
-  window.tokenName = 'smartgames.session.token';
+
+  window.tokenName = 'smartgames.session.token-' + location.host + location.pathname;
+  if (window.tokenName.endsWith('/')) window.tokenName = window.tokenName.slice(0, -1);
 
   const protocol = location.protocol === 'http:' ? 'ws' : 'wss';
-  // направление на конкретный port нужно для reconnect (см. initSession) + для отладки
-  const port = new URLSearchParams(location.search).get('port') || serverFrontConfig.port;
 
   const serverHost =
     process.env.NODE_ENV === 'development' || new URLSearchParams(document.location.search).get('dev')
-      ? `${location.hostname}:${port}`
+      ? `${location.hostname}:${serverFrontConfig.port}`
       : `${location.hostname + location.pathname}api/`;
 
   const metacom = Metacom.create(`${protocol}://${serverHost}`);
@@ -36,9 +36,66 @@ const init = async () => {
   const { api } = metacom;
   window.metacom = metacom;
   window.api = api;
-  window.iframeEvents = [];
 
   await metacom.load('action');
+
+  class StoreQueue {
+    constructor(getTarget) {
+      this.queue = [];
+      this.processing = false;
+      this.getTarget = getTarget;
+    }
+
+    push(data) {
+      this.queue.push(data);
+      this.process();
+    }
+
+    process() {
+      if (this.processing || this.queue.length === 0) return;
+      this.processing = true;
+      const data = this.queue.shift();
+      mergeDeep({ target: this.getTarget(), source: data });
+      this.processing = false;
+      if (this.queue.length > 0) {
+        Promise.resolve().then(() => this.process());
+      }
+    }
+  }
+
+  let reconnectPollTimer = null;
+
+  const startReconnectPolling = () => {
+    if (reconnectPollTimer) return;
+    reconnectPollTimer = setInterval(async () => {
+      if (metacom.connected) {
+        clearInterval(reconnectPollTimer);
+        reconnectPollTimer = null;
+        return;
+      }
+      try {
+        const response = await fetch(`${location.protocol}//${serverHost}`, {
+          method: 'HEAD',
+          cache: 'no-store',
+        });
+        if (response.ok) {
+          try {
+            await metacom.open();
+          } catch (err) {
+            console.log(err);
+          }
+        }
+      } catch (err) {
+        // сервер всё ещё недоступен, просто ждём следующую попытку
+      }
+    }, 5000);
+  };
+
+  const stopReconnectPolling = () => {
+    if (!reconnectPollTimer) return;
+    clearInterval(reconnectPollTimer);
+    reconnectPollTimer = null;
+  };
 
   const state = {
     serverOrigin: `${location.protocol}//${serverHost}`,
@@ -47,26 +104,58 @@ const init = async () => {
     isMobile: false,
     isLandscape: true,
     isPortrait: false,
+    iframeMode: window !== window.parent,
     isFullscreen: false,
     gamePlaneNeedUpdate: false,
     guiScale: 1,
     store: {},
+    connection: {
+      connected: metacom.connected,
+      reconnecting: false,
+      lastError: null,
+      lastConnectedAt: null,
+      lastDisconnectedAt: null,
+      reconnectAttempts: 0,
+    },
     emit: {
       updateStore(data) {
-        mergeDeep({ target: state.store, source: data });
+        storeQueue.push(data);
       },
       alert(data, config) {
-        prettyAlert(data, config);
+        window.prettyAlert(data, config);
       },
-      logout() {
-        window.app.$set(window.app.$root.state, 'currentUser', '');
-        localStorage.removeItem(window.tokenName);
-        router.push({ path: `/` }).catch((err) => {
-          console.log(err);
-        });
+      returnToLobby() {
+        router.push({ path: '/' }).catch((err) => console.error(err));
       },
     },
   };
+
+  const storeQueue = new StoreQueue(() => state.store);
+
+  metacom.on('open', () => {
+    state.connection.connected = true;
+    state.connection.reconnecting = false;
+    state.connection.lastConnectedAt = Date.now();
+    // если до этого уже было зафиксировано отключение, значит это восстановление соединения
+    const hadDisconnect = state.connection.lastDisconnectedAt !== null;
+    stopReconnectPolling();
+    if (hadDisconnect) {
+      // полная перезагрузка страницы после восстановления коннекта
+      window.location.reload();
+    }
+  });
+
+  metacom.on('close', () => {
+    state.connection.connected = false;
+    state.connection.reconnecting = true;
+    state.connection.lastDisconnectedAt = Date.now();
+    state.connection.reconnectAttempts += 1;
+    startReconnectPolling();
+  });
+
+  metacom.on('error', (err) => {
+    state.connection.lastError = err && err.message ? err.message : String(err);
+  });
 
   api.action.on('emit', ({ eventName, data, config }) => {
     const event = state.emit[eventName];
@@ -74,16 +163,18 @@ const init = async () => {
     event(data, config);
   });
 
-  window.addEventListener('message', async function (e) {
+  window.addEventListener('message', async (e) => {
     const { path, args, routeTo, emit } = e.data;
     if (path && args) {
-      const result = await api.action.call({ path, args }).catch((err) => prettyAlert(err));
+      const result = await api.action.call({ path, args }).catch((err) => window.prettyAlert(err));
 
+      if (result?.returnToLobby === true) {
+        return router.push({ path: '/' }).catch((err) => location.reload());
+      }
       if (result?.logout === true) {
-        return await api.action.call({ path: 'lobby.api.logout' }).catch(prettyAlert);
+        return await api.action.call({ path: 'lobby.api.logout' }).catch(window.prettyAlert);
       }
       return result;
-
     }
 
     if (routeTo) {
@@ -107,74 +198,11 @@ const init = async () => {
     return next();
   });
 
-  const mixin = {
-    methods: {
-      async initSession(config, handlers) {
-        if (arguments.length < 2) {
-          handlers = config;
-          config = {};
-        }
-        const { success: onSuccess, error: onError } = handlers;
-
-        const token = localStorage.getItem(window.tokenName);
-        const session =
-          (await api.action
-            .public({
-              path: 'user.api.initSession',
-              args: [{ token, windowTabId: window.name, ...config }],
-            })
-            .catch(async (err) => {
-              if (typeof onError === 'function') await onError(err);
-            })) || {};
-
-        const { token: sessionToken, userId, reconnect } = session;
-        if (reconnect) {
-          const { workerId, ports } = reconnect;
-          const port = ports[workerId.substring(1) * 1 - 1];
-          location.href = `${location.origin}?port=${port}`;
-          return;
-        }
-
-        this.$set(this.$root.state, 'currentToken', sessionToken);
-        if (sessionToken && sessionToken !== token) localStorage.setItem(window.tokenName, sessionToken);
-        if (userId) {
-          this.$set(this.$root.state, 'currentUser', userId);
-          if (typeof onSuccess === 'function') await onSuccess(session);
-        }
-      },
-      async initSessionIframe() {
-        const searchParams = new URLSearchParams(document.location.search);
-        const userId = searchParams.get('userId');
-        const lobbyId = searchParams.get('lobbyId');
-        const token = searchParams.get('token');
-
-        await api.action.public({
-          path: 'user.api.initSession',
-          args: [
-            {
-              ...{ token, userId, lobbyId },
-              windowTabId: window.name,
-            },
-          ],
-        });
-
-        this.$set(this.$root.state, 'currentUser', userId);
-        this.$set(this.$root.state, 'currentLobby', lobbyId);
-        this.$set(this.$root.state, 'lobbyOrigin', searchParams.get('lobbyOrigin'));
-
-        if (window !== window.parent) {
-          const iframeCode = searchParams.get('iframeCode');
-          window.parent.postMessage({ emit: { name: 'iframeAlive', data: { iframeCode } } }, '*');
-        }
-      },
-    },
-  };
   window.state = state;
   window.app = new Vue({
     router,
-    mixins: [mixin],
     data: { state },
-    render: function (h) {
+    render(h) {
       return h(App);
     },
   });
@@ -196,11 +224,11 @@ const init = async () => {
     const height = window.innerHeight;
     state.innerWidth = screen.width;
     state.innerHeight = screen.height;
-    state.isMobile = isMobile() ? true : false;
+    state.isMobile = !!isMobile();
     state.isLandscape = height < width;
     state.isPortrait = !state.isLandscape;
     state.guiScale = width < 1000 ? 1 : width < 1500 ? 2 : width < 2000 ? 3 : width < 3000 ? 4 : 5;
-    state.isFullscreen = document.fullscreenElement ? true : false;
+    state.isFullscreen = !!document.fullscreenElement;
   };
 
   // window.addEventListener('orientationchange', async () => {
@@ -210,7 +238,7 @@ const init = async () => {
   window.addEventListener('resize', checkDevice);
   checkDevice();
 
-  document.addEventListener('contextmenu', function (event) {
+  document.addEventListener('contextmenu', (event) => {
     event.preventDefault();
   });
 };

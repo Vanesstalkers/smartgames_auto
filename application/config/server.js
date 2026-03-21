@@ -9,7 +9,8 @@
     start: 30000,
     stop: 5000,
     request: 5000,
-    watch: 1000,
+    watch: process.env.NODE_ENV === 'development' ? 500 : 1000,
+    test: 60000,
   },
   queue: {
     concurrency: 1000,
@@ -22,7 +23,7 @@
     timeout: 3000,
   },
   workers: {
-    pool: 2,
+    pool: 0,
     wait: 2000,
     timeout: 5000,
   },

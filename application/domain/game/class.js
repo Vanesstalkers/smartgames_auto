@@ -1,6 +1,7 @@
 (class Game extends lib.game.class() {
-  constructor() {
-    super(...arguments);
+  constructor(...args) {
+    super(...args);
+
     Object.assign(this, {
       ...lib.chat['@class'].decorate(),
       ...lib.game.decorators['@hasDeck'].decorate(),
@@ -11,14 +12,11 @@
       Deck: domain.game._objects.Deck,
       Card: domain.game._objects.Card,
     });
+
+    this.preventSaveFields(['decks']);
+    this.preventBroadcastFields(['decks']);
   }
 
-  getFullPrice() {
-    const baseSum = 1000;
-    const timerMod = 30000 / this.gameTimer;
-    const configMod = { blitz: 0.5, standart: 0.75, hardcore: 1 }[this.gameConfig];
-    return Math.floor(baseSum * timerMod * configMod);
-  }
   stepLabel(label) {
     return `Раунд ${this.round} (${label})`;
   }
