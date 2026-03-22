@@ -64,7 +64,7 @@
       round.creditCard.moveToTarget(creditZone);
       if (round.clientCardNew) delete round.clientCardNew;
 
-      round.clientMoney = this.calcClientMoney();
+      result.newRoundLogEvents.push(`Клиент: <a>${round.clientCard.title}</a> ищет автомобиль.`);
 
       this.activatePlayers({
         notifyUser: 'Сделай свое предложение клиенту (одно авто и сколько угодно сервисов)',
@@ -77,6 +77,8 @@
       result.roundStep = round.featureCard.replaceClient ? 'REPLACE_CLIENT' : 'FIRST_OFFER';
 
       for (const player of this.players({ ai: true })) {
+        if(!player.active) continue;
+
         const cards = [];
         switch (this.difficulty) {
           case 'weak':
@@ -115,7 +117,6 @@
         return this.checkWinnerAndFinishGame();
       }
 
-      round.clientMoney = this.calcClientMoney();
       round.clientCardNew.moveToTarget(decks.zone_client_dop);
 
       result.roundStep = 'FIRST_OFFER';
@@ -123,7 +124,13 @@
     }
 
     case 'FIRST_OFFER': {
+      round.clientMoney = this.calcClientMoney();
       this.showTableCards();
+
+      result.newRoundLogEvents.push(`Выявлена особенность клиента: <a>${round.featureCard.title}</a>.`);
+      result.newRoundLogEvents.push(
+        `Получено одобрение из банка на сумму <a>${new Intl.NumberFormat().format(1000 * round.clientMoney)}₽</a>.`
+      );
 
       const offersMap = {};
       for (const player of players) {
@@ -152,7 +159,7 @@
       }
 
       round.roundStepWinner = player;
-      result.newRoundLogEvents.push(`Клиента заинтересовал автомобиль "${carCard.title}".`);
+      result.newRoundLogEvents.push(`Клиента заинтересовал автомобиль <a>${carCard.title}</a>.`);
 
       // у всех карт, выложенных на стол, убираем возможность возврата карты в руку делать через блокировку deck нельзя, потому что позже в нее будут добавляться дополнительные карты
       for (const deck of player.select({ className: 'Deck', attr: { placement: 'table' } })) {
@@ -204,9 +211,9 @@
 
       if (fullPrice <= round.clientMoney) {
         result.newRoundLogEvents.push(
-          `Клиент приобрел автомобиль "${carTitle}" и сервисы за ${new Intl.NumberFormat().format(
+          `Клиент приобрел автомобиль <a>${carTitle}</a> и сервисы за <a>${new Intl.NumberFormat().format(
             (fullPrice || 0) * 1000
-          )}₽.`
+          )}₽</a>.`
         );
 
         const money = player.money + fullPrice;
@@ -215,8 +222,11 @@
         if (money >= winMoneySum) return this.run('endGame', { winningPlayer: player });
       } else {
         result.newRoundLogEvents.push(`Клиент отказался от сделки из-за превышения допустимой стоимости сервисов.`);
+        player.set({ eventData: { skipTurn: null } }); // если был выставлен после present-event
         delete round.roundStepWinner;
       }
+
+      player.decks.car.set({ eventData: { playDisabled: null } });
 
       result.statusLabel = this.stepLabel('Результаты раунда');
       result.roundStep = 'SHOW_RESULTS';
@@ -242,12 +252,6 @@
       }
 
       this.restorePlayersHands();
-
-      if (roundStepWinner) {
-        roundStepWinner.decks.car.set({
-          eventData: { playDisabled: null }, // мог быть выставлен playDisabled после present-event
-        });
-      }
 
       result.statusLabel = this.stepLabel('Окончание раунда');
       result.roundStep = 'ROUND_END';

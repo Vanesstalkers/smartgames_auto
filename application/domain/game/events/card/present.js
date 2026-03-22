@@ -77,11 +77,10 @@
       card.set({ eventData: { activeEvents: [], cardClass: null, buttonText: null } });
       card.moveToTarget(game.decks.service_drop);
 
-      this.emit('RESET');
-
       game.run('roundEnd', {}, player);
     },
-    SECOND_OFFER() {
+    PRESENT() {
+      // нельзя делать через ROUND_END, так как это отдельный step
       this.emit('RESET');
     },
   },

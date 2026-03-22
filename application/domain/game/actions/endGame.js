@@ -4,7 +4,7 @@
   this.broadcastAction('gameFinished', {
     gameId: this.id(),
     gameCode: this.gameCode,
-    playerEndGameStatus: this.playerEndGameStatus,
+    userEndGameStatusMap: this.userEndGameStatusMap,
     gameAward: this.run('getGameAward'),
     roundCount: this.round,
   });

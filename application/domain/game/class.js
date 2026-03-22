@@ -130,13 +130,6 @@
     }
   }
 
-  restorePlayersHands() {
-    const { roundStepWinner } = this.rounds[this.round];
-    for (const player of this.players()) {
-      if (player === roundStepWinner) continue; // карты победителя сбрасываются
-      player.returnTableCardsToHand();
-    }
-  }
   createClientDealDeck() {
     const { clientCard } = this.rounds[this.round];
     const { feature: featureDeck, credit: creditDeck } = this.decks;

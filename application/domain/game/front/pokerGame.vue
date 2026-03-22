@@ -297,9 +297,7 @@ export default {
   setup() {
     const gameGlobals = prepareGameGlobals({
       defaultDeviceOffset: 50, // сдвиг gamePlane влево от центра
-      gameCustomArgs: {
-        ...gameCustomArgs,
-      },
+      gameCustomArgs: { ...gameCustomArgs },
     });
 
     Object.assign(gameGlobals, pokerGameGlobals);

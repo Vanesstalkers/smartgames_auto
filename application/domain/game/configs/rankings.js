@@ -7,7 +7,7 @@
       sortFunc: (a, b) => ((a.money || -1) > (b.money || -1) ? -1 : 1),
       headers: [
         { code: 'games', title: 'Выиграно игр' },
-        { code: 'money', title: 'Заработано денег' },
+        { code: 'money', title: 'Заработано денег', format: 'money' },
       ],
     },
     topPlayers: {
