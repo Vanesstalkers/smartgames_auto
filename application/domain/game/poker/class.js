@@ -102,4 +102,55 @@
 
     return action.call(this, data, initPlayer);
   }
+
+  calcClientMoney() {
+    const { flopCard: clientCard, turnCard: featureCard, riverCard: creditCard } = this.rounds[this.round];
+    let clientMoney = clientCard.money;
+
+    if (featureCard.money && featureCard.target === 'client') {
+      clientMoney += parseInt(featureCard.money);
+    }
+    clientMoney *= Math.floor(1000 / parseInt(creditCard.pv)) / 10; // точность до 1 знака после запятой
+
+    return clientMoney;
+  }
+
+  selectBestOffer(offersMap) {
+    const { flopCard: clientCard, turnCard: featureCard, clientMoney } = this.rounds[this.round];
+    const offers = [];
+
+    const { stars, priceGroup } = clientCard;
+
+    for (const { player, carCard, serviceCards } of Object.values(offersMap)) {
+      let offer;
+      try {
+        offer = this.calcOffer({ player, carCard, serviceCards, featureCard });
+        offer.carCard = carCard;
+        offer.serviceCards = serviceCards;
+      } catch (err) {
+        if (err === 'no_car') continue;
+        else throw err;
+      }
+
+      if (
+        offer.fullPrice <= clientMoney &&
+        offer.stars >= stars &&
+        (priceGroup === '*' || offer.priceGroup.find((group) => priceGroup.includes(group)))
+      ) {
+        offers.push(offer);
+      }
+    }
+
+    const bestOffer = { price: clientMoney, stars: 0 };
+    for (const { player, ...offer } of offers) {
+      if (bestOffer.stars < offer.stars || (bestOffer.stars == offer.stars && bestOffer.price > offer.fullPrice)) {
+        bestOffer.carCard = offer.carCard;
+        bestOffer.serviceCards = offer.serviceCards;
+        bestOffer.price = offer.fullPrice;
+        bestOffer.player = player;
+        bestOffer.stars = offer.stars;
+      }
+    }
+    return { bestOffer, relevantOffers: offers};
+  }
 });

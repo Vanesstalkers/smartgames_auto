@@ -23,7 +23,7 @@
       });
     }
 
-    lib.store.broadcaster.publishData(`gameuser-${player.userId}`, {
+    lib.store.broadcaster.publishData(`user-${player.userId}`, {
       helper: {
         text: `
           ${this.data.dialogMessage} У тебя есть выбор: подарить (один из сервисов на выбор), либо пропустить следующий раунд. 
@@ -60,13 +60,14 @@
       });
 
       if (this.presentNotGiven) {
-        game.logs({ msg: `Игрок {{player}} не стал дарить подарок и пропускает следующий ход.`, userId: player.userId });
+        game.logs({
+          msg: `Игрок {{player}} не стал дарить подарок и пропускает следующий ход.`,
+          userId: player.userId,
+        });
         player.set({ eventData: { skipTurn: true } });
       }
 
-      lib.store.broadcaster.publishData(`gameuser-${player.userId}`, {
-        helper: null,
-      });
+      lib.store.broadcaster.publishData(`user-${player.userId}`, { helper: null });
 
       this.destroy();
     },
