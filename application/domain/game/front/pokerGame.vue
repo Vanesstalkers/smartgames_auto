@@ -823,7 +823,7 @@ export default {
   },
 };
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
 @import '@/mixins.scss';
 
 @import './css/game.css';

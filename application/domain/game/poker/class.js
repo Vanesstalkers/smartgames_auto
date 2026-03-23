@@ -57,6 +57,8 @@
       this.toggleEventHandlers('PLAYER_JOIN', { targetId: playerId }, player);
 
       await this.saveChanges();
+
+      return { playerId };
     } catch (exception) {
       console.error(exception);
       lib.store.broadcaster.publishAction.call(this, `user-${userId}`, 'broadcastToSessions', {
