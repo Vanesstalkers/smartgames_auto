@@ -111,7 +111,6 @@
       if (reset.includes([...keyPath, key].join('.')) && source[key] === null) source[key] = {};
 
       if (masterObj[key] == null) {
-        // masterObj[key] === null || masterObj[key] === undefined
         if (source[key] !== null) {
           if (typeof source[key] === 'object' && !Array.isArray(source[key])) {
             if (!target[key]) target[key] = {};
@@ -137,33 +136,30 @@
         else target[key] = source[key];
       } else if (typeof masterObj[key] === 'object') {
         if (deleteNull && source[key] === null) delete target[key];
-        else {
-          if (source[key] === null) target[key] = null;
-          else {
-            if (!target[key]) target[key] = {};
-            lib.utils.mergeDeep({
-              target: target[key],
-              source: source[key],
-              masterObj: masterObj[key],
-              config,
-              keyPath: [...keyPath, key],
-            });
-            if (removeEmptyObject && Object.keys(target[key]).length === 0) {
-              // изменений во вложенном объекте нет (удаляем, чтобы он не перетерся в БД)
-              delete target[key];
-            }
+        else if (source[key] === null) {
+          target[key] = null;
+        } else {
+          if (!target[key]) target[key] = {};
+          lib.utils.mergeDeep({
+            target: target[key],
+            source: source[key],
+            masterObj: masterObj[key],
+            config,
+            keyPath: [...keyPath, key],
+          });
+          if (removeEmptyObject && Object.keys(target[key]).length === 0) {
+            // изменений во вложенном объекте нет (удаляем, чтобы он не перетерся в БД)
+            delete target[key];
           }
         }
       } else if (masterObj[key] !== source[key]) {
         if (deleteNull && source[key] === null) delete target[key];
         else target[key] = source[key];
-      } else {
+      } else if (target[key] === null) {
         // тут значения, которые не изменились
 
-        if (target[key] === null) {
-          // target[key] мог быть обнулен через reset
-          target[key] = source[key];
-        }
+        // target[key] мог быть обнулен через reset
+        target[key] = source[key];
       }
     }
   },
@@ -172,7 +168,8 @@
     return value && typeof value === 'object' && value._bsontype === 'ObjectID';
   },
   isPlainObj(value) {
-    return value?.constructor?.prototype?.hasOwnProperty('isPrototypeOf');
+    const proto = value?.constructor?.prototype;
+    return proto && Object.prototype.hasOwnProperty.call(proto, 'isPrototypeOf');
   },
 
   flatten(obj, keys = []) {
@@ -180,14 +177,16 @@
     // ??? проверить, нужен ли baseKey
     const baseKey = Object.values(keys).join('.');
     if (baseKey) acc[baseKey] = {};
-    return Object.keys(obj).reduce((acc, key) => {
-      return Object.assign(
-        acc,
-        lib.utils.isPlainObj(obj[key])
-          ? lib.utils.flatten(obj[key], keys.concat(key))
-          : { [keys.concat(key).join('.')]: lib.utils.isObjectID(obj[key]) ? obj[key].toString() : obj[key] }
-      );
-    }, acc);
+    return Object.keys(obj).reduce(
+      (acc, key) =>
+        Object.assign(
+          acc,
+          lib.utils.isPlainObj(obj[key])
+            ? lib.utils.flatten(obj[key], keys.concat(key))
+            : { [keys.concat(key).join('.')]: lib.utils.isObjectID(obj[key]) ? obj[key].toString() : obj[key] }
+        ),
+      acc
+    );
   },
 
   unflatten(data) {
@@ -314,11 +313,11 @@
     // structuredClone не умеет копировать функции и переводить их в строки (+ он в метархии все равно не работает)
     const replacer = convertFuncToString
       ? (key, value) => {
-        if (typeof value === 'function') return value.toString();
-        return value;
-      }
+          if (typeof value === 'function') return value.toString();
+          return value;
+        }
       : null;
-    return JSON.parse(JSON.stringify(data, replacer));
+    return JSON.parse(JSON.stringify(data, replacer)); // ! при переписывание необходимо учесть, что undefined-значения при клонировании должны удаляться
   },
   keysToNull(obj) {
     return Object.fromEntries(Object.keys(obj).map((key) => [key, null]));
@@ -327,7 +326,7 @@
     const result = {};
 
     Object.keys(obj1).forEach((key) => {
-      if (obj2.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(obj2, key)) {
         result[key] = Math.abs(obj1[key] - obj2[key]);
       }
     });
@@ -357,9 +356,7 @@
     }
 
     async save() {
-      return typeof this.#saveCallback === 'function'
-        ? await this.#saveCallback(this)
-        : Promise.resolve();
+      return typeof this.#saveCallback === 'function' ? await this.#saveCallback(this) : Promise.resolve();
     }
 
     add(key, element, { active = true } = {}) {
@@ -383,12 +380,9 @@
       do {
         nextIndex = (nextIndex + direction + length) % length;
         nextKey = this.#keys[nextIndex];
-        
+
         if (i++ > this.#keys.length) throw new Error('CircularArray next key not found');
-      } while (
-        !this.#items.get(nextKey).active ||
-        this.#removedKeys.has(nextKey)
-      );
+      } while (!this.#items.get(nextKey).active || this.#removedKeys.has(nextKey));
 
       return nextKey;
     }
@@ -412,7 +406,7 @@
         if (fixState) {
           this.#fixedState = {
             key: forcedKey,
-            data: this.#items.get(forcedKey).data
+            data: this.#items.get(forcedKey).data,
           };
         }
         return this.#items.get(forcedKey).data;
@@ -427,7 +421,7 @@
       if (fixState) {
         this.#fixedState = {
           key: nextKey,
-          data: this.#items.get(nextKey).data
+          data: this.#items.get(nextKey).data,
         };
       }
 
@@ -463,7 +457,7 @@
       if (fixState) {
         this.#fixedState = {
           key: this.currentKey,
-          data: this.#items.get(this.currentKey).data
+          data: this.#items.get(this.currentKey).data,
         };
       }
 
@@ -565,11 +559,8 @@
       return {
         keys: this.#keys,
         currentKey: this.currentKey,
-        items: Object.fromEntries(
-          Array.from(this.#items.entries())
-            .map(([key, { active }]) => [key, { active }])
-        )
+        items: Object.fromEntries(Array.from(this.#items.entries()).map(([key, { active }]) => [key, { active }])),
       };
     }
-  }
+  },
 });

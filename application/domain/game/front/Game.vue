@@ -1,25 +1,34 @@
 <template>
-  <game :defaultScaleMinVisibleWidth="1000" :planeScaleMin="1" :planeScaleMax="5">
-    <template #helper-guru="{ menuWrapper, menuButtonsMap } = {}" />
+  <game
+    :debug="false"
+    :gamePlaneFillWidth="[0.4, 0.4, 0.4, 0.4, 0.4][state.guiScale - 1]"
+    :planeScaleMax="[1.5, 2, 3, 4, 6][state.guiScale - 1]"
+  >
+    <template #helper-guru="{ menuWrapper, menuButtonsMap } = {}">
+      <tutorial :game="game" class="scroll-off" :customMenu="customMenu({ menuWrapper, menuButtonsMap })" />
+    </template>
 
     <template #gameplane="{
       /* game = {}, gamePlaneScale */
     } = {}">
     </template>
 
-    <template #gameinfo="{ } = {}">
+    <template #gameinfo="{} = {}">
       <div class="wrapper">
         <div class="game-status-label">
-          {{ statusLabel }}
+          {{ game.statusLabel }}
+          <small v-if="game.status === 'RESTORING_GAME'">{{ subStatusLabel }}</small>
         </div>
-        <div
-          v-for="deck in deckList"
-          :key="deck._id"
-          :class="['deck', deck.code.includes('_drop') ? 'drop' : '']"
-          :code="deck.code"
-        >
-          <div class="card-event">
-            {{ Object.keys(deck.itemMap).length }}
+        <div class="deck-list">
+          <div
+            v-for="deck in deckList"
+            :key="deck._id"
+            :class="['deck', deck.code.includes('_drop') ? 'drop' : '']"
+            :code="deck.code"
+          >
+            <div class="card-event">
+              {{ Object.keys(deck.itemMap).length }}
+            </div>
           </div>
         </div>
       </div>
@@ -64,7 +73,7 @@ export default {
   },
   props: {},
   setup() {
-    const gameGlobals = prepareGameGlobals();
+    const gameGlobals = prepareGameGlobals({ defaultDeviceOffset: 500 });
     provide('gameGlobals', gameGlobals);
     return gameGlobals;
   },
@@ -89,11 +98,13 @@ export default {
     showPlayerControls() {
       return this.game.status === 'IN_PROCESS' || this.game.status === 'PREPARE_START';
     },
+
     restoringGameState() {
       return this.game.status === 'RESTORING_GAME';
     },
-    statusLabel() {
-      return this.restoringGameState ? 'Восстановление игры' : this.game.statusLabel;
+    subStatusLabel() {
+      const players = Object.values(this.store.player || {});
+      return `Подключилось ${players.filter((player) => player.ready).length} из ${players.length} игроков`;
     },
     playerIds() {
       const ids = Object.keys(this.game.playerMap || {}).sort((id1, id2) => (id1 > id2 ? 1 : -1));
@@ -111,19 +122,27 @@ export default {
         ).length || 0
       );
     },
-
-    fullPrice() {
-      const { gameTimer, gameConfig } = this.game;
-      const baseSum = 1000; // TO_CHANGE (меняем на свою сумму дохода за игру)
-      const timerMod = 30000 / gameTimer;
-      const configMod = { blitz: 0.5, standart: 0.75, hardcore: 1 }[gameConfig];
-      return Math.floor(baseSum * timerMod * configMod);
-    },
     deckList() {
       return Object.keys(this.game.deckMap).map((id) => this.store.deck?.[id]) || [];
     },
   },
-  methods: {},
+  methods: {
+    customMenu({ menuWrapper, menuButtonsMap } = {}) {
+      if (!menuButtonsMap) return [];
+
+      const { cancel, restore, tutorials, helperLinks, leave } = menuButtonsMap();
+      const fillTutorials = tutorials({
+        showList: [
+          { title: 'Стартовое приветствие игры', action: { tutorial: 'game-tutorial-start' } },
+          { title: 'Управление игровым полем', action: { tutorial: 'game-tutorial-gamePlane' } },
+        ],
+      });
+
+      return menuWrapper({
+        buttons: [cancel(), restore(), fillTutorials, helperLinks({ inGame: true }), leave()],
+      });
+    },
+  },
 };
 </script>
 <style lang="scss">

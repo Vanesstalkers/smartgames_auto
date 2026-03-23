@@ -4,7 +4,6 @@
   "types": "types/global.d.ts",
   "scripts": {
     "dev": "set NODE_ENV=development&& node server.js",
-    "devi": "set NODE_ENV=development&& node --inspect server.js",
     "buildAll": "cd front && npm ci && npm run build && cd .. && npm ci",
     "buildFront": "cd front && npm run build",
     "test": "npm run lint && npm run types && node test/system.js",
@@ -30,7 +29,7 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "impress": "^3.0.3",
+    "impress": "^3.1.2",
     "ioredis": "^5.3.1",
     "metasql": "^3.0.0-alpha.2",
     "midjourney": "^4.3.11",

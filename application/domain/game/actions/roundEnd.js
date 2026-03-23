@@ -1,6 +1,6 @@
 (function ({ timerOverdue = false } = {}, initPlayer) {
   this.updateTimerOverdueCounter(timerOverdue);
-  
+
   if (initPlayer) initPlayer.deactivate();
 
   for (const player of this.players({ ai: true })) {
@@ -16,5 +16,5 @@
     this.toggleEventHandlers(this.roundStep, {}, player);
   }
 
-  this.run('roundStart'); // если убирать это отсюда, то нужно не забыть про handleAction по кнопке с фронта
+  this.run('roundStart', { preventNotifyUser: true }); // если убирать это отсюда, то нужно не забыть про handleAction по кнопке с фронта
 });
