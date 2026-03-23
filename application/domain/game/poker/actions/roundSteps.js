@@ -126,12 +126,12 @@
       round.bigBlindPlayer.bet(bigBlindSum);
       round.currentPlayer = round.bigBlindPlayer.nextPlayer();
 
-      // round.clientCard = decks.client.getRandomItem();
-      // round.clientCard.moveToTarget(decks.zone_flop, { setVisible: true });
-      // round.featureCard = decks.feature.getRandomItem();
-      // round.featureCard.moveToTarget(decks.zone_turn);
-      // round.creditCard = decks.credit.getRandomItem();
-      // round.creditCard.moveToTarget(decks.zone_river);
+      // round.flopCard = decks.client.getRandomItem();
+      round.flopCard.moveToTarget(decks.zone_flop, { setVisible: true });
+      // round.turnCard = decks.feature.getRandomItem();
+      round.turnCard.moveToTarget(decks.zone_turn);
+      // round.riverCard = decks.credit.getRandomItem();
+      round.riverCard.moveToTarget(decks.zone_river);
 
       round.currentPlayer.activate({
         notifyUser: 'Сделай свою ставку',
@@ -160,19 +160,19 @@
       if (allPlayersReady) {
         switch (round.step) {
           case 'flop':
-            // zoneTurn.setItemVisible(round.featureCard);
+            zoneTurn.setItemVisible(round.turnCard);
             round.step = 'turn';
             break;
 
           case 'turn':
-            // zoneRiver.setItemVisible(round.creditCard);
+            zoneRiver.setItemVisible(round.riverCard);
             round.step = 'river';
             break;
 
           case 'river':
             const offersMap = {};
             for (const player of players) {
-              // Object.assign(offersMap, player.getAvailableOffers({ clientCard: round.clientCard }));
+              Object.assign(offersMap, player.getAvailableOffers({ flopCard: round.flopCard }));
             }
 
             // const { bestOffer, relevantOffers } = this.run('selectBestOffer', { offersMap: getOffersMap() });
@@ -242,11 +242,11 @@
     }
 
     case 'ROUND_END': {
-      // const { clientCard, featureCard, creditCard } = round;
+      const { flopCard, turnCard, riverCard } = round;
 
-      // clientCard.moveToDrop();
-      // featureCard.moveToDrop();
-      // creditCard.moveToDrop();
+      flopCard.moveToDrop();
+      turnCard.moveToDrop();
+      riverCard.moveToDrop();
 
       for (const player of players) {
         player.decks.hand.moveAllItems({ toDrop: true });
