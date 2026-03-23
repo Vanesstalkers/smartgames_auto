@@ -1,4 +1,6 @@
 (class PokerGame extends domain.game.class {
+  startTutorialName = 'game-poker-tutorial-start';
+  
   constructor() {
     super(...arguments);
 
@@ -39,32 +41,21 @@
       const player = restoredPlayer || this.getFreePlayerSlot();
       if (!player) throw new Error('Свободных мест не осталось');
 
-      const gameId = this.id();
-      const playerId = player.id();
-
       player.set({ userId, userName });
-      lib.store.broadcaster.publishAction.call(this, `gameuser-${userId}`, 'joinGame', {
-        gameId,
-        playerId,
-        deckType: this.deckType,
-        gameType: this.gameType,
-        gameStartTutorialName: 'game-poker-tutorial-start',
-      });
-
       this.logs({ msg: `Игрок {{player}} присоединился к игре.`, userId });
 
       // инициатором события был установлен первый player в списке, который совпадает с активным игроком на старте игры
-      this.toggleEventHandlers('PLAYER_JOIN', { targetId: playerId }, player);
+      this.toggleEventHandlers('PLAYER_JOIN', { targetId: player.id() }, player);
 
       await this.saveChanges();
 
-      return { playerId };
+      return { playerId: player.id() };
     } catch (exception) {
       console.error(exception);
       lib.store.broadcaster.publishAction.call(this, `user-${userId}`, 'broadcastToSessions', {
         data: { message: exception.message, stack: exception.stack },
       });
-      lib.store.broadcaster.publishAction.call(this, `gameuser-${userId}`, 'logout'); // инициирует hideGameIframe
+      lib.store.broadcaster.publishAction.call(this, `user-${userId}`, 'returnToLobby');
     }
   }
 
@@ -82,7 +73,7 @@
         } else throw exception;
       }
     }
-    lib.store.broadcaster.publishAction.call(this, `gameuser-${userId}`, 'leaveGame', {});
+    lib.store.broadcaster.publishAction.call(this, `user-${userId}`, 'leaveGame', {});
   }
 
   run(actionPath, data, initPlayer) {
