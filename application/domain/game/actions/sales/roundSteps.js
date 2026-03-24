@@ -144,7 +144,7 @@
         };
       }
 
-      const { bestOffer, relevantOffers } = this.selectBestOffer(offersMap);
+      const { bestOffer, relevantOffers } = this.selectBestOffer({ offersMap });
       const { player, carCard } = bestOffer;
 
       if (!player) {

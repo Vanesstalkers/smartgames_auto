@@ -160,7 +160,7 @@
         }
 
         round.clientMoney = this.calcClientMoney();
-        const { bestOffer } = this.selectBestOffer(offersMap);
+        const { bestOffer } = this.selectBestOffer({ offersMap });
         const { player: winner, carCard, serviceCards } = bestOffer;
 
         if (winner) {

@@ -419,7 +419,7 @@
       round.clientMoney = this.calcClientMoney();
       const {
         bestOffer: { player, carCard, serviceCards },
-      } = this.selectBestOffer(offers);
+      } = this.selectBestOffer({ offersMap: offers });
 
       if (!player) {
         result.statusLabel = this.stepLabel('Оценка предложений');
