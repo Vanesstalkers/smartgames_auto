@@ -7,20 +7,78 @@
     <link rel="icon" href="<%= BASE_URL %>favicon.ico" />
     <title>SmartGames.Studio</title>
     <style>
-      html {
-        background: url('./bg.png');
-        background-size: cover;
+      html,
+      body {
+        height: 100%;
       }
+
+      html {
+        position: relative;
+        background-color: #10131a;
+      }
+
+      html::before,
+      html::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        pointer-events: none;
+        z-index: -1;
+      }
+
+      html::before {
+        background-image: url('./bg-lobby-lqip.png');
+        filter: grayscale(1) opacity(0.2);
+      }
+
+      html::after {
+        background-image: url('./bg-lobby.png');
+        filter: grayscale(1);
+        opacity: 0;
+        transition: opacity 360ms ease-in-out;
+      }
+
+      html.bg-ready::after {
+        opacity: 1;
+      }
+
       body {
         font-family: 'Conv_segoeuil';
         font-size: 13px;
         overflow: hidden;
         position: relative;
-        height: 100%;
         width: 100%;
         margin: 0px;
       }
     </style>
+    <!-- Yandex.Metrika counter -->
+    <script type="text/javascript" >
+      (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+      m[i].l=1*new Date();
+      for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+      k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+      (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+      ym(97055512, "init", {
+          clickmap:true,
+          trackLinks:true,
+          accurateTrackBounce:true
+      });
+    </script>
+    <noscript><div><img src="https://mc.yandex.ru/watch/97055512" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+    <!-- /Yandex.Metrika counter -->
+    <script>
+      (function preloadBackground() {
+        var image = new Image();
+        image.src = './bg-lobby.png';
+        image.onload = function onBackgroundLoaded() {
+          document.documentElement.classList.add('bg-ready');
+        };
+      })();
+    </script>
   </head>
   <body>
     <noscript>
