@@ -7,5 +7,5 @@
   const configMod = {}[this.gameConfig] || 1;
   const difficultyMod = {}[this.difficulty] || 1;
 
-  return Math.floor(baseSum * timerMod * configMod * difficultyMod); // TO CHANGE (меняем на свою сумму логику расчета награды за игру)
+  return Math.floor(baseSum * timerMod * configMod * difficultyMod); // TO_CHANGE (меняем на свою сумму логику расчета награды за игру)
 });
