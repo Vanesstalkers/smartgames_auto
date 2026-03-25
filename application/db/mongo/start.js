@@ -3,7 +3,7 @@ async () => {
     // useUnifiedTopology: true
   });
   await client.connect();
-  db.mongo.client = client.db('xaoc3');
+  db.mongo.client = client.db(config.mongo.database);
   db.mongo.ObjectID = (id) => new npm.mongodb.ObjectId(id);
 
   if (application.worker.id === 'W1') {

@@ -14,6 +14,9 @@
       if (!Array.isArray(args)) args = [args];
       return await method(context, ...args);
     } catch (err) {
+      if (err === 'new_user') {
+        return { status: 'ok', newUser: true };
+      } else console.error(err);
       if (typeof err === 'string') return new Error(`Method (path="${path}") error`, { code: err });
 
       console.error(err);
