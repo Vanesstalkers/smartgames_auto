@@ -1,6 +1,6 @@
 (class PokerGame extends domain.game.class {
   startTutorialName = 'game-poker-tutorial-start';
-  
+
   constructor() {
     super(...arguments);
 
