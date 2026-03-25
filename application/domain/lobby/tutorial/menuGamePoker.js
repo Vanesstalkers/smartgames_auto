@@ -35,18 +35,10 @@
   },
   steps: {
     init: {
-      text: `
-        Чтобы попасть в корпоративный режим игры необходимо в&nbsp;ИГРОВОЙ&nbsp;КОМНАТЕ последовательно выбрать <a>Автобизнес&nbsp;>&nbsp;Бизнес-покер</a>.  
-      `,
-      actions: { before: async (data) => await data.utils.transferToConfigBlock(data) },
-      active: { selector: '.breadcrumbs', css: { boxShadow: 'inset 0 0 20px 10px white', padding: '30px 0px' } },
-      buttons: [{ text: 'Продолжай', step: 'poker' }],
-    },
-    poker: {
       initialStep: true,
       text: `
         Данный режим предназначен проведения тимбилдинга в формате карточной игры, напоминающей покер.
-        Для получения практики в определении выигрышных комбинаций рекомендуется предварительно сыграть несколько игр против компьютера (<a>Авто-продажи -> Один игрок</a>).
+        Для получения практики в определении выигрышных комбинаций рекомендуется предварительно сыграть несколько игр против компьютера.
       `,
       actions: { before: async (data) => await data.utils.transferToConfigBlock(data) },
       active: '.game-config-block .select-btn',
