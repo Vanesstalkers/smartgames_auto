@@ -9,5 +9,10 @@
     "noEmit": true,
     "skipLibCheck": true
   },
-  "include": ["types/**/*.ts", "application/**/*", "application/domain/game/.GameObject.js"]
+  "include": [
+    "types/**/*.ts",
+    "types/**/*.d.ts",
+    "application/**/*",
+    "application/domain/game/.GameObject.js"
+  ]
 }
