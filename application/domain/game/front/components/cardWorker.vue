@@ -88,10 +88,15 @@ export default {
       const style = {};
       const gender = this.userData.gender;
 
+      if(this.player.avatarUrl) {
+        style.backgroundImage = `url(${this.player.avatarUrl}.png)`;
+        return style;
+      }
+
       const defaultImage = `_default/${gender}_empty`;
       const avatarCode = this.userData.avatarCode || this.player.avatarsMap?.[gender] || defaultImage;
 
-      style.backgroundImage = `url(${this.state.lobbyOrigin}/img/workers/${avatarCode}.png)`;
+      style.backgroundImage = `url(${this.state.serverOrigin}/img/workers/${avatarCode}.png)`;
 
       return style;
     },

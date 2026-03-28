@@ -292,7 +292,8 @@ export default {
 
 #game:not(.mobile-view) .hand-cards-list {
   .hand-cards {
-    max-height: 250px;
+    max-height: 0px;
+    align-items: flex-end;
     flex-direction: row;
 
     &.at-table {

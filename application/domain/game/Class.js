@@ -1,4 +1,4 @@
-(class Game extends lib.game.class() {
+(class Game extends lib.game.Class() {
   constructor(...args) {
     super(...args);
 
