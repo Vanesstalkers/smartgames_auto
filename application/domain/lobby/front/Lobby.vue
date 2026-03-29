@@ -1,5 +1,5 @@
 <template>
-  <lobby :gameServerTitle="gameServerTitle">
+  <lobby :gameServerTitle="gameServerTitle" :disableAvatarSelection="true">
     <template v-if="lobby.__gameServerConfig" #menu-item-game>
       <games class="menu-item-content" :gamesMap="gamesMap" :defaultGameCode="defaultGameCode">
         <template #tutorial-games>

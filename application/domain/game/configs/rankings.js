@@ -1,5 +1,4 @@
 (code) => {
-  // TO_CHANGE (меняем на свой список рейтингов)
   const list = {
     richestPlayers: {
       title: 'Самые богатые',
