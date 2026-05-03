@@ -8,7 +8,7 @@
       `,
       buttons: [
         { text: 'Продолжай', step: 'deckClient' },
-        { text: 'Я разберусь', step: 'exit' },
+        { text: 'Я разберусь', step: 'exit', exit: true },
       ],
     },
     deckClient: {

@@ -181,4 +181,36 @@
       ],
     },
   },
+  flashcards: {
+    ...{ title: 'Интеллект-карты', icon: ['fas', 'fa-brain'] },
+    items: {
+      default: {
+        title: 'Стандарт',
+        singlePlayer: true,
+      },
+    },
+    itemsDefault: {
+      timer: (baseTimer) => ({
+        DEFAULT: baseTimer,
+        SHOW_RESULTS: Math.max(15, Math.ceil(baseTimer / 2)),
+      }),
+      cardsToRemove: [],
+      playerHand: {},
+      autoFinishAfterRoundsOverdue: 10,
+      playerList: [
+        {
+          _code: 1,
+          deckList: [],
+        },
+      ],
+      deckList: [
+        { type: 'card', subtype: 'car', placement: 'main', hasDrop: true },
+        { type: 'card', subtype: 'service', placement: 'main', hasDrop: true },
+        { type: 'card', subtype: 'client', placement: 'main', hasDrop: true },
+        { type: 'card', subtype: 'credit', placement: 'main', hasDrop: true },
+        { type: 'card', subtype: 'feature', placement: 'main', hasDrop: true },
+        { type: 'card', subtype: 'table', placement: 'table', access: 'all' },
+      ],
+    },
+  },
 });

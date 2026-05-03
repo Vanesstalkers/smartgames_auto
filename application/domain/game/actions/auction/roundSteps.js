@@ -465,7 +465,7 @@
       result.statusLabel = this.stepLabel('Подарок клиенту');
       result.roundStep = 'PRESENT';
 
-      if (player.findEvent({ name: 'present' })) {
+      if (player.findEvent({ code: 'present' })) {
         result.newRoundLogEvents.push(`Происходит выбор подарка клиенту.`);
         player.activate();
 

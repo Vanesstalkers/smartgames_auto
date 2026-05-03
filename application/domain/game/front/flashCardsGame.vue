@@ -16,13 +16,8 @@
     </template>
 
     <template #gameplane="{} = {}">
-      <div :class="['game-zones', 'has-tutorial-example']">
-        <div v-if="showPlayerControls" class="game-info">
-          {{ `В банке: ${roundData.betSum}₽` }}
-          <br />
-          {{ `Текущая ставка: ${roundData.maxBet}₽` }}
-        </div>
-        <div v-for="deck in tableCardZones" :key="deck._id" :code="deck.code" :style="{ width: handCardsWidth }">
+      <div :class="['game-zones']">
+        <div v-for="deck in tableCardZones" :key="deck._id" :code="deck.code">
           <card
             v-for="[id, { group }] in Object.entries(deck.itemMap)"
             :key="id"
@@ -31,42 +26,8 @@
             :cardGroup="group"
             :canPlay="false"
             imgExt="png"
+            @click.native.stop="showCardInfo(id)"
           />
-        </div>
-        <div class="tutorial-example">
-          <div class="game-info">
-            В банке:1 230₽ <br />
-            Текущая ставка: 100₽
-          </div>
-          <div code="Deck[card_zone_flop]">
-            <div
-              class="card-event"
-              :style="{ backgroundImage: `url(${state.serverOrigin}/img/cards/default/client/businessman.png)` }"
-            >
-              <div class="card-info-btn"></div>
-              <!---->
-            </div>
-          </div>
-          <div code="Deck[card_zone_turn]">
-            <div
-              class="card-event"
-              :style="{ backgroundImage: `url(${state.serverOrigin}/img/cards/default/feature/back-side.png)` }"
-            />
-            <div
-              class="card-event hidden show-feature show-credit"
-              :style="{ backgroundImage: `url(${state.serverOrigin}/img/cards/default/feature/contact.png)` }"
-            />
-          </div>
-          <div code="Deck[card_zone_river]">
-            <div
-              class="card-event"
-              :style="{ backgroundImage: `url(${state.serverOrigin}/img/cards/default/credit/back-side.png)` }"
-            />
-            <div
-              class="card-event hidden show-credit"
-              :style="{ backgroundImage: `url(${state.serverOrigin}/img/cards/default/credit/credit_30_drive.png)` }"
-            />
-          </div>
         </div>
       </div>
     </template>
@@ -98,113 +59,8 @@
       >
         <template #worker="{ playerId, viewerId, iam } = {}">
           <card-worker :playerId="playerId" :viewerId="viewerId" :iam="iam">
-            <template #money="{ money } = {}">
-              <div>
-                <div v-if="showPlayerControls" class="money" :class="{ over: overLimitHover }">
-                  {{
-                    new Intl.NumberFormat().format(
-                      Math.max(0, (money || 0) - (selectingBet ? displayTotalAmount : 0))
-                    ) + '₽'
-                  }}
-                </div>
-              </div>
-            </template>
             <template #timer="{ timer, showTimer } = {}">
               <div v-if="showTimer" class="end-round-timer">{{ timer }}</div>
-            </template>
-            <template #custom>
-              <div class="blind">
-                <img v-if="playerId === roundData.bigBlindPlayerId" :src="chipImgs.bb" />
-                <img v-if="playerId === roundData.smallBlindPlayerId" :src="chipImgs.sb" />
-              </div>
-              <div
-                v-if="showPlayerControls && chipsList.length"
-                class="chips-panel"
-                :class="[{ 'select-mode': selectingBet }]"
-                :style="{ top: `-${chipsPanelTopOffset}px` }"
-              >
-                <div v-for="chip in chipsList" :key="chip.code" class="chip-col" :style="{ width: chip.size + 'px' }">
-                  <div class="chip-stack" :style="{ height: chip.stackHeight + 'px', width: chip.size + 'px' }">
-                    <img
-                      v-for="individualChip in individualChips[chip.code]"
-                      :key="individualChip.id"
-                      class="chip-img abs"
-                      :src="individualChip.src"
-                      :alt="individualChip.label"
-                      :style="{
-                        width: individualChip.size + 'px',
-                        height: individualChip.size + 'px',
-                        bottom: individualChip.bottom + 'px',
-                        zIndex: individualChip.zIndex,
-                        transform:
-                          individualChip.position === individualChip.totalInStack
-                            ? 'none'
-                            : `rotate(${individualChip.rotation}deg)`,
-                      }"
-                      :class="[
-                        selectingBet && individualChip.isHighlighted ? 'highlight' : '',
-                        individualChip.isBlocked ? 'blocked-chip' : '',
-                        individualChip.customData?.customClass || '',
-                      ]"
-                      @mouseenter="
-                        selectingBet && !individualChip.isBlocked && setHover(chip.code, individualChip.position)
-                      "
-                      @mousemove="
-                        selectingBet && !individualChip.isBlocked && setHover(chip.code, individualChip.position)
-                      "
-                      @mouseleave="selectingBet && clearHover(chip.code)"
-                      @click="selectingBet && !individualChip.isBlocked && confirmRaise(chip.code)"
-                    />
-                  </div>
-                  <div class="chip-count" :class="{ 'has-blocked': blockedChipsCount[chip.code] > 0 }">
-                    {{
-                      'x' +
-                      (selectingBet
-                        ? selectedByChip[chip.code] ??
-                          (hoverIndex(chip.code) ? chip.count - hoverIndex(chip.code) + 1 : chip.count)
-                        : chip.count)
-                    }}
-                  </div>
-                </div>
-              </div>
-            </template>
-            <template v-if="showPlayerControls && game.roundStep === 'BET'" #control="{ controlAction } = {}">
-              <div v-if="player.eventData?.controlBtn?.label === 'DEBUG'">
-                <div class="action-btn end-round-btn" @click="controlAction">
-                  {{ 'DEBUG' }}
-                </div>
-              </div>
-              <template v-else-if="sessionPlayerIsActive()">
-                <div class="action-btn-block" v-if="!selectingBet">
-                  <div class="action-btn end-round-btn" @click="startRaise(controlAction)">
-                    {{ 'Повысить' }}
-                  </div>
-                  <div
-                    :class="['action-btn', 'end-round-btn', betToCall <= 0 ? 'disabled' : '']"
-                    @click="controlAction({ action: 'call', amount: betToCall })"
-                  >
-                    <span v-if="betToCall > 0">Уравнять за {{ betToCall }}₽</span>
-                    <span v-else>Уравнять</span>
-                  </div>
-                  <div
-                    :class="['action-btn', 'end-round-btn', betToCall > 0 ? 'disabled' : '']"
-                    @click="controlAction({ action: 'check' })"
-                  >
-                    {{ 'Пропустить' }}
-                  </div>
-                  <div class="action-btn end-round-btn" @click="controlAction({ action: 'reset' })">
-                    {{ 'Сбросить' }}
-                  </div>
-                </div>
-                <div class="action-btn-block select-mode-btns" v-else>
-                  <div class="action-btn end-round-btn cancel-btn" @click="cancelRaise()">
-                    {{ 'Отменить' }}
-                  </div>
-                  <div class="action-btn end-round-btn bet-btn" @click="placeRaise()">
-                    {{ `Повысить на ${new Intl.NumberFormat().format(displayTotalAmount)}₽` }}
-                  </div>
-                </div>
-              </template>
             </template>
           </card-worker>
         </template>
@@ -220,12 +76,6 @@
             <template #timer="{ timer, showTimer } = {}">
               <div v-if="showTimer" class="end-round-timer">{{ timer }}</div>
             </template>
-            <template #custom>
-              <div class="blind">
-                <img v-if="id === roundData.bigBlindPlayerId" :src="chipImgs.bb" />
-                <img v-if="id === roundData.smallBlindPlayerId" :src="chipImgs.sb" />
-              </div>
-            </template>
           </card-worker>
         </template>
       </player>
@@ -237,7 +87,7 @@
 import { provide, reactive } from 'vue';
 
 import { prepareGameGlobals } from '~/lib/game/front/gameGlobals.mjs';
-import pokerGameGlobals, { gameCustomArgs } from '~/domain/game/front/pokerGameGlobals.mjs';
+import flashCardsGameGlobals, { gameCustomArgs } from '~/domain/game/front/flashCardsGameGlobals.mjs';
 import game from '~/lib/game/front/Game.vue';
 import tutorial from '~/lib/helper/front/helper.vue';
 import chat from '~/lib/chat/front/chat.vue';
@@ -300,7 +150,7 @@ export default {
       gameCustomArgs: { ...gameCustomArgs },
     });
 
-    Object.assign(gameGlobals, pokerGameGlobals);
+    Object.assign(gameGlobals, flashCardsGameGlobals);
 
     provide('gameGlobals', gameGlobals);
 
@@ -309,6 +159,11 @@ export default {
   watch: {
     gameDataLoaded: function () {
       // тут ловим обновление страницы
+    },
+    'player.eventData.shownCardId': function (cardId) {
+      if (!cardId) return;
+      console.log('player.eventData.shownCardId=', cardId);
+      this.showCardInfo(cardId);
     },
   },
   computed: {
@@ -351,7 +206,7 @@ export default {
       return this.player.ready && (this.game.status === 'IN_PROCESS' || this.game.status === 'PREPARE_START');
     },
     tableCardZones() {
-      return Object.keys(this.game.deckMap)
+      return Object.keys(this.game.deckMap || {})
         .map((id) => this.store.deck?.[id])
         .filter(({ placement } = {}) => placement == 'table');
     },
@@ -658,6 +513,7 @@ export default {
         showList: [
           { title: 'Стартовое приветствие игры', action: { tutorial: 'game-poker-tutorial-start' } },
           { title: 'Управление игровым полем', action: { tutorial: 'game-tutorial-gamePlane' } },
+          { title: 'Игра в карты', action: { tutorial: 'game-tutorial-flashcards-start' } },
         ],
       });
 
@@ -851,6 +707,27 @@ export default {
     // Пример: добавить произвольные данные к фишке
     addCustomDataToChip(chipId, data) {
       this.setChipCustomData(chipId, data);
+    },
+
+    async showCardInfo(cardId) {
+      const result = await this.handleGameApi({ name: 'showCard', data: { cardId } });
+      console.log('showCardInfo(cardId)=', { cardId, result });
+      const {
+        result: { cardId: shownCardId, cardCode: shownCardCode, cardGroup: shownCardGroup },
+      } = result;
+
+      this.$nextTick(() => {
+        this.$set(this.$root.state, 'shownCard', {
+          id: shownCardId,
+          code: shownCardCode,
+          style: this.getCardCustomStyle({
+            state: this.state,
+            game: { templates: { card: 'default' } },
+            card: { group: shownCardGroup, name: shownCardCode },
+            imgExt: 'png',
+          }),
+        });
+      });
     },
   },
 };
@@ -1312,6 +1189,23 @@ export default {
   &.show-credit {
     .hidden.show-credit {
       display: block;
+    }
+  }
+}
+
+[code='Deck[card_table]'] {
+  display: flex;
+  width: 80%;
+  flex-wrap: wrap;
+  gap: 4px;
+  position: absolute;
+  top: 10%;
+  left: 10%;
+
+  .card-event {
+    &:hover {
+      cursor: pointer;
+      outline: 4px solid #f4e205;
     }
   }
 }

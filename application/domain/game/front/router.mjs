@@ -1,5 +1,12 @@
 export default [
   {
+    path: '/game/auto/flashcards/:id',
+    name: 'Auto Flash Cards',
+    component: function () {
+      return import('./flashCardsGame.vue');
+    },
+  },
+  {
     path: '/game/auto/poker/:id',
     name: 'Auto Poker Game',
     component: function () {
